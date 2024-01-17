@@ -1,0 +1,64 @@
+{
+  "$ref": "#/definitions/ProfilesStoreData",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Profile": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        },
+        "segments": {
+          "items": {
+            "$ref": "#/definitions/Segment"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "segments"
+      ],
+      "type": "object"
+    },
+    "ProfilesStoreData": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/definitions/Profile"
+          },
+          "type": "array"
+        },
+        "selectedId": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "items",
+        "selectedId"
+      ],
+      "type": "object"
+    },
+    "Segment": {
+      "additionalProperties": false,
+      "properties": {
+        "duration": {
+          "type": "number"
+        },
+        "target": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "target",
+        "duration"
+      ],
+      "type": "object"
+    }
+  }
+}
