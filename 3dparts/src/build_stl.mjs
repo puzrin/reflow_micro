@@ -25,16 +25,14 @@ const p = (name) => new URL(name, import.meta.url).pathname
 const builds = {
   //debug: '',
   button: '-D DRAW_BTN=1',
-  tray_m6: '-D DRAW_TRAY=1 -D MAGNET_H=6',
-  cap_m6: '-D DRAW_CAP=1 -D MAGNET_H=6',
-  //tray_and_cap_m3: '-D DRAW_TRAY=1 -D DRAW_CAP=1 -D MAGNET_H=3',
-  //tray_and_cap_m2: '-D DRAW_TRAY=1 -D DRAW_CAP=1 -D MAGNET_H=2',
+  tray: '-D DRAW_TRAY=1',
+  cap: '-D DRAW_CAP=1',
 }
 
 function build(name) {
   const build = builds[name]
   console.log(`Building ${name}.stl`)
-  execSync(`${openscad} ${p('case.scad')} ${build} -o ${p(`${name}.stl`)}`)
+  execSync(`${openscad} ${p('case.scad')} ${build} -o ${p(`../${name}.stl`)}`)
 }
 
 // no params - build all variants

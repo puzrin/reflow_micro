@@ -93,3 +93,8 @@ module tr_xy(ofs_x, ofs_y) { translate([ofs_x, ofs_y, 0]) children(); }
 module mirror_x() { mirror([1, 0, 0]) children(); }
 module mirror_y() { mirror([0, 1, 0]) children(); }
 module mirror_z() { mirror([0, 0, 1]) children(); }
+module mirror_xy() { mirror_x() mirror_y() children(); }
+
+module dupe_x() { children(); mirror_x() children(); }
+module dupe_y() { children(); mirror_y() children(); }
+module dupe_xy() { children(); mirror_x() children(); mirror_y() children(); mirror_xy() children(); }

@@ -34,7 +34,7 @@ add ~ 8$ in total to your order - good price for convenience.
 
 ## JLCPCB / LCSC order notes
 
-1. PCB
+1. PCB:
    - Thikness 1.6mm, white mask advised for better look.
    - Stencil strongly recommended.
      - Select stencil for bottom side.
@@ -42,13 +42,17 @@ add ~ 8$ in total to your order - good price for convenience.
        forget corner holes, marked with arrows**". Or positional holes can be missed.
      - Select "custom size", and set 95\*85. Then stencil will be compact and
        light, with small delivery cost.
-2. PCB shield - aluminum, thickness 1.2mm.
-3. Reflector - aluminum, thickness 1.6mm.
-4. Nuts - aluminum, thickness 1.6mm
-5. Hotplate (CNC machined)
+2. PCB shield:
+   - aluminum, thickness 1.2mm.
+   - Select option "Remove order number"
+3. Reflector:
+   - aluminum, thickness 1.2mm.
+   - Select option "Remove order number"
+4. MCH mount - aluminum, thickness 1.2mm
+5. Hotplate (CNC machined):
    - Aluminum 6061
    - Hardcoat anodizing, black
-6. Case
+6. Case:
    - Top cover and tray SLA CBY resin or SLS 1172pro Nylon for better look.
    - Button - SLA 8001 resin, translucent.
 
