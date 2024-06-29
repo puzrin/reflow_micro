@@ -2,13 +2,13 @@ include <utils.scad>;
 
 $fn = 64;
 
-rcube([1, 10, 13], r = 0.5, center=false);
-rcube([2, 10, 12], r = 0.5, center=false);
-rcube([3, 10, 11], r = 0.5, center=false);
-rcube([4, 10, 10], r = 0.5, center=false);
-rcube([5, 10, 9], r = 0.5, center=false);
-rcube([6, 10, 8], r = 0.5, center=false);
-rcube([7, 10, 7], r = 0.5, center=false);
-rcube([8, 10, 6], r = 0.5, center=false);
-rcube([9, 10, 5], r = 0.5, center=false);
-rcube([20, 10, 2], r = 0.5, center=false);
+w=6;
+
+rcube([1, w, 13], r = 0.5, center=false);
+rcube([2, w, 12], r = 0.5, center=false);
+rcube([3, w, 11], r = 0.5, center=false);
+rcube([4, w, 10], r = 0.5, center=false);
+rcube([5, w, 9], r = 0.5, center=false);
+rcube([6, w, 8], r = 0.5, center=false);
+
+tr_x(-10) rcube([16, w, 3], r = 3, center=false);

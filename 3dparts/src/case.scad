@@ -4,8 +4,9 @@ $fn = $preview ? 16 : 64;
 
 // Inserts size for PCB mount (M1.6)
 insert_d = 2.5 + 0.1;
-insert_h = 4 + 0.1;
+insert_h = 4 + 0.3;
 insert_pcb_x_offset = 2.5;
+insert_pcb_y_offset = 25;
 
 // !!! Measure magnets height before case order.
 // Magnets from Aliexpress can be smaller than declared size
@@ -81,7 +82,7 @@ module usb_hole() {
 
 module tray_pcb_holder() {
     r = insert_d/2 + 1.2;
-    h = tray_inner_h - 0.3;
+    h = tray_inner_h; // - 0.3;
 
     tr_z(wall_hor-e)
     difference() {
@@ -144,12 +145,13 @@ module tray() {
             magnet_support_4x(tray_inner_h);
 
             // Inserts holders
-            dupe_x()
+            dupe_xy()
+            tr_y(insert_pcb_y_offset)
             tr_x(-pcb_wx/2 + insert_pcb_x_offset) tray_pcb_holder();
             
             // PCB supports
-            dupe_xy()
-            tr_xy(-pcb_wx/2, -pcb_wy/2+15) tr_z(wall_hor--e) cube([1.5, 1.5, tray_inner_h]);
+            //dupe_xy()
+            //tr_xy(-pcb_wx/2, -pcb_wy/2+15) tr_z(wall_hor--e) cube([1.5, 1.5, tray_inner_h]);
 
             dupe_xy()
             tr_xy(7, -pcb_wy/2) tr_z(wall_hor--e) cube([1.5, 1.5, tray_inner_h]);
@@ -175,10 +177,10 @@ module tray() {
         tr_z(tray_h-pcb_h) tr_y(pcb_wy/2+pcb_side_margin) usb_hole();
         
         // Gaskets reserve
-        dupe_xy()
-        tr_xy(-pcb_wx/2 + insert_pcb_x_offset, -15)
-        tr_z(tray_inner_h + wall_hor + e)
-        mirror_z() cylinder(h=1, d=4.8);
+        //dupe_xy()
+        //tr_xy(-pcb_wx/2 + insert_pcb_x_offset, -15)
+        //tr_z(tray_inner_h + wall_hor + e)
+        //mirror_z() cylinder(h=1, d=4.8);
     }
 }
 
