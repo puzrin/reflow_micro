@@ -3,22 +3,41 @@ Reflow Micro Table
 
 **WIP**
 
-> Compact table for hobby projects reflow assembly, with bluetooth control.
+> Compact reflow soldering table, with bluetooth control, 80\*70 mm working area
+and up to 350C. Designed for hobby use, when you don't wish spend much space for
+professional equipment.
 
-This tool helps to build modern and complicated electronic devices at home.
-It's very small, and ideally suits for hobbyists, who assemble PCBs from time to
-time an don't wish to keep big reflowers from microwave ovens.
-
-Working area is up to 70\*60mm. That's enough for almost all hobby PCBs with
-SMD components.
-
+- [Build manual](doc/README.md)
 - [EasyEDA project page](https://oshwlab.com/reflow/reflow-usb-pd-headless) -
-  Schematic & PCB. Order everything in couple of clicks.
+  Schematic & PCB. Order almost everything in couple of clicks.
+- [Hackaday.io](https://hackaday.io/project/168063-reflow-micro-table) page,
+  with history of build.
 
-Also see project page on [hackaday.io](https://hackaday.io/project/168063-reflow-micro-table).
-Until WIP, it tracks progress and has useful tips in build logs.
+TBD Video
 
 
-## Order & build
+## Description
 
-- [Assembly guide](doc/assembly.md)
+This device is targeted for hobby, when you need to assemble PCBs from time to
+time. It may be not as featured as professional equipment, but it's very compact
+and covers most of hobby needs.
+
+Key points:
+
+- Very small, don't occupy much space when not used.
+- Powered from 100W USB PD charger.
+- Controlled from web browser (desktop and mobile).
+- Working area 70x80 mm, with temperature deviation of surface < 10°C on max power.
+- Components cost < 50$.
+- Up to 350°C heating temperature, for long period and without fan.
+- You can easily define any heating profile you wish.
+
+Use cases:
+
+- Reflow soldering with Sn42bi58 (138°C) / SnPb (183°C) paste.
+- Reflow soldering with Pb free (217°C) soldering paste.
+- Pre-heat table (130-150°C), for soldering with air gun.
+- Other needs (drying, paint baking, and others)
+
+Due passive cool down, cooling speed on reflow may be slower than desired. But
+that's acceptable trade-off for compact size.
