@@ -36,6 +36,8 @@ case_r_vert = pcb_r + wall_side;
 case_r_bottom = 1;
 case_r_top = 1;
 
+cap_stiffener_h = 12 + 4;
+
 tray_inner_h = 6.7;
 tray_h  = tray_inner_h + wall_hor + pcb_h;
 
@@ -164,6 +166,15 @@ module tray() {
             tr_x(btn_pusher_w/2 + 0.1)
             tr_y(-pcb_wy/2 + btn_pusher_pcb_depth + 1)
             mirror_y() cube([2, 4, 1.2]);
+
+            // Stiffeners
+            rcube([pcb_wx, 2.0, 2+wall_hor], r=0);
+            dupe_y() tr_y(20) rcube([pcb_wx, 2.0, 2+wall_hor], r=0);
+
+            dupe_x() {
+                tr_x(9) rcube([2.0, pcb_wy, 2+wall_hor], r=0);
+                tr_x(27) rcube([2.0, pcb_wy, 2+wall_hor], r=0);
+            }
         }
 
         // Button hole
@@ -185,6 +196,26 @@ module tray() {
     }
 }
 
+module cap_stiffener_x() {
+    h = cap_stiffener_h;
+
+    tr_y(-pcb_wy/2-e)
+    tr_z(wall_hor-e) tr_x(1)
+    rotate_y(-90)
+    linear_extrude(2) 
+    polygon([[0,0], [h,0], [h-4,4], [0,4]]);
+}
+
+module cap_stiffener_y() {
+    h = cap_stiffener_h;
+
+    tr_x(pcb_wx/2+e)
+    rotate_z(90)
+    tr_z(wall_hor-e) tr_x(1)
+    rotate_y(-90)
+    linear_extrude(2) 
+    polygon([[0,0], [h,0], [h-4,4], [0,4]]);
+}
 
 module cap() {
     union() {
@@ -228,6 +259,14 @@ module cap() {
         }
 
         magnet_support_4x(cap_inner_h);
+
+        // Stiffeneres
+        dupe_y() {
+            cap_stiffener_x();
+            dupe_x() tr_x(22) cap_stiffener_x();
+        }
+        
+        dupe_xy() tr_y(12) cap_stiffener_y();
     }
 }
 
