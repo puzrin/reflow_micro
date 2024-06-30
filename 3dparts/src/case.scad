@@ -48,16 +48,16 @@ cap_inner_h = 31.5;
 cap_h = cap_inner_h + wall_hor;
 
 // Set btn height to make hole h = 3mm. For easy cleanup with drill bit.
-btn_h = 3; // 3mm - 2*margin
+btn_h = 2.8; // 3mm - 2*margin
 btn_w = 8;
 btn_margin = 0.1;
 
-btn_pusher_w = 10;
+btn_pusher_w = 12;
 btn_pusher_base_w = 1.5;
 btn_pusher_pcb_depth = 6;
 //btn_ring_w = 0.4;
 
-led_h = 1.1; // 0.8...1.1 for different models
+led_h = 0.6; // 0.5...0.6 for different models
 
 module case_left(ofs = 0) { tr_x(ofs - case_wx/2) children(); }
 module case_right(ofs = 0) { tr_x(ofs + case_wx/2) children(); }
@@ -166,7 +166,7 @@ module tray() {
             // Button guides
             dupe_x()
             tr_z(wall_hor-e)
-            tr_x(btn_pusher_w/2 + 0.1)
+            tr_x(btn_pusher_w/2 + 0.15)
             tr_y(-pcb_wy/2 + btn_pusher_pcb_depth + 1)
             mirror_y() cube([2, 4, 1.2]);
 
@@ -276,8 +276,8 @@ module cap() {
 module button() {
     btn_middle_h = tray_h/2 - wall_hor;
     btn_inner_depth = btn_pusher_pcb_depth - pcb_support_w;
-    // Calculate back size to leave 0.2mm to led
-    btn_back_h = (tray_inner_h - led_h - btn_middle_h - 0.2)*2;
+    // Calculate back size to leave 0.5mm to led
+    btn_back_h = (tray_inner_h - led_h - btn_middle_h - 0.5)*2;
 
     // "ring" should be > 0.3mm
     assert(btn_back_h - btn_h > 0.3*2, "Too few space for button");
@@ -293,30 +293,31 @@ module button() {
             // Front part, 1mm out of case
             tr_z(btn_inner_depth - e)
             linear_extrude(wall_side + pcb_support_w + 1)
-            rsquare([btn_w, btn_h], r=1.5);
+            rsquare([btn_w, btn_h], r=btn_h/2);
 
             // Inner
             linear_extrude(btn_inner_depth)
-            rsquare([btn_pusher_w, btn_back_h], r=0.5);
+            rsquare([btn_pusher_w, btn_back_h], r=1.0);
 
             // Pusher
-            tr_xy(-btn_pusher_w/2, btn_middle_h)
-            mirror_y()
-            linear_extrude(btn_pusher_base_w)
-            rsquare([btn_pusher_w, tray_inner_h-0.2], r=0.5, center=false);
+            p_space = 0.3; // total top/bottom margin, 0.15mm each,
+            p_h = tray_inner_h - p_space;
+
+            tr_y(-tray_inner_h/2 + btn_middle_h)
+            rcube([btn_pusher_w, p_h, btn_pusher_base_w], r=1.0);
 
             // extra supports to keep button in the middle of tray hole
-            tr_x(-btn_pusher_w/2)
-            linear_extrude(btn_inner_depth-0.5) square([1, btn_middle_h]);
+            //tr_x(-btn_pusher_w/2)
+            //linear_extrude(btn_inner_depth-0.5) square([1, btn_middle_h]);
 
-            mirror_x()
-            tr_x(-btn_pusher_w/2)
-            linear_extrude(btn_inner_depth-0.5) square([1, btn_middle_h]);
+            //mirror_x()
+            //tr_x(-btn_pusher_w/2)
+            //linear_extrude(btn_inner_depth-0.5) square([1, btn_middle_h]);
         }
 
         // Light mirror
         mside = btn_back_h - 1;
-        m_w = btn_pusher_w - 2;
+        m_w = btn_pusher_w - 3;
 
         tr_z(btn_pusher_base_w)
         tr_xy(m_w/2, btn_back_h/2+e) rotate_y(-90)
