@@ -40,13 +40,11 @@ tray_inner_h = 6.7;
 tray_h  = tray_inner_h + wall_hor + pcb_h;
 
 // plate (4) + space (12) + reflector (1.2/1.6) + space (4) + shield (1.2) + extra (1)
-//cap_inner_h = 4 + 12 + 1.6 + 4 + 1.2 + 2;
-cap_inner_h = 31.5;
+cap_inner_h = 4 + 12 + 1.6 + 4 + 1.2 + 2;
 
 cap_h = cap_inner_h + wall_hor;
 
-// Set btn height to make hole h = 3mm. For easy cleanup with drill bit.
-btn_h = 3; // 3mm - 2*margin
+btn_h = 3;
 btn_w = 8;
 btn_margin = 0.1;
 
@@ -169,10 +167,11 @@ module tray() {
         // Button hole
         case_front(wall_side+pcb_support_w+e) tr_z(tray_h/2)
         rotate_x(90)
-        rcube(
-            [btn_w + 2*btn_margin, btn_h + 2*btn_margin, wall_side+pcb_support_w+2e],
-            r=btn_h/2+btn_margin
-        );
+        linear_extrude(wall_side+pcb_support_w+2e)
+        hull() {
+            tr_x(btn_w/2-btn_h/2) circle(btn_h/2 + btn_margin);
+            tr_x(-btn_w/2+btn_h/2) circle(btn_h/2 + btn_margin);
+        }
 
         // USB connector
         tr_z(tray_h-pcb_h) tr_y(pcb_wy/2+pcb_side_margin) usb_hole();
@@ -210,7 +209,7 @@ module cap() {
             
             // Small cone conductors for alu cover
 
-            gap = 0.5;
+            gap = 0.4;
 
             tr_z(cap_h)
             hull () {
