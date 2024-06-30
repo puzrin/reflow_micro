@@ -106,7 +106,10 @@ module magnet_support(h = 20) {
     tr_xy(-3.5, -3.5)
     difference() {
         union() {
+            tr_y(r) mirror_xy() cube([r*0.5, r*0.5, h-mh]);
+            tr_x(r) mirror_xy() cube([r*0.5, r*0.5, h-mh]);
             cylinder(h = h, r = r);
+
             rotate_extrude(angle=90) square([r+reserve_w, h]);
         }
 
