@@ -23,16 +23,17 @@ if (!openscad) {
 const p = (name) => new URL(name, import.meta.url).pathname
 
 const builds = {
-  //debug: '',
-  button: '-D DRAW_BTN=1',
-  tray: '-D DRAW_TRAY=1',
-  cap: '-D DRAW_CAP=1',
+  button: ['case.scad', '-D DRAW_BTN=1'],
+  tray: ['case.scad', '-D DRAW_TRAY=1'],
+  cap: ['case.scad', '-D DRAW_CAP=1'],
+  air_duct: ['air_duct.scad', '-D top_dia=10'],
+  air_duct_alt: ['air_duct.scad', '-D top_dia=15 -D bottom_dia=15'],
 }
 
 function build(name) {
-  const build = builds[name]
+  const [file, options] = builds[name]
   console.log(`Building ${name}.stl`)
-  execSync(`${openscad} ${p('case.scad')} ${build} -o ${p(`../${name}.stl`)}`)
+  execSync(`${openscad} ${p(file)} ${options} -o ${p(`../${name}.stl`)}`)
 }
 
 // no params - build all variants
