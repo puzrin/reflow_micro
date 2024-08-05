@@ -1,4 +1,5 @@
 include <utils.scad>;
+include <fan_pi5_data.scad>;
 
 $fn = $preview ? 16 : 64;
 
@@ -195,6 +196,15 @@ module tray() {
         // Bottom heels
         dupe_xy() tr_xy(case_wx/2 - 7.5, case_wy/2 - 7.5) tr_z(-e) cylinder(h=1, d=6.2);
         dupe_xy() tr_xy(case_wx/2 - 7.5 - 8, case_wy/2 - 7.5) tr_z(-e) cylinder(h=0.5, d=6.2); // temporary test
+
+        // Partially remove stifffeners for pi5 fan & air duct
+        translate([-9+1, -38/2, wall_hor]) cube([52.5, 38, 2+e]);
+        // Extra space for fan mounting
+        for (i = fan_mount_coords) {
+            tr_xy(5, -15)
+            translate(i)
+            tr_z(wall_hor+e) mirror_z() cylinder(h=1, d=4.5);
+        }
     }
 }
 
