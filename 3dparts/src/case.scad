@@ -49,7 +49,7 @@ cap_h = cap_inner_h + wall_hor;
 
 // Set btn height to make hole h = 3mm. For easy cleanup with drill bit.
 btn_h = 2.8; // 3mm - 2*margin
-btn_w = 8;
+btn_w = 7.8;
 btn_margin = 0.1;
 
 btn_pusher_w = 12;
@@ -167,9 +167,9 @@ module tray() {
             // Button guides
             dupe_x()
             tr_z(wall_hor-e)
-            tr_x(btn_pusher_w/2 + 0.15)
+            tr_x(btn_pusher_w/2 + 0.25)
             tr_y(-pcb_wy/2 + btn_pusher_pcb_depth + 1)
-            mirror_y() cube([2, 4, 1.2]);
+            mirror_y() cube([2, 4, 1.7]);
 
             // Stiffeners
             rcube([pcb_wx, 2.0, 2+wall_hor], r=0);
