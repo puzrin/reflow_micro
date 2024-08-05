@@ -38,7 +38,7 @@ case_r_top = 1;
 
 cap_stiffener_h = 12 + 4;
 
-tray_inner_h = 6.7;
+tray_inner_h = 8; //6.7;
 tray_h  = tray_inner_h + wall_hor + pcb_h;
 
 // plate (4) + space (12) + reflector (1.2/1.6) + space (4) + shield (1.2) + extra (1)
@@ -57,7 +57,7 @@ btn_pusher_base_w = 1.5;
 btn_pusher_pcb_depth = 6;
 //btn_ring_w = 0.4;
 
-led_h = 0.6; // 0.5...0.6 for different models
+led_h = 0.85; // 0.5...0.6 for different models
 
 module case_left(ofs = 0) { tr_x(ofs - case_wx/2) children(); }
 module case_right(ofs = 0) { tr_x(ofs + case_wx/2) children(); }
@@ -71,14 +71,15 @@ module usb_hole() {
     // outer sizes
     usb_w = 8.94;
     usb_h = 3.26;
-    usb_r = 1.52;
+    usb_r = 1.0;
 
     tr_z(-usb_h/2)
     rotate_x (-90) {
-        tr_z(-e) rcube([usb_w, usb_h, 10], r=usb_r);
+        w = usb_w + 0.4;
+        h = usb_h + 0.4;
 
-        w = usb_w + 0.2;
-        h = usb_h + 0.2;
+        tr_z(-e) rcube([w, h, 10], r=usb_r);
+
         mirror_z() rcube([w, h, 10], r=usb_r);
         mirror_y() mirror_z() tr_x(-w/2) linear_extrude(10) square(w, 10);
     }
@@ -191,11 +192,9 @@ module tray() {
         // USB connector
         tr_z(tray_h-pcb_h) tr_y(pcb_wy/2+pcb_side_margin) usb_hole();
         
-        // Gaskets reserve
-        //dupe_xy()
-        //tr_xy(-pcb_wx/2 + insert_pcb_x_offset, -15)
-        //tr_z(tray_inner_h + wall_hor + e)
-        //mirror_z() cylinder(h=1, d=4.8);
+        // Bottom heels
+        dupe_xy() tr_xy(case_wx/2 - 7.5, case_wy/2 - 7.5) tr_z(-e) cylinder(h=1, d=6.2);
+        dupe_xy() tr_xy(case_wx/2 - 7.5 - 8, case_wy/2 - 7.5) tr_z(-e) cylinder(h=0.5, d=6.2); // temporary test
     }
 }
 
