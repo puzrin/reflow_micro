@@ -43,29 +43,30 @@ add ~ 8$ in total to your order - good price for convenience.
 2 | [Digital thermometer](https://www.aliexpress.com/item/32815540975.html) | [Alternate](https://www.aliexpress.com/item/32803473451.html) | For temperature calibration.
 3 | [Soldering air gun](https://www.aliexpress.com/item/1005006099512955.html) | For PCB assembly.
 4 | [Low temp soldering paste](https://www.aliexpress.com/item/1005006023229246.html) | Sn42bi58, 138°C, for PCB assembly. [Alternate](https://www.aliexpress.com/item/1005006724027713.html).
-5 | [Milliohm meter](https://www.aliexpress.com/item/1005006408703765.html) | For MCH heaters pairing.
+5 | [Milliohm meter](https://www.aliexpress.com/item/1005006408703765.html) | For MCH heaters pairing. 5v PD trigger recommended for convenient 5v power from USB.
 
 
 ## JLCPCB / LCSC order notes
 
 https://oshwlab.com/reflow/reflow-usb-pd-headless
 
-1. PCB_main: 1.6mm, green.
+1. PCB_main: 1.6mm, white.
+   - Option "Remove mark".
    - Stencil strongly recommended.
      - Bottom side only.
-     - Comment "**Make stencil according to paste mask file and don't
-       forget corner holes, marked with arrows**". Or positional holes can be missed.
+     - Comment "**Make stencil according to paste mask file and don't forget corner holes, marked with arrows**". Or positional holes can be missed.
      - Select "custom size", and set 90\*80. Then stencil will be compact and
        light, with small delivery cost.
-2. PCB_cap: 1.2mm, white.
+2. PCB_cap: 1.6mm, white.
+   - Option "Remove mark".
    - Comment: "PCB has no traces, mask only, data is correct."
 3. hotplate_base: 1.2mm, white.
-   - Option "Remove order number".
+   - Option "Remove mark".
 4. hotplate_reflector: 1.6mm, white.
    - Comment: "PCB has no traces, mask only, data is correct."
 5. MCH mount: aluminum, 1.0mm
    - Comment: "This PCB has no traces and no mask, data is correct."
-6. foil_conductor: 0.8mm, green.
+6. foil_conductor: 1.0mm, red.
    - Comment: "PCB has no traces, mask only, data is correct."
 
 jlc3dp, CNC:
@@ -81,7 +82,9 @@ jlc3dp, printed:
 
 1. tray & cap: SLA "black resin" or MJF "PA12-HP nylon".
 2. button: SLA "8001 resin", translucent.
-3. tool_spacer: SLA "LEDE 6060"
+3. tool_spacer: SLA "black resin", 2x
+4. pcb_aligner: SLA "black resin", 4x
+5. air_duct: MJF "PA12-HP nylon", non-painted (natural color).
 
 
 ## PCB assembly

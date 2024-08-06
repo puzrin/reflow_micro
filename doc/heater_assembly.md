@@ -2,6 +2,7 @@ Heater assembly <!-- omit in toc -->
 ===============
 
 - [Plate top painting](#plate-top-painting)
+- [Baking the paint](#baking-the-paint)
 - [MCH heaters resistance matching](#mch-heaters-resistance-matching)
 - [Mount heaters to plate](#mount-heaters-to-plate)
 - [Mount reflector](#mount-reflector)
@@ -12,8 +13,22 @@ Heater assembly <!-- omit in toc -->
 ## Plate top painting
 
 For good heat emission you heed to paint heating plate top to black color.
-Difference with unpainted plate is very big. Note, high temperature paints need
-baking at 160-200°C after dry. Read details in your paint instruction.
+Difference with unpainted plate is very big.
+
+First, protect plate sides with sticky tape, and stick to A4 paper.
+
+TBD image.
+
+Clean plate top with IPA. Then put all on suitable surface and spay paint
+from 30-40cm distance. Move sprayer to make thin and uniform layer. Small
+thickness is important for strength on high temperatures.
+
+TBD image.
+
+
+## Baking the paint
+
+High heat paints need baking after dry. Read details in your paint instruction.
 
 There are 2 approaches to baking:
 
@@ -23,15 +38,17 @@ There are 2 approaches to baking:
    you probably need waiting 1 day after painting for better dry, and be more
    careful to avoid scratches before plate been baked.
 
-First, protect plate sides with sticky tape, and stick to A4 paper.
+Since heads are easy to replace, it may be convenient to assemble 2 heads - one
+for baking/experimenting, and one for final use.
 
-TBD image.
+Note, many paint manufacturers advice to harden paint at ~200°C for 1 hour. THIS
+IS NOT ENOUGH! At room temperature paint will be solid, but can soften after
+heating back. Consider alternative heating profile:
 
-Clean plate top with IPA. Then put all on suitable surface and spay paint
-from 20-30cm distance. Move sprayer to make thin and uniform layer. Small
-thickness is important for strength on high temperatures.
+- 250-300°C (max reflow working temp) for at least 3 hours.
+- 4°C/sec temperature rising speed.
 
-TBD image.
+If you are not sure about your paint - check it at test workpiece.
 
 
 ## MCH heaters resistance matching
