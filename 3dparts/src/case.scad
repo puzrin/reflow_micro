@@ -11,9 +11,8 @@ insert_pcb_y_offset = 25;
 
 // !!! Measure magnets height before case order.
 // Magnets from Aliexpress can be smaller than declared size
-MAGNET_H = 6;
 magnet_d = 6;
-magnet_h = MAGNET_H;
+magnet_h = 6;
 magnet_margin_h = 0.2;
 magnet_axis_offset = 3.5;
 
