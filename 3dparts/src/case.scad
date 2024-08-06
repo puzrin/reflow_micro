@@ -14,7 +14,8 @@ insert_pcb_y_offset = 25;
 MAGNET_H = 6;
 magnet_d = 6;
 magnet_h = MAGNET_H;
-magnet_margin_h = 0.1;
+magnet_margin_h = 0.2;
+magnet_axis_offset = 3.5;
 
 wall_hor = 2;
 wall_side = 1.75;
@@ -47,6 +48,7 @@ tray_h  = tray_inner_h + wall_hor + pcb_h;
 cap_inner_h = 31.5;
 
 cap_h = cap_inner_h + wall_hor;
+cap_pcb_margin = 0.1;
 
 // Set btn height to make hole h = 3mm. For easy cleanup with drill bit.
 btn_h = 2.8; // 3mm - 2*margin
@@ -56,7 +58,6 @@ btn_margin = 0.1;
 btn_pusher_w = 12;
 btn_pusher_base_w = 1.5;
 btn_pusher_pcb_depth = 6;
-//btn_ring_w = 0.4;
 
 led_h = 0.85; // 0.5...0.6 for different models
 
@@ -105,23 +106,12 @@ module magnet_support(h = 20) {
     mh = magnet_h + magnet_margin_h;
     assert(mh <= tray_inner_h, "Tray inner too small for desired magnet height")
 
-    tr_xy(-3.5, -3.5)
-    difference() {
-        union() {
-            //tr_y(r) mirror_xy() cube([r*0.5, r*0.5, h-mh]);
-            //tr_x(r) mirror_xy() cube([r*0.5, r*0.5, h-mh]);
-            //cylinder(h = h, r = r);
-
-            rotate_extrude(angle=90) square([r+reserve_w, h]);
-        }
-
-        tr_z(h - mh + e) cylinder(h = mh, r = r+e);
-    }
-}
-
-module magnet_support_4x(h=20) {
     dupe_xy()
-    tr_xy(pcb_wx/2, pcb_wy/2) tr_z(wall_hor-e) magnet_support(h+e);
+    tr_xy(pcb_wx/2 - 3.5, pcb_wy/2 - 3.5)
+    difference() {
+        rotate_extrude(angle=90) square([r+reserve_w, h]);
+        tr_z(h - mh) cylinder(h = mh+e, r = r+e);
+    }
 }
 
 module _tray_base() {
@@ -141,6 +131,12 @@ module _tray_base() {
             [case_wx-2*wall_side+2*pcb_side_margin, case_wy-2*wall_side+2*pcb_side_margin, pcb_h+e],
             r = pcb_r+pcb_side_margin
         );
+        
+        // Ensure space for magnets
+        dupe_xy () {
+            translate([pcb_wx/2 - magnet_axis_offset, pcb_wy/2 - magnet_axis_offset, wall_hor])
+            cylinder(h = tray_h, d = magnet_d);
+        }
 
     }
 }
@@ -151,7 +147,7 @@ module tray() {
         union() {
             _tray_base();
 
-            magnet_support_4x(tray_inner_h);
+            tr_z(wall_hor-e) magnet_support(tray_inner_h);
 
             // Inserts holders
             dupe_xy()
@@ -159,9 +155,6 @@ module tray() {
             tr_x(-pcb_wx/2 + insert_pcb_x_offset) tray_pcb_holder();
             
             // PCB supports
-            //dupe_xy()
-            //tr_xy(-pcb_wx/2, -pcb_wy/2+15) tr_z(wall_hor--e) cube([1.5, 1.5, tray_inner_h]);
-
             dupe_xy()
             tr_xy(7, -pcb_wy/2) tr_z(wall_hor--e) cube([1.5, 1.5, tray_inner_h]);
 
@@ -211,7 +204,7 @@ module tray() {
 module cap_stiffener_x() {
     h = cap_stiffener_h;
 
-    tr_y(-pcb_wy/2-e)
+    tr_y(-pcb_wy/2-cap_pcb_margin-e)
     tr_z(wall_hor-e) tr_x(1)
     rotate_y(-90)
     linear_extrude(2) 
@@ -221,7 +214,7 @@ module cap_stiffener_x() {
 module cap_stiffener_y() {
     h = cap_stiffener_h;
 
-    tr_x(pcb_wx/2+e)
+    tr_x(pcb_wx/2+cap_pcb_margin+e)
     rotate_z(90)
     tr_z(wall_hor-e) tr_x(1)
     rotate_y(-90)
@@ -235,25 +228,16 @@ module cap() {
             rcube([case_wx, case_wy, cap_h],
                 r = case_r_vert, rbottom = case_r_bottom);
 
-            tr_z(wall_hor)
-            rcube(
-                [
-                    pcb_wx - 2*pcb_support_w,
-                    pcb_wy - 2*pcb_support_w,
-                    cap_h-wall_hor+e
-                ],
-                //r = case_r_vert - wall_side
-                r = magnet_d/2
-            );
+            tr_z(wall_hor) rcube([pcb_wx+cap_pcb_margin*2, pcb_wy+cap_pcb_margin*2, cap_h], r = magnet_d/2);
 
-            // Inner for pcb alu cover
-            wl = wall_side - pcb_side_margin;
-            tr_z(cap_h - 2)
-            rcube([case_wx-2*wl, case_wy-2*wl, cap_h], r = case_r_vert-wl);
-            
+            // Ensure space for magnets
+            dupe_xy () {
+                translate([pcb_wx/2 - magnet_axis_offset, pcb_wy/2 - magnet_axis_offset, wall_hor])
+                cylinder(h = cap_h, d = magnet_d);
+            }
+
             // Small cone conductors for alu cover
-
-            gap = 0.5;
+            gap = 0.6;
 
             tr_z(cap_h)
             hull () {
@@ -270,7 +254,7 @@ module cap() {
             };
         }
 
-        magnet_support_4x(cap_inner_h);
+        tr_z(wall_hor-e) magnet_support(cap_inner_h);
 
         // Stiffeneres
         dupe_y() {
@@ -314,14 +298,6 @@ module button() {
 
             tr_y(-tray_inner_h/2 + btn_middle_h)
             rcube([btn_pusher_w, p_h, btn_pusher_base_w], r=1.0);
-
-            // extra supports to keep button in the middle of tray hole
-            //tr_x(-btn_pusher_w/2)
-            //linear_extrude(btn_inner_depth-0.5) square([1, btn_middle_h]);
-
-            //mirror_x()
-            //tr_x(-btn_pusher_w/2)
-            //linear_extrude(btn_inner_depth-0.5) square([1, btn_middle_h]);
         }
 
         // Light mirror
