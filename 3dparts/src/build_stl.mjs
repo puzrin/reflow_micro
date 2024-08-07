@@ -40,7 +40,8 @@ const builds = {
   pcb_aligner_05: ['pcb_aligner.scad', '-D latch=0.5'],
   magnet_clamp_80: ['magnet_clamp.scad', '-D space=8'],
   magnet_clamp_75: ['magnet_clamp.scad', '-D space=7.5'],
-  tool_spacer: ['tool_spacer.scad', '-D space=7.5'],
+  magnet_clamp_70: ['magnet_clamp.scad', '-D space=7.0'],
+  tool_spacer: ['tool_spacer.scad', ''],
 }
 
 function build(name) {
