@@ -7,8 +7,8 @@ w = 10;
 pcb_h = 1.6;
 pcb_space = pcb_h + 0.3;
 base_h = 13;
-latch = 0.3;
-latch_w = 2;
+latch = 0.3; // Update if needed
+latch_w = 3;
 margin = 5;
 clones = 5;
 
@@ -47,7 +47,7 @@ module aligner (last) {
     tr_z(-pcb_h + latch)
     tr_xy(w/2, w/2)
     tr_z(-1) rotate_z(45) tr_y(latch_w/2) rotate_x(90)
-    linear_extrude(latch_w) polygon([[-1,0], [0,1], [1,0], [1,-1], [-1,-1]]);
+    linear_extrude(latch_w) polygon([[-1.4,0.2], [0,1], [1.4,0.2], [1.4,-1], [-1.4,-1]]);
     
     // clones connector
     if (!last) {

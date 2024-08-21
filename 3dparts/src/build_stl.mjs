@@ -36,11 +36,8 @@ const builds = {
   // air_duct_alt_9_5: ['air_duct.scad', '-D h=9.5 -D top_dia=15'],
   air_duct_pi5_top: ['air_duct_pi5.scad', '-D draw_top=1'],
   air_duct_pi5_bottom: ['air_duct_pi5.scad', '-D draw_bottom=1'],
-  pcb_aligner_03: ['pcb_aligner.scad', '-D latch=0.3'],
-  pcb_aligner_05: ['pcb_aligner.scad', '-D latch=0.5'],
-  magnet_clamp_80: ['magnet_clamp.scad', '-D space=8'],
-  magnet_clamp_75: ['magnet_clamp.scad', '-D space=7.5'],
-  magnet_clamp_70: ['magnet_clamp.scad', '-D space=7.0'],
+  pcb_aligner: ['pcb_aligner.scad', '-D latch=0.3'],
+  magnet_clamp: ['magnet_clamp.scad', '-D space=7.5'],
   tool_spacer: ['tool_spacer.scad', ''],
 }
 

@@ -2,7 +2,7 @@ include <utils.scad>;
 
 $fn = 128;
 
-space = 8;
+space = 7.5;
 z = 6;
 x = 22;
 y = 14;
