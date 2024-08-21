@@ -64,7 +64,8 @@ https://oshwlab.com/reflow/reflow-usb-pd-headless
    - Option "Remove mark".
 4. hotplate_reflector: 1.6mm, white.
    - Comment: "PCB has no traces, mask only, data is correct."
-5. MCH mount: aluminum, 1.0mm
+5. MCH mount: aluminum, 1.2mm
+   - Option "Remove mark".
    - Comment: "This PCB has no traces and no mask, data is correct."
 6. foil_conductor: 1.0mm, red.
    - Comment: "PCB has no traces, mask only, data is correct."
@@ -73,10 +74,8 @@ jlc3dp, CNC:
 
 1. Hotplate:
    - Material: Aluminum 6061.
-   - Surface Finish: "As machined"..
-   - Tightest Tolerance: 0.05.
-   - Surface Roughness: Ra1.6.
-   - Comment: "Please don't deburr".
+   - Surface Finish: "Bead blasting".
+   - Comment: "Don't deburr".
 
 jlc3dp, printed:
 
