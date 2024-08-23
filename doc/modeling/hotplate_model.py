@@ -31,7 +31,6 @@ class HotplateModel:
         self.max_current = 5  # Max current in Amps
         self.max_voltage = 20  # Max voltage in Volts
         self.temperature = None  # Current temperature
-        self.clamped_power = 0  # Actual power after clamping
         self.name = ""  # Label for the hotplate
         # By default rely on clamping limits to simplify configuration
         self.power_setpoint = 1000
@@ -47,7 +46,6 @@ class HotplateModel:
         new_instance.max_current = self.max_current
         new_instance.max_voltage = self.max_voltage
         new_instance.temperature = self.temperature
-        new_instance.clamped_power = self.clamped_power
         new_instance.name = self.name
         new_instance.power_setpoint = self.power_setpoint
         return new_instance
@@ -55,8 +53,6 @@ class HotplateModel:
     def reset(self):
         # Reset temperature to the initial calibration point or room temperature
         self.temperature = self.get_room_temp()
-        # Reset the actual power to 0
-        self.clamped_power = 0
         return self
 
     def clamp_current(self, current):
@@ -110,17 +106,13 @@ class HotplateModel:
         return self
 
     def iterate(self, dt):
-        R = self.calculate_resistance(self.temperature)
-        V_max_power = self.max_voltage ** 2 / R
-        I_max_power = self.max_current ** 2 * R
-        clamped_power = min(V_max_power, I_max_power, self.power_setpoint)
+        clamped_power = self.get_power()
         
         heat_capacity = self.calculate_heat_capacity()
         heat_transfer_coefficient = self.calculate_heat_transfer_coefficient()
         temperature_change = (clamped_power - heat_transfer_coefficient * (self.temperature - self.get_room_temp())) * dt / heat_capacity
         
         self.temperature += temperature_change
-        self.clamped_power = clamped_power
 
     def calculate_resistance(self, temperature):
         if len(self.calibration_points) == 0:
@@ -155,15 +147,23 @@ class HotplateModel:
         return interpolate(self.temperature, points)
 
     def set_power(self, power):
-        self.power_setpoint = power
-        return self
+        if (power < 0): self.power_setpoint = 0
+        else: self.power_setpoint = power
 
-    def get_current_state(self):
-        return {
-            'temperature': self.temperature,
-            'resistance': self.calculate_resistance(self.temperature),
-            'power': self.clamped_power
-        }
+        return self
+    
+    def get_max_power(self):
+        R = self.calculate_resistance(self.temperature)
+        V_max_power = self.max_voltage ** 2 / R
+        I_max_power = self.max_current ** 2 * R
+
+        return min(V_max_power, I_max_power)
+
+    def get_power(self):
+        return min(self.get_max_power(), self.power_setpoint)
+    
+    def get_resistance(self):
+        return self.calculate_resistance(self.temperature)
 
     def get_room_temp(self):
         room_temp_point = next((p for p in self.calibration_points if p['W'] == 0), None)
