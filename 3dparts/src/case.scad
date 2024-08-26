@@ -103,13 +103,19 @@ module magnet_support(h = 20) {
     r = magnet_d/2;
     reserve_w = 1;
     mh = magnet_h + magnet_margin_h;
-    assert(mh <= tray_inner_h, "Tray inner too small for desired magnet height")
+    assert(mh <= tray_inner_h, "Tray inner too small for desired magnet height");
+    
+    pin_h = 0.5;
+    pin_w = 1.25;
 
     dupe_xy()
     tr_xy(pcb_wx/2 - 3.5, pcb_wy/2 - 3.5)
-    difference() {
-        rotate_extrude(angle=90) square([r+reserve_w, h]);
-        tr_z(h - mh) cylinder(h = mh+e, r = r+e);
+    union() {
+        difference() {
+            rotate_extrude(angle=90) square([r+reserve_w, h]);
+            tr_z(h - (mh+pin_h)) cylinder(h = mh+pin_h+e, r = r+e);
+        }
+        rotate_extrude(angle=90) square([pin_w, h - mh]);
     }
 }
 
@@ -187,7 +193,6 @@ module tray() {
         
         // Bottom heels
         dupe_xy() tr_xy(case_wx/2 - 7.5, case_wy/2 - 7.5) tr_z(-e) cylinder(h=1, d=6.2);
-        dupe_xy() tr_xy(case_wx/2 - 7.5 - 8, case_wy/2 - 7.5) tr_z(-e) cylinder(h=0.5, d=6.2); // temporary test
 
         // Partially remove stifffeners for pi5 fan & air duct
         translate([-9+1, -38/2, wall_hor]) cube([52.5, 38, 2+e]);
