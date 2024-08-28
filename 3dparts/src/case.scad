@@ -69,20 +69,22 @@ module case_back(ofs = 0) { tr_y(ofs + case_wy/2) children(); }
 assert(tray_inner_h > 3.5, "Not enougth room for PCB components");
 
 module usb_hole() {
-    // outer sizes
-    usb_w = 8.94;
-    usb_h = 3.26;
-    usb_r = 1.0;
+    // Connector sizes
+    usb_w = 9.0;    // 8.94 by doc, 8.97 real
+    usb_h = 3.2;    // 3.26 by doc, ;   //
 
-    tr_z(-usb_h/2)
+    w = usb_w + 0.5;
+    h = usb_h + 0.5;
+    r = 1.4;
+
+    tr_z(tray_h-pcb_h-usb_h/2 + 0.05)
+    tr_y(pcb_wy/2 - pcb_support_w -e)
     rotate_x (-90) {
-        w = usb_w + 0.4;
-        h = usb_h + 0.4;
+        rcube([w, h, 10], r=r);
 
-        tr_z(-e) rcube([w, h, 10], r=usb_r);
-
-        mirror_z() rcube([w, h, 10], r=usb_r);
-        mirror_y() mirror_z() tr_x(-w/2) linear_extrude(10) square(w, 10);
+        tr_y(-h/2)
+        linear_extrude(pcb_support_w + pcb_side_margin + e)
+        square([w, h], center=true);
     }
 }
 
@@ -189,7 +191,7 @@ module tray() {
         );
 
         // USB connector
-        tr_z(tray_h-pcb_h) tr_y(pcb_wy/2+pcb_side_margin) usb_hole();
+        usb_hole();
         
         // Bottom heels
         dupe_xy() tr_xy(case_wx/2 - 7.5, case_wy/2 - 7.5) tr_z(-e) cylinder(h=1, d=6.2);
