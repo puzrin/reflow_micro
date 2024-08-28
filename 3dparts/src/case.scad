@@ -202,7 +202,10 @@ module tray() {
         for (i = fan_mount_coords) {
             tr_xy(5, -15)
             translate(i)
-            tr_z(wall_hor+e) mirror_z() cylinder(h=1, d=4.5);
+            tr_z(wall_hor+e) mirror_z() {
+                cylinder(h=1, d=4.5);
+                cylinder(h=1.3, d=2.5);
+            }
         }
     }
 }
