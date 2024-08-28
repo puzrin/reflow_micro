@@ -25,7 +25,6 @@ const p = (name) => new URL(name, import.meta.url).pathname
 const builds = {
   tray: ['case.scad', '-D DRAW_TRAY=1'],
   cap: ['case.scad', '-D DRAW_CAP=1'],
-  cap_alt: ['case.scad', '-D DRAW_CAP=1 -D magnet_h=6.5'],
   button: ['case.scad', '-D DRAW_BTN=1'],
   button_03: ['case.scad', '-D DRAW_BTN=1 -D btn_h=2.7 -D btn_w=7.7'],
   button_04: ['case.scad', '-D DRAW_BTN=1 -D btn_h=2.6 -D btn_w=7.6'],

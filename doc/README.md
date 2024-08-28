@@ -63,6 +63,7 @@ https://oshwlab.com/reflow/reflow-usb-pd-headless
 3. hotplate_base: 1.2mm, white.
    - Option "Remove mark".
 4. hotplate_reflector: 1.6mm, white.
+   - Option "Remove mark".
    - Comment: "PCB has no traces, mask only, data is correct."
 5. MCH mount: aluminum, 1.2mm
    - Option "Remove mark".
