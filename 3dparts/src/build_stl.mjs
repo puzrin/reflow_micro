@@ -32,6 +32,7 @@ const builds = {
   pcb_aligner: ['pcb_aligner.scad', '-D latch=0.3'],
   magnet_clamp: ['magnet_clamp.scad', '-D space=7.5'],
   tool_spacer: ['tool_spacer.scad', ''],
+  ss_mch_mount: ['ss_mch_mount.scad', ''],
 }
 
 function build(name) {

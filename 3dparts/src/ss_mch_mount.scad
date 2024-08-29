@@ -34,10 +34,6 @@ module clamp(h=10, is_last = false) {
     
 }
 
-//for(i = [1:clones]) {
-//    translate([margin*(i-1), 0, 0]) clamp(i == clones ? true : false);
-//}
-
 for(i = [1:clones]) {
     translate([margin*(i-1), 0, 0]) clamp(1.2);
 }
@@ -48,4 +44,24 @@ tr_x(margin*clones*1) for(i = [1:clones]) {
 
 tr_x(margin*clones*2) for(i = [1:clones]) {
     translate([margin*(i-1), 0, 0]) clamp(2.0, i == clones ? true : false);
+}
+
+module washer(h=0.5, d=6) {
+    difference() {
+        cylinder(h=h, d=6);
+        tr_z(-e) cylinder(h=h+2*e, d=1.8);
+    }
+}
+
+tr_x(-6) {
+    for (i = [0:3]) tr_y(i*8) washer(0.7, 6);
+
+    for (i = [-3:-1]) tr_y(i*8) washer(1, 6);
+    
+    // connectors
+    for (i = [-3:2]) {
+        tr_y(i*8+2) tr_x(-0.5) linear_extrude(0.4) square([1, 4]);
+    }
+    
+    tr_y(7.5) tr_x(2) cube([4, 1, 0.4]);
 }
