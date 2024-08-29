@@ -50,9 +50,10 @@ cap_h = cap_inner_h + wall_hor;
 cap_pcb_margin = 0.1;
 
 // Set btn height to make hole h = 3mm. For easy cleanup with drill bit.
-btn_h = 2.8; // 3mm - 2*margin
-btn_w = 7.8;
+btn_h = 3.3; // 3.5mm - 2*margin
+btn_w = 9.8;
 btn_margin = 0.1;
+btn_marks = 1; // to visully distinguish sizes
 
 btn_pusher_w = 12;
 btn_pusher_base_w = 1.5;
@@ -317,6 +318,13 @@ module button() {
         tr_xy(m_w/2, btn_back_h/2+e) rotate_y(-90)
         linear_extrude(m_w)
         polygon([[0, 0], [mside, 0], [0, -mside]]);
+
+        // Marks
+        if (btn_marks > 0) {
+            for(i = [1:btn_marks]) {
+                tr_x((i-1)*2.5 - (btn_marks-1)*2.5/2) tr_z(-e) cylinder(h=0.5, d=1);
+            }
+        }
     }
 }
 
