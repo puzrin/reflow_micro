@@ -208,6 +208,10 @@ module tray() {
                 cylinder(h=1.3, d=2.5);
             }
         }
+        
+        // Partially remove stifffeners for pi5 fan connector
+        tr_xy(-pcb_wx/2 + 68.5, -pcb_wy/2 + 21) tr_z(wall_hor) cylinder(h=3, r=7);
+        
     }
 }
 
