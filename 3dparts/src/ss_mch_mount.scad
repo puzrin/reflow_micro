@@ -13,19 +13,22 @@ $fn = 64;
 module clamp(h=10, is_last = false) {
     difference() {
         union() {
-            cylinder(h=h, d=4);
-            dupe_y() translate([0, dist/2, 0]) cylinder(h=h, d=4);
+            cylinder(h=h, d=4.5);
+            dupe_y() translate([0, dist/2, 0]) cylinder(h=h, d=4.5);
 
             linear_extrude(h) square([w, dist], center = true);
 
-            if (!is_last) {
+            /*if (!is_last) {
                 // clone's connectors
                 //tr_y(-0.5) linear_extrude(0.5) square([margin-1.5, 1]);
                 tr_y(6) linear_extrude(0.5) square([margin, 1]);
             } else {
                 // Hack to increas minimal size to order's limit (2mm)
                 //tr_y(15) cylinder(h=2, d=1);
-            }
+            }*/
+            
+            linear_extrude(0.7) square([1, dist+14], center=true);
+            linear_extrude(0.7) square([7, 1], center=true);
 
         }
         translate([0, 0, -e]) cylinder(h=h+e*2, d=screw_d);
@@ -35,9 +38,18 @@ module clamp(h=10, is_last = false) {
 }
 
 for(i = [1:clones]) {
-    translate([margin*(i-1), 0, 0]) clamp(1.2);
+    translate([margin*(i-1), 0, 0]) clamp(1.3);
 }
 
+// frame
+hx = 39; hy=64; 
+tr_x(hx/2 -7)
+difference() {
+    rcube([hx, hy, 4]);
+    tr_z(-e) rcube([hx-8, hy-8, 6]);
+}
+
+/*
 tr_x(margin*clones*1) for(i = [1:clones]) {
     translate([margin*(i-1), 0, 0]) clamp(1.6);
 }
@@ -65,3 +77,4 @@ tr_x(-6) {
     
     tr_y(7.5) tr_x(2) cube([4, 1, 0.4]);
 }
+*/
