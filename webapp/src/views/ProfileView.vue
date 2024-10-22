@@ -2,7 +2,8 @@
 import PageLayout from '@/components/PageLayout.vue'
 import { RouterLink, onBeforeRouteLeave } from 'vue-router'
 import { useProfilesStore } from '@/stores/profiles'
-import { reactive, ref, toRaw, watch } from 'vue';
+import { useLocalSettingsStore } from '@/stores/localSettings'
+import { reactive, ref, toRaw, watch } from 'vue'
 import { startTemperature, limits, createDummyProfile, type Profile } from '@/device/heater_config'
 
 import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
@@ -18,8 +19,7 @@ import ReflowChart from '@/components/ReflowChart.vue'
 
 const props = defineProps<{ id: number }>()
 const profilesStore = useProfilesStore()
-
-const previewShow = ref(false)
+const localSettingsStore = useLocalSettingsStore()
 
 // Load profile object from store or create new one
 const srcProfile: Profile = profilesStore.exists(props.id) ?
@@ -101,12 +101,12 @@ const str2int = (str: string) => parseInt(str.replace(/[^0-9]/g, '')) || 0
 
       <div class="mb-4">
         <div>
-          <ButtonNormal @click="previewShow = !previewShow" class="w-full">
+          <ButtonNormal @click="localSettingsStore.profileEditorShowPreview = !localSettingsStore.profileEditorShowPreview" class="w-full">
             Preview
           </ButtonNormal>
         </div>
         <Transition name="bounce">
-          <div v-if="previewShow" class="mt-4 relative rounded-md bg-slate-100 h-[300px]">
+          <div v-if="localSettingsStore.profileEditorShowPreview" class="mt-4 relative rounded-md bg-slate-100 h-[300px]">
             <div class="absolute top-0 left-0 right-0 bottom-0">
               <ReflowChart id="profile-edit-chart" :profile="profile" />
             </div>
