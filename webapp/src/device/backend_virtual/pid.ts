@@ -1,5 +1,5 @@
 import { clamp } from '../utils'
-import { TICK_PERIOD_MS } from '../types'
+import { TICK_PERIOD_MS } from '@/device/backend_virtual'
 
 export class PID {
   private Kp: number = 0

@@ -2,18 +2,19 @@
 import * as d3 from 'd3'
 import { onMounted, onUnmounted, ref, watch, inject, toRaw } from 'vue';
 import { startTemperature, type Profile } from '@/device/heater_config';
-import { type IDeviceManager, DeviceState, type Point } from '@/device/types'
+import { Device, DeviceState, type Point } from '@/device'
 
-const device: IDeviceManager = inject('device')!
+const device: Device = inject('device')!
 
 const svgRef = ref<SVGSVGElement | null>(null)
 const margin = { top: 30, right: 40, bottom: 30, left: 40 }
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   profile: Profile | null
   history?: Point[]
+  show_history?: boolean
   id: string
-}>()
+}>(), { show_history: true })
 
 const s = (selector: string) => `#${props.id} .root ${selector}`.trim()
 
@@ -41,7 +42,7 @@ function buildChart() {
   // Collect probe history data
   //
 
-  const historyPoints: Point[] = toRaw(props.history || [])
+  const historyPoints: Point[] = props.show_history ? toRaw(props.history || []) : []
 
   const profileMaxX = d3.max(profilePoints.map(p => p.x))||0
   const profileMaxY = d3.max(profilePoints.map(p => p.y))||0
@@ -107,7 +108,7 @@ onMounted(() => {
   if (!svgRef.value || !svgRef.value.parentElement) return
 
   watch(() => props.profile, buildChart, { immediate: true, deep: true })
-  watch([props.history || ref([]), device.state], buildChart)
+  watch([props.history || ref([]), device.state, () => props.show_history], buildChart)
   window.addEventListener('resize', buildChart)
 })
 

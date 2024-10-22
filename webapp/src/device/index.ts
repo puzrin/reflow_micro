@@ -1,55 +1,139 @@
-import Virtual from "./virtual"
-import type { IDeviceManager } from "./types"
-import { computed, ref, type App } from "vue"
+import { ref, type App, type Ref } from "vue"
+import type { ProfilesStoreData } from "@/device/heater_config"
+import { BackendVirtual } from "./backend_virtual"
+import { useProfilesStore } from '@/stores/profiles'
+import validateProfileStoreSnapshot from './utils/profiles_store.validate'
+import { set } from "@vueuse/core"
 
-const virtual = new Virtual()
-
-const drivers = {
-  virtual
+export enum DeviceState {
+  Idle = 0,
+  Running = 1,
+  RawPower = 2
 }
 
-type DriverKey = keyof typeof drivers
+export type Point = { x: number, y: number }
 
-const driverKey = ref<DriverKey>('virtual')
+export const HISTORY_ID_RAW_MODE = -1
 
-const device: IDeviceManager = {
-  // Driver proxy
-  temperature: computed(() => drivers[driverKey.value].temperature.value),
-  resistance: computed(() => drivers[driverKey.value].resistance.value),
-  watts: computed(() => drivers[driverKey.value].watts.value),
-  volts: computed(() => drivers[driverKey.value].volts.value),
-  amperes: computed(() => drivers[driverKey.value].amperes.value),
-  maxVolts: computed(() => drivers[driverKey.value].maxVolts.value),
-  maxAmperes: computed(() => drivers[driverKey.value].maxAmperes.value),
-  maxWatts: computed(() => drivers[driverKey.value].maxWatts.value),
+export interface IBackend {
+  attach(): Promise<void>
+  detach(): Promise<void>
 
-  state: computed(() => drivers[driverKey.value].state.value),
-  history: computed(() => drivers[driverKey.value].history.value),
+  start(): Promise<void>
+  stop(): Promise<void>
+  rawPower(watts: number): Promise<void>
 
-  start: () => drivers[driverKey.value].start(),
-  stop: () => drivers[driverKey.value].stop(),
-  rawPower: (watts) => drivers[driverKey.value].rawPower(watts),
+  load_profiles_data(): Promise<string>
+  save_profiles_data(data: string): Promise<void>
+  fetch_state(): Promise<void>
+  fetch_history(): Promise<void>
+
+  // BLE only, to select GATT device from click
+  connect(): Promise<void>
+}
+
+export class Device {
+  // Connection flags
+  is_connected: Ref<boolean> = ref(false)
+  is_bonded: Ref<boolean> = ref(false)
+  is_ready: Ref<boolean> = ref(false) // connected + authenticated + configs fetched
+
+  // Essential properties
+  state: Ref<DeviceState> = ref(DeviceState.Idle)
+  temperature: Ref<number> = ref(0)
+
+  // Debug info properties
+  watts: Ref<number> = ref(0)
+  volts: Ref<number> = ref(0)
+  amperes: Ref<number> = ref(0)
+  maxVolts: Ref<number> = ref(0)
+  maxAmperes: Ref<number> = ref(0)
+  maxWatts: Ref<number> = ref(0)
+ 
+  history: Ref<Point[]> = ref<Point[]>([])
+  history_id: Ref<number> = ref(0)
+
+  backend_id: Ref<string> = ref('')
+  private backend: IBackend | null = null
+  private unsubscribeProfilesStore: (() => void) | null = null
+
+  constructor() {
+    setInterval(async () => {      
+      try {
+        await this.backend?.fetch_state()
+        await this.backend?.fetch_history()
+      } catch (_) {}
+    }, 1000)
+  }
+
+  async start() { await this.backend?.start() }
+  async stop() { await this.backend?.stop() }
+  async rawPower(watts: number) { await this.backend?.rawPower(watts) }
 
   // Control
-  id: computed(() => driverKey.value),
-  select: async (id: DriverKey) => {
-    if (driverKey.value !== id) {
-      // Detach old device first
-      await drivers[driverKey.value as DriverKey].shutdown()
+  // id: computed(() => driverKey.value);
+  async selectBackend(id: BackendKey) {
+    // Don't reselect the same backend
+    if (this.backend_id.value === id) return;
+    // Detach old one if exists
+    if (this.backend) await this.backend.detach();
+
+    // Attach new one
+    this.backend = backends[id];
+    this.backend_id.value = id;
+    await this.backend.attach();
+  };
+
+  async loadProfilesData() {
+    // Remove old tracker is exists
+    if (this.unsubscribeProfilesStore) this.unsubscribeProfilesStore()
+    
+    if (!this.backend) return;
+    
+    const profilesStore = useProfilesStore()
+
+    try {
+      const raw_data = await this.backend.load_profiles_data()
+      if (!raw_data) throw new Error('No data, load defaults')
+
+      const data: any = JSON.parse(raw_data);
+
+      if (!validateProfileStoreSnapshot(data)) {
+        console.error(validateProfileStoreSnapshot.errors)
+        throw new Error('Invalid data, load defaults')
+      }
+
+      profilesStore.fromRawObj(data as ProfilesStoreData)
+    }
+    catch (error) {
+      console.error('Error loading profiles data:', (error as any)?.message || error)
+      profilesStore.reset()
+      this.saveProfilesData()
     }
 
-    driverKey.value = id
-    await drivers[id].attach()
-  },
-  resetHistory: () => {
-    drivers[driverKey.value].history.value.length = 0
-    drivers[driverKey.value].msTime = 0
+    this.unsubscribeProfilesStore = profilesStore.$subscribe(() => { this.saveProfilesData() })
+  }
+
+  private async saveProfilesData() {
+    if (!this.backend) return;
+
+    const profilesStore = useProfilesStore()
+
+    await this.backend.save_profiles_data(JSON.stringify(profilesStore.toRawObj()));
   }
 }
+
+const device = new Device()
+
+const backends = {
+  virtual: new BackendVirtual(device)
+}
+
+type BackendKey = keyof typeof backends
 
 export default {
   install: (app: App) => {
     app.provide('device', device)
-    device.select('virtual')
+    device.selectBackend('virtual')
   }
 }

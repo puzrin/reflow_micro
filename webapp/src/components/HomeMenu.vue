@@ -3,19 +3,15 @@ import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import { RouterLink } from 'vue-router'
 import { useProfilesStore } from '@/stores/profiles'
 import { inject } from 'vue'
-import { type IDeviceManager, DeviceState } from '@/device/types'
+import { Device, DeviceState } from '@/device'
 import MenuIcon from '@heroicons/vue/24/outline/Bars4Icon'
 import CheckIcon from '@heroicons/vue/24/outline/CheckIcon'
 
 const profilesStore = useProfilesStore()
-const device: IDeviceManager = inject('device')!
+const device: Device = inject('device')!
 
 const repoUrl = __REPO_URL__
 
-function selectProfile(profileId: number) {
-  profilesStore.select(profileId)
-  device.resetHistory()
-}
 </script>
 
 <template>
@@ -44,7 +40,7 @@ function selectProfile(profileId: number) {
                   active ? 'bg-violet-500 text-white' : 'text-gray-900',
                   { 'disabled':  device.state.value === DeviceState.Running }
                 ]"
-                @click="() => selectProfile(profile.id)"
+                @click="() => profilesStore.select(profile.id)"
               >
                 <span class="grow grid justify-start">{{ profile.name }}</span>
                 <CheckIcon

@@ -1,5 +1,4 @@
 import { ref } from "vue"
-import { type IHeaterModel, TICK_PERIOD_MS } from "../types"
 import { clamp } from "../utils"
 
 // ~ 300° @ 60W
@@ -31,41 +30,41 @@ function heaterResistance(temperature: number) {
   return ambientHeaterResistance * (1 + tungstenTC * (temperature - 20))
 }
 
-export class HeaterModel implements IHeaterModel {
+export class HeaterModel {
   private _setPointWatts: number = 0
   private Q: number = C * Ta
 
-  temperature = ref(Ta)
-  resistance = ref(ambientHeaterResistance)
-  volts = ref(0)
-  amperes = ref(0)
-  watts = ref(0)
+  temperature = Ta
+  resistance = ambientHeaterResistance
+  volts = 0
+  amperes = 0
+  watts = 0
 
   // PD profile limits
-  maxVolts = ref(20)
-  maxAmperes = ref(3.25)
+  maxVolts = 20
+  maxAmperes = 5
 
   // Depends on resistance at current temperature and PD profile limits
-  maxWatts = ref(65)
+  maxWatts = 100
 
   setPoint(watts: number) { this._setPointWatts = watts }
 
-  tick() {
+  tick(ms_period: number) {
     // First, restrict applied power to really possible
-    const R = heaterResistance(this.temperature.value)
-    const maxW = Math.min(this.maxVolts.value ** 2 / R, this.maxAmperes.value ** 2 * R)
+    const R = heaterResistance(this.temperature)
+    const maxW = Math.min(this.maxVolts ** 2 / R, this.maxAmperes ** 2 * R)
     const clampedW = clamp(this._setPointWatts, 0, maxW)
 
-    const dt = TICK_PERIOD_MS / 1000
+    const dt = ms_period / 1000
     const T = this.Q/C
     this.Q += clampedW * dt
     this.Q -= K*(T-Ta)*dt
 
-    this.resistance.value = R
-    this.maxWatts.value = maxW
-    this.temperature.value = T
-    this.watts.value = clampedW
-    this.volts.value = Math.sqrt(clampedW * R)
-    this.amperes.value = Math.sqrt(clampedW / R)
+    this.resistance = R
+    this.maxWatts = maxW
+    this.temperature = T
+    this.watts = clampedW
+    this.volts = Math.sqrt(clampedW * R)
+    this.amperes = Math.sqrt(clampedW / R)
   }
 }

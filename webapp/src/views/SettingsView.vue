@@ -16,10 +16,10 @@ import ButtonDanger from '@/components/buttons/ButtonDanger.vue'
 import ButtonNormalSquareSmall from '@/components/buttons/ButtonNormalSquareSmall.vue'
 
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
-import type { IDeviceManager } from '@/device/types'
+import { Device } from '@/device'
 
 const profilesStore = useProfilesStore()
-const device: IDeviceManager = inject('device')!
+const device: Device = inject('device')!
 const localSettingsStore = useLocalSettingsStore()
 const el = ref<UseDraggableReturn>()
 
@@ -45,7 +45,6 @@ function resetProfiles() {
   resetDlgRef.value?.run().then((result) => {
     if (result === 'ok') {
       profilesStore.reset()
-      device.resetHistory()
     }
   })
 }

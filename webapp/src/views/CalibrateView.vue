@@ -3,14 +3,14 @@ import { until } from '@vueuse/core'
 import PageLayout from '@/components/PageLayout.vue'
 import { RouterLink } from 'vue-router'
 import { inject, ref } from 'vue'
-import type { IDeviceManager, Point } from '@/device/types'
+import { Device, type Point, HISTORY_ID_RAW_MODE } from '@/device'
 import ReflowChart from '@/components/ReflowChart.vue'
 import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
 import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
 import ButtonDanger from '@/components/buttons/ButtonDanger.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
-const device: IDeviceManager = inject('device')!
+const device: Device = inject('device')!
 const pidTuneRunning = ref(false)
 
 const presets = {
@@ -29,7 +29,6 @@ const presets = {
 
 async function tunePid() {
   pidTuneRunning.value = true
-  device.resetHistory()
 
   // Wait cooling down if needed
   if (device.temperature.value > 90) {
@@ -69,7 +68,6 @@ async function tunePid() {
   }
 
   device.stop()
-  device.resetHistory()
   pidTuneRunning.value = false
 }
 </script>
@@ -182,7 +180,10 @@ async function tunePid() {
         <Transition name="bounce">
           <div v-if="pidTuneRunning" class="mt-4 relative rounded-md bg-slate-100 h-[300px]">
             <div class="absolute top-0 left-0 right-0 bottom-0">
-              <ReflowChart id="profile-edit-chart" :profile="null" :history="device.history.value" />
+              <ReflowChart id="profile-edit-chart"
+                :profile="null"
+                :history="device.history.value"
+                :show_history="device.history_id.value === HISTORY_ID_RAW_MODE" />
             </div>
           </div>
         </Transition>
@@ -190,7 +191,6 @@ async function tunePid() {
           <div  v-if="pidTuneRunning" class="absolute top-2 right-3 text-right text-xs opacity-50">
             <div><span class="font-mono">{{ device.watts.value.toFixed(1) }}</span> W</div>
             <div><span class="font-mono">max {{ Math.round(device.maxWatts.value) }}</span> W</div>
-            <div><span class="font-mono">{{ device.resistance.value.toFixed(3) }}</span> Ω</div>
             <div><span class="font-mono">{{ device.volts.value.toFixed(1) }}</span> V</div>
             <div><span class="font-mono">{{ device.amperes.value.toFixed(2) }}</span> A</div>
           </div>
