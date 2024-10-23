@@ -34,8 +34,10 @@ export interface IBackend {
 
 export class Device {
   // Connection flags
+  is_connecting: Ref<boolean> = ref(false)
   is_connected: Ref<boolean> = ref(false)
-  is_bonded: Ref<boolean> = ref(false)
+  is_authenticated: Ref<boolean> = ref(false)
+  need_pairing: Ref<boolean> = ref(false)
   is_ready: Ref<boolean> = ref(false) // connected + authenticated + configs fetched
 
   // Essential properties
@@ -53,8 +55,9 @@ export class Device {
   history: Ref<Point[]> = ref<Point[]>([])
   history_id: Ref<number> = ref(0)
 
-  backend_id: Ref<string> = ref('')
+  is_virtual: Ref<boolean> = ref(true)
   private backend: IBackend | null = null
+  private backend_id: string = ''
   private unsubscribeProfilesStore: (() => void) | null = null
 
   constructor() {
@@ -66,6 +69,7 @@ export class Device {
     }, 1000)
   }
 
+  async connect() { await this.backend?.connect() }
   async start() { await this.backend?.start() }
   async stop() { await this.backend?.stop() }
   async rawPower(watts: number) { await this.backend?.rawPower(watts) }
@@ -74,13 +78,14 @@ export class Device {
   // id: computed(() => driverKey.value);
   async selectBackend(id: BackendKey) {
     // Don't reselect the same backend
-    if (this.backend_id.value === id) return;
+    if (this.backend_id === id) return;
     // Detach old one if exists
     if (this.backend) await this.backend.detach();
 
     // Attach new one
+    this.is_virtual.value = id === 'virtual';
     this.backend = backends[id];
-    this.backend_id.value = id;
+    this.backend_id = id;
     await this.backend.attach();
   };
 

@@ -83,8 +83,10 @@ export class BackendVirtual implements IBackend {
   }
 
   async attach() {
+    this.device.is_connecting.value = true
     this.device.is_connected.value = true
-    this.device.is_bonded.value = true
+    this.device.need_pairing.value = false
+    this.device.is_authenticated.value = true
 
     await this.device.loadProfilesData()
 
@@ -98,8 +100,9 @@ export class BackendVirtual implements IBackend {
     if (this.ticker_id !== null) clearInterval(this.ticker_id)
     if (this.state !== DeviceState.Idle) await this.stop()
     this.history_mock.length = 0
+    this.device.is_connecting.value = false
     this.device.is_connected.value = false
-    this.device.is_bonded.value = false
+    this.device.is_authenticated.value = false
     this.device.is_ready.value = false
   }
 

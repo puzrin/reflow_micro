@@ -3,7 +3,7 @@ import PageLayout from '@/components/PageLayout.vue'
 import { RouterLink } from 'vue-router'
 import { useProfilesStore } from '@/stores/profiles'
 import { useLocalSettingsStore } from '@/stores/localSettings'
-import { inject, ref } from 'vue'
+import { ref } from 'vue'
 import { type UseDraggableReturn, VueDraggable } from 'vue-draggable-plus'
 
 import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
@@ -16,10 +16,8 @@ import ButtonDanger from '@/components/buttons/ButtonDanger.vue'
 import ButtonNormalSquareSmall from '@/components/buttons/ButtonNormalSquareSmall.vue'
 
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
-import { Device } from '@/device'
 
 const profilesStore = useProfilesStore()
-const device: Device = inject('device')!
 const localSettingsStore = useLocalSettingsStore()
 const el = ref<UseDraggableReturn>()
 
