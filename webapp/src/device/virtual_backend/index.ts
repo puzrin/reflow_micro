@@ -43,7 +43,7 @@ class Timeline {
   }
 }
 
-export class BackendVirtual implements IBackend {
+export class VirtualBackend implements IBackend {
   private device: Device
   private heater = new HeaterModel()
   private pid = new PID()
@@ -110,7 +110,7 @@ export class BackendVirtual implements IBackend {
 
   async load_profiles_data(): Promise<string> {
     try {
-      const data: any = localStorage?.getItem(BackendVirtual.LS_KEY) || ''
+      const data: any = localStorage?.getItem(VirtualBackend.LS_KEY) || ''
       return data as string
     } catch (_) {}
 
@@ -119,7 +119,7 @@ export class BackendVirtual implements IBackend {
 
   async save_profiles_data(data: string): Promise<void> {
     try {
-      localStorage?.setItem(BackendVirtual.LS_KEY, data)
+      localStorage?.setItem(VirtualBackend.LS_KEY, data)
     } catch (error) {
       console.error('Error saving profiles data:', error);
     }

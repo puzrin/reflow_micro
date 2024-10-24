@@ -48,7 +48,7 @@ const has_bluetooth = ref(!!navigator.bluetooth);
             <!-- Not connected => show button or progress message -->
             <template v-if="!device.is_connected.value">
                 <p v-if="device.is_connecting.value">
-                    <div class="align-text-top mr-1 w-5 h-5 animate-spin inline-block border-[3px] border-current border-t-transparent rounded-full text-gray-400"></div>
+                    <span class="align-text-top mr-1 w-5 h-5 animate-spin inline-block border-[3px] border-current border-t-transparent rounded-full text-gray-400"></span>
                     Connecting...
                 </p>
                 <ButtonNormal v-else class="w-full" @click="device.connect()">Connect to device</ButtonNormal>
@@ -58,7 +58,7 @@ const has_bluetooth = ref(!!navigator.bluetooth);
             <template v-else>
                 <div v-if="!device.is_authenticated.value">
                     <p class="mb-4">
-                        <div class="align-text-top mr-1 w-5 h-5 animate-spin inline-block border-[3px] border-current border-t-transparent rounded-full text-gray-400"></div>
+                        <span class="align-text-top mr-1 w-5 h-5 animate-spin inline-block border-[3px] border-current border-t-transparent rounded-full text-gray-400"></span>
                         Authenticating...
                     </p>
                     <p v-if="device.need_pairing.value" class="text-red-800">
@@ -66,7 +66,7 @@ const has_bluetooth = ref(!!navigator.bluetooth);
                     </p>
                 </div>
                 <p v-else>
-                    <div class="align-text-top mr-1 w-5 h-5 animate-spin inline-block border-[3px] border-current border-t-transparent rounded-full text-gray-400"></div>
+                    <span class="align-text-top mr-1 w-5 h-5 animate-spin inline-block border-[3px] border-current border-t-transparent rounded-full text-gray-400"></span>
                     Read config from device...
                 </p>
             </template>

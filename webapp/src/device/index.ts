@@ -1,6 +1,6 @@
 import { ref, type App, type Ref } from "vue"
 import type { ProfilesStoreData } from "@/device/heater_config"
-import { BackendVirtual } from "./backend_virtual"
+import { VirtualBackend } from "./virtual_backend"
 import { useProfilesStore } from '@/stores/profiles'
 import validateProfileStoreSnapshot from './utils/profiles_store.validate'
 import { set } from "@vueuse/core"
@@ -91,7 +91,8 @@ export class Device {
 
   async loadProfilesData() {
     // Remove old tracker is exists
-    if (this.unsubscribeProfilesStore) this.unsubscribeProfilesStore()
+    this.unsubscribeProfilesStore?.()
+    this.unsubscribeProfilesStore = null
     
     if (!this.backend) return;
     
@@ -113,25 +114,19 @@ export class Device {
     catch (error) {
       console.error('Error loading profiles data:', (error as any)?.message || error)
       profilesStore.reset()
-      this.saveProfilesData()
+      this.backend?.save_profiles_data(JSON.stringify(profilesStore.toRawObj()))
     }
 
-    this.unsubscribeProfilesStore = profilesStore.$subscribe(() => { this.saveProfilesData() })
-  }
-
-  private async saveProfilesData() {
-    if (!this.backend) return;
-
-    const profilesStore = useProfilesStore()
-
-    await this.backend.save_profiles_data(JSON.stringify(profilesStore.toRawObj()));
+    this.unsubscribeProfilesStore = profilesStore.$subscribe(() => {
+      this.backend?.save_profiles_data(JSON.stringify(profilesStore.toRawObj()))
+    })
   }
 }
 
 const device = new Device()
 
 const backends = {
-  virtual: new BackendVirtual(device)
+  virtual: new VirtualBackend(device)
 }
 
 type BackendKey = keyof typeof backends
