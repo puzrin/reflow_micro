@@ -2,6 +2,7 @@ import { HeaterModel } from './HeaterModel'
 import { PID } from './pid'
 import { startTemperature, type Profile } from '@/device/heater_config';
 import { useProfilesStore } from '@/stores/profiles'
+import { useVirtualBackendStore} from './virtualBackendStore'
 import { sparsedPush } from '../utils'
 import { DeviceState, Device, type IBackend, type Point, HISTORY_ID_RAW_MODE } from '@/device'
 
@@ -109,20 +110,13 @@ export class VirtualBackend implements IBackend {
   async connect() {}
 
   async load_profiles_data(): Promise<string> {
-    try {
-      const data: any = localStorage?.getItem(VirtualBackend.LS_KEY) || ''
-      return data as string
-    } catch (_) {}
-
-    return ''
+    const virtualBackendStore = useVirtualBackendStore()
+    return virtualBackendStore.rawProfilesData
   }
 
   async save_profiles_data(data: string): Promise<void> {
-    try {
-      localStorage?.setItem(VirtualBackend.LS_KEY, data)
-    } catch (error) {
-      console.error('Error saving profiles data:', error);
-    }
+    const virtualBackendStore = useVirtualBackendStore()
+    virtualBackendStore.rawProfilesData = data
   }
 
   private _tick() {
