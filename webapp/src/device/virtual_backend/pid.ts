@@ -1,4 +1,4 @@
-import { clamp } from '../utils'
+import { clamp } from './utils'
 import { TICK_PERIOD_MS } from './'
 
 export class PID {

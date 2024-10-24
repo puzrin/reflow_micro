@@ -1,5 +1,5 @@
 import { ref } from "vue"
-import { clamp } from "../utils"
+import { clamp } from "./utils"
 
 // ~ 300° @ 60W
 

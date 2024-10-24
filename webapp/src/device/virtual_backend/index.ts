@@ -3,7 +3,7 @@ import { PID } from './pid'
 import { startTemperature, type Profile } from '@/device/heater_config';
 import { useProfilesStore } from '@/stores/profiles'
 import { useVirtualBackendStore} from './virtualBackendStore'
-import { sparsedPush } from '../utils'
+import { sparsedPush } from './utils'
 import { DeviceState, Device, type IBackend, type Point, HISTORY_ID_RAW_MODE } from '@/device'
 
 // Tick step in ms, 10Hz.

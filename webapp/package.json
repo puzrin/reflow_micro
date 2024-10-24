@@ -11,7 +11,7 @@
     "type-check": "vue-tsc --build --force",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
     "format": "prettier --write src/",
-    "build-validator": "ts-json-schema-generator --path src/device/heater_config.ts --type ProfilesStoreData --out src/device/utils/profiles_store.schema.json"
+    "build-validator-schema": "ts-json-schema-generator --path src/device/heater_config.ts --type ProfilesStoreData --out src/device/profiles_schema.json"
   },
   "dependencies": {
     "@headlessui/tailwindcss": "^0.2.1",

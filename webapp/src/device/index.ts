@@ -1,9 +1,10 @@
 import { ref, type App, type Ref } from "vue"
-import type { ProfilesStoreData } from "@/device/heater_config"
+import Ajv from "ajv"
+import { default as profiles_schema } from './profiles_schema.json'
 import { VirtualBackend } from "./virtual_backend"
 import { useProfilesStore } from '@/stores/profiles'
-import validateProfileStoreSnapshot from './utils/profiles_store.validate'
-import { set } from "@vueuse/core"
+
+const validate_profiles_data = new Ajv().compile(profiles_schema)
 
 export enum DeviceState {
   Idle = 0,
@@ -104,12 +105,12 @@ export class Device {
 
       const data: any = JSON.parse(raw_data);
 
-      if (!validateProfileStoreSnapshot(data)) {
-        console.error(validateProfileStoreSnapshot.errors)
+      if (!validate_profiles_data(data)) {
+        console.error(validate_profiles_data.errors)
         throw new Error('Invalid data, load defaults')
       }
 
-      profilesStore.fromRawObj(data as ProfilesStoreData)
+      profilesStore.fromRawObj(data as any)
     }
     catch (error) {
       console.error('Error loading profiles data:', (error as any)?.message || error)
