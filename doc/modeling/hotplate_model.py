@@ -22,18 +22,73 @@ def interpolate(x, points):
 
     raise ValueError("Interpolation error: x is out of bounds.")
 
+
+class PDProfile:
+    def __init__(self, V, I, PPS=False):
+        self.V = V
+        self.I = I
+        self.PPS = PPS
+
+    def is_useable(self, R):
+        return True if self.PPS else (self.V / R) <= self.I
+
+    def get_power(self, R):
+        if self.PPS:
+            V_max = min(self.V, self.I * R)
+            return (V_max ** 2) / R
+        return (self.V ** 2) / R if self.is_useable(R) else 0
+
+class ChargerProfiles:
+    def __init__(self):
+        self.profiles = []
+
+    def add(self, profile):
+        self.profiles.append(profile)
+        return self
+
+    def get_best_profile(self, R):
+        usable_profiles = [p for p in self.profiles if p.is_useable(R)]
+        if not usable_profiles: return None
+        return max(usable_profiles, key=lambda p: p.get_power(R))
+
+    def get_power(self, R):
+        best_profile = self.get_best_profile(R)
+        if best_profile: return best_profile.get_power(R)
+        return 0
+
+# Define several charger configurations
+
+charger_140w_fixed_only = (
+    ChargerProfiles()
+    .add(PDProfile(9, 3))
+    .add(PDProfile(12, 3))
+    .add(PDProfile(15, 3))
+    .add(PDProfile(20, 5))
+    .add(PDProfile(28, 5))
+)
+
+charger_140w_with_pps = (
+    ChargerProfiles()
+    .add(PDProfile(9, 3))
+    .add(PDProfile(12, 3))
+    .add(PDProfile(15, 3))
+    .add(PDProfile(20, 5))
+    .add(PDProfile(21, 5, True))
+    .add(PDProfile(28, 5))
+)
+
+
 class HotplateModel:
     TUNGSTEN_TC = 0.0041  # Temperature coefficient for tungsten
 
     def __init__(self, x=0.08, y=0.07, z=0.0038):
         self.size = {'x': x, 'y': y, 'z': z}  # Plate dimensions in meters
         self.calibration_points = []  # Calibration points for resistance and heat dissipation
-        self.max_current = 5  # Max current in Amps
-        self.max_voltage = 20  # Max voltage in Volts
         self.temperature = None  # Current temperature
         self.name = ""  # Label for the hotplate
         # By default rely on clamping limits to simplify configuration
         self.power_setpoint = 1000
+        self.profiles = charger_140w_with_pps
 
     def clone(self):
         # Create a new instance with the same properties
@@ -43,24 +98,15 @@ class HotplateModel:
             z=self.size['z']
         )
         new_instance.calibration_points = [point.copy() for point in self.calibration_points]
-        new_instance.max_current = self.max_current
-        new_instance.max_voltage = self.max_voltage
         new_instance.temperature = self.temperature
         new_instance.name = self.name
         new_instance.power_setpoint = self.power_setpoint
+        new_instance.profiles = self.profiles
         return new_instance
 
     def reset(self):
         # Reset temperature to the initial calibration point or room temperature
         self.temperature = self.get_room_temp()
-        return self
-
-    def clamp_current(self, current):
-        self.max_current = current
-        return self
-
-    def clamp_voltage(self, voltage):
-        self.max_voltage = voltage
         return self
 
     def label(self, name):
@@ -69,6 +115,10 @@ class HotplateModel:
 
     def set_size(self, x, y, z):
         self.size = {'x': x, 'y': y, 'z': z}
+        return self
+    
+    def set_profiles(self, profiles):
+        self.profiles = profiles
         return self
 
     def scale_r_to(self, new_base):
@@ -154,10 +204,7 @@ class HotplateModel:
     
     def get_max_power(self):
         R = self.calculate_resistance(self.temperature)
-        V_max_power = self.max_voltage ** 2 / R
-        I_max_power = self.max_current ** 2 * R
-
-        return min(V_max_power, I_max_power)
+        return self.profiles.get_power(R)
 
     def get_power(self):
         return min(self.get_max_power(), self.power_setpoint)

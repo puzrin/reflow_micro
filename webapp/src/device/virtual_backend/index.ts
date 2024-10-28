@@ -1,4 +1,4 @@
-import { HeaterModel } from './HeaterModel'
+import { Heater, configured_heater } from './heater'
 import { PID } from './pid'
 import { startTemperature, type Profile } from '@/device/heater_config';
 import { useProfilesStore } from '@/stores/profiles'
@@ -46,7 +46,7 @@ class Timeline {
 
 export class VirtualBackend implements IBackend {
   private device: Device
-  private heater = new HeaterModel()
+  private heater: Heater
   private pid = new PID()
   private timeline = new Timeline()
   private msTime = 0
@@ -59,6 +59,12 @@ export class VirtualBackend implements IBackend {
 
   constructor(device: Device) {
     this.device = device
+    this.heater = configured_heater[0]
+      .clone()
+      .reset()
+      .scale_r_to(4.0)
+      .set_size(0.08, 0.07, 0.0028)
+      //.set_size(0.07, 0.06, 0.0028)
     this.pid
       .setLimits(0, 100)
       .setK(40.0, 100.0, 0.0)
@@ -69,12 +75,10 @@ export class VirtualBackend implements IBackend {
 
     this.device.state.value = this.state;
     this.device.temperature.value = this.heater.temperature;
-    this.device.watts.value = this.heater.watts;
-    this.device.volts.value = this.heater.volts;
-    this.device.amperes.value = this.heater.amperes;
-    this.device.maxVolts.value = this.heater.maxVolts;
-    this.device.maxAmperes.value = this.heater.maxAmperes;
-    this.device.maxWatts.value = this.heater.maxWatts;
+    this.device.watts.value = this.heater.get_power();
+    this.device.volts.value = this.heater.get_volts();
+    this.device.amperes.value = this.heater.get_amperes();
+    this.device.maxWatts.value = this.heater.get_max_power();
   }
 
   async fetch_history(): Promise<void> {
@@ -121,7 +125,7 @@ export class VirtualBackend implements IBackend {
 
   private _tick() {
     // Heater emulator works non-stop mode
-    this.heater.tick(TICK_PERIOD_MS)
+    this.heater.iterate(TICK_PERIOD_MS/1000)
 
     if (this.state === DeviceState.Running) {
       const time = this.msTime / 1000
@@ -130,11 +134,11 @@ export class VirtualBackend implements IBackend {
       sparsedPush(this.history_mock, { x: time, y: probe }, 1.0)
 
       this.pid
-        .setLimits(0, this.heater.maxWatts)
+        .setLimits(0, this.heater.get_max_power())
         .setPoint(this.timeline.getTarget(time))
 
       const watts = this.pid.tick(probe)
-      this.heater.setPoint(watts)
+      this.heater.set_power(watts)
 
       this.msTime += TICK_PERIOD_MS
       // Uncomment to check heater model response & power clamping
@@ -170,7 +174,7 @@ export class VirtualBackend implements IBackend {
 
   async stop() {
     this.state = DeviceState.Idle
-    this.heater.setPoint(0)
+    this.heater.set_power(0)
   }
 
   async rawPower(watts: number) {
@@ -187,6 +191,6 @@ export class VirtualBackend implements IBackend {
       this.state = DeviceState.RawPower
     }
 
-    this.heater.setPoint(watts)
+    this.heater.set_power(watts)
   }
 }

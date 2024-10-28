@@ -49,8 +49,6 @@ export class Device {
   watts: Ref<number> = ref(0)
   volts: Ref<number> = ref(0)
   amperes: Ref<number> = ref(0)
-  maxVolts: Ref<number> = ref(0)
-  maxAmperes: Ref<number> = ref(0)
   maxWatts: Ref<number> = ref(0)
  
   history: Ref<Point[]> = ref<Point[]>([])
