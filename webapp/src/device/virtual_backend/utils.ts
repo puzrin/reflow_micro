@@ -1,9 +1,5 @@
 import { type Point } from "@/device"
 
-export function clamp(value: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, value));
-}
-
 function near(p1: Point, p2: Point, precision: number): boolean {
   return Math.abs(p1.x - p2.x) < precision && Math.abs(p1.y - p2.y) < precision;
 }

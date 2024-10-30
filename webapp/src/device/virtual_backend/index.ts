@@ -1,5 +1,5 @@
 import { Heater, configured_heater } from './heater'
-import { PID } from './pid'
+import { ADRC } from './adrc'
 import { startTemperature, type Profile } from '@/device/heater_config';
 import { useProfilesStore } from '@/stores/profiles'
 import { useVirtualBackendStore} from './virtualBackendStore'
@@ -47,7 +47,7 @@ class Timeline {
 export class VirtualBackend implements IBackend {
   private device: Device
   private heater: Heater
-  private pid = new PID()
+  private adrc: ADRC | null = null
   private timeline = new Timeline()
   private msTime = 0
 
@@ -65,9 +65,6 @@ export class VirtualBackend implements IBackend {
       .scale_r_to(4.0)
       .set_size(0.08, 0.07, 0.0028)
       //.set_size(0.07, 0.06, 0.0028)
-    this.pid
-      .setLimits(0, 100)
-      .setK(40.0, 100.0, 0.0)
   }
 
   async fetch_state(): Promise<void> {
@@ -133,11 +130,13 @@ export class VirtualBackend implements IBackend {
 
       sparsedPush(this.history_mock, { x: time, y: probe }, 1.0)
 
-      this.pid
-        .setLimits(0, this.heater.get_max_power())
-        .setPoint(this.timeline.getTarget(time))
+      const watts = this.adrc?.iterate(
+        probe,
+        this.timeline.getTarget(time),  // setpoint
+        this.heater.get_max_power(),    // power clamp limit
+        TICK_PERIOD_MS / 1000           // dt
+      ) ?? 0
 
-      const watts = this.pid.tick(probe)
       this.heater.set_power(watts)
 
       this.msTime += TICK_PERIOD_MS
@@ -162,18 +161,42 @@ export class VirtualBackend implements IBackend {
     const profilesStore = useProfilesStore()
     if (profilesStore.selected === null) throw new Error('No profile set')
 
+    //
+    // Setup ADRC
+    //
+
+    // this ones calibrated by step signal
+    const τ = 71.6 // Timing constant. Time ti reach 63% of final value
+    const b0 = 0.0237
+
+    // This ones simplify adrc params change, while keeping stability
+    //
+    // ω_o = N / τ; ω_c = ω_o / M
+    const N = 20 // usually 3..10, but can be more
+    const M = 3  // usually 2..5
+
+    // calculate the rest
+    const ω_o = N / τ
+    const ω_c = ω_o / M
+    const Kp = ω_c / b0
+
+    console.log('ADRC params:', { b0, ω_o, ω_c, Kp })
+
+    this.adrc = new ADRC(b0, ω_o, Kp)
+    this.adrc.reset_to(this.heater.temperature)
+
     this.device.history.value.length = 0
     this.device.history_id.value = profilesStore.selected.id
 
     this.msTime = 0
     this.history_mock.length = 0
-    this.pid.reset()
     this.timeline.load(profilesStore.selected)
     this.state = DeviceState.Running
   }
 
   async stop() {
     this.state = DeviceState.Idle
+    this.adrc = null
     this.heater.set_power(0)
   }
 

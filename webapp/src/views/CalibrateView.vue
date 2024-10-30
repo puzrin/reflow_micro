@@ -11,65 +11,9 @@ import ButtonDanger from '@/components/buttons/ButtonDanger.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 const device: Device = inject('device')!
-const pidTuneRunning = ref(false)
+const autoTuneRunning = ref(false)
 
-const presets = {
-  zieglerNichols: [0.6, 0.5, 0.125],
-  tyreusLuyben: [0.9, 0.3, 0.2],
-  cianconeMarlin: [0.95, 0.3, 0.2],
-  chienHronesReswick: [0.7, 0.4, 0.15],
-  cohenCoon: [0.9, 0.3, 0.3],
-  pessenIntegral: [1.2, 0.4, 0.4],
-  someOvershoot: [0.33, 0.33, 0.33],
-  noOvershoot: [0.2, 0.4, 0.133],
-  forDisturbances: [0.95, 0.3, 0.1],
-  forFastSettling: [0.6, 0.5, 0.15],
-  forSlowSettling: [0.2, 0.4, 0.133],
-}
 
-async function tunePid() {
-  pidTuneRunning.value = true
-
-  // Wait cooling down if needed
-  if (device.temperature.value > 90) {
-    await device.rawPower(0.01)
-    await until(device.temperature).toMatch(t => t < 90)
-  }
-
-  await device.rawPower(65)
-  await until(device.temperature).toMatch(t => t > 100)
-  const pBegin: Point = device.history.value[device.history.value.length - 1]
-
-  await until(device.temperature).toMatch(t => t > 200)
-  const pMax: Point = device.history.value[device.history.value.length - 1]
-  const maxPower = device.watts.value
-
-  await device.rawPower(0.01)
-  await until(device.temperature).toMatch(t => t < 100)
-  const pEnd: Point = device.history.value[device.history.value.length - 1]
-
-  const Ku = 4 * ((maxPower - 0)/2) / (Math.PI * (pMax.y - pEnd.y)/2)
-  const Tu = (pEnd.x - pBegin.x)
-  console.log(`Ku = ${Ku.toFixed(4)}, Tu = ${Tu.toFixed(2)}`)
-
-  {
-    const [kpConstant, tiConstant, tdConstant] = presets.zieglerNichols
-    const Kp = kpConstant * Ku
-    const Ki = Kp / tiConstant
-    const Kd = Kp * tdConstant
-    console.log(`zieglerNichols: Kp = ${Kp.toFixed(3)}, Ki =${Ki.toFixed(3)}, Kd = ${Kd.toFixed(4)}`)
-  }
-  {
-    const [kpConstant, tiConstant, tdConstant] = presets.noOvershoot
-    const Kp = kpConstant * Ku
-    const Ki = Kp / tiConstant
-    const Kd = Kp * tdConstant
-    console.log(`noOvershoot: Kp = ${Kp.toFixed(3)}, Ki =${Ki.toFixed(3)}, Kd = ${Kd.toFixed(4)}`)
-  }
-
-  device.stop()
-  pidTuneRunning.value = false
-}
 </script>
 
 <template>
@@ -174,11 +118,11 @@ async function tunePid() {
     <h2 class="mb-2 text-lg font-semibold">PID</h2>
 
     <div>
-      <ButtonNormal @click="tunePid">Auto-tune</ButtonNormal>
+      <ButtonNormal>Auto-tune</ButtonNormal>
 
       <div class="mb-4 relative">
         <Transition name="bounce">
-          <div v-if="pidTuneRunning" class="mt-4 relative rounded-md bg-slate-100 h-[300px]">
+          <div v-if="autoTuneRunning" class="mt-4 relative rounded-md bg-slate-100 h-[300px]">
             <div class="absolute top-0 left-0 right-0 bottom-0">
               <ReflowChart id="profile-edit-chart"
                 :profile="null"
@@ -188,7 +132,7 @@ async function tunePid() {
           </div>
         </Transition>
         <Transition name="bounce">
-          <div  v-if="pidTuneRunning" class="absolute top-2 right-3 text-right text-xs opacity-50">
+          <div  v-if="autoTuneRunning" class="absolute top-2 right-3 text-right text-xs opacity-50">
             <div><span class="font-mono">{{ device.watts.value.toFixed(1) }}</span> W</div>
             <div><span class="font-mono">max {{ Math.round(device.maxWatts.value) }}</span> W</div>
             <div><span class="font-mono">{{ device.volts.value.toFixed(1) }}</span> V</div>

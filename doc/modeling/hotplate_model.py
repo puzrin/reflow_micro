@@ -87,14 +87,14 @@ class HotplateModel:
         self.temperature = None  # Current temperature
         self.name = ""  # Label for the hotplate
         # By default rely on clamping limits to simplify configuration
-        self.power_setpoint = 1000
+        self.power_setpoint = 0
         self.profiles = charger_140w_with_pps
 
     def clone(self):
         # Create a new instance with the same properties
         new_instance = HotplateModel(
-            x=self.size['x'], 
-            y=self.size['y'], 
+            x=self.size['x'],
+            y=self.size['y'],
             z=self.size['z']
         )
         new_instance.calibration_points = [point.copy() for point in self.calibration_points]
@@ -116,7 +116,7 @@ class HotplateModel:
     def set_size(self, x, y, z):
         self.size = {'x': x, 'y': y, 'z': z}
         return self
-    
+
     def set_profiles(self, profiles):
         self.profiles = profiles
         return self
@@ -157,11 +157,11 @@ class HotplateModel:
 
     def iterate(self, dt):
         clamped_power = self.get_power()
-        
+
         heat_capacity = self.calculate_heat_capacity()
         heat_transfer_coefficient = self.calculate_heat_transfer_coefficient()
         temperature_change = (clamped_power - heat_transfer_coefficient * (self.temperature - self.get_room_temp())) * dt / heat_capacity
-        
+
         self.temperature += temperature_change
 
     def calculate_resistance(self, temperature):
@@ -201,14 +201,14 @@ class HotplateModel:
         else: self.power_setpoint = power
 
         return self
-    
+
     def get_max_power(self):
         R = self.calculate_resistance(self.temperature)
         return self.profiles.get_power(R)
 
     def get_power(self):
         return min(self.get_max_power(), self.power_setpoint)
-    
+
     def get_resistance(self):
         return self.calculate_resistance(self.temperature)
 
