@@ -1,61 +1,26 @@
 import { Heater, configured_heater } from './heater'
-import { ADRC } from './adrc'
-import { startTemperature, type Profile } from '@/device/heater_config';
 import { useProfilesStore } from '@/stores/profiles'
 import { useVirtualBackendStore} from './virtualBackendStore'
-import { sparsedPush } from './utils'
-import { DeviceState, Device, type IBackend, type Point, HISTORY_ID_RAW_MODE } from '@/device'
+import { DeviceState, Device, type IBackend, type Point, HISTORY_ID_SENSOR_BAKE_MODE, HISTORY_ID_ADRC_TEST_MODE } from '@/device'
+import { task_sensor_bake } from './task_sensor_bake'
+import { task_adrc_test, task_adrc_test_setpoint } from './task_adrc_test'
+import { task_reflow } from './task_reflow'
+import type { AdrcConfig } from '../adrc_config'
 
 // Tick step in ms, 10Hz.
 // The real timer interval can be faster, to increase simulation speed.
 export const TICK_PERIOD_MS = 100
 
-class Timeline {
-  profilePoints: Point[] = [{ x: 0, y: 0 }]
-
-  load(profile: Profile) {
-    const profilePoints = [{ x: 0, y: startTemperature }]
-    profile.segments.forEach((segment, i) => {
-      profilePoints.push({ x: profilePoints[i].x + segment.duration, y: segment.target })
-    })
-    this.profilePoints = profilePoints
-  }
-
-  get maxTime() {
-    if (this.profilePoints.length <= 1) return 0
-    return this.profilePoints[this.profilePoints.length - 1].x
-  }
-
-  getTarget(offset: number) {
-    if (offset < 0) return 0
-
-    const points = this.profilePoints
-
-    for (let i = 1; i < this.profilePoints.length; i++) {
-      const p0 = points[i - 1]
-      const p1 = points[i]
-
-      if (p0.x <= offset && p1.x >= offset) {
-        return p0.y + (p1.y - p0.y) / (p1.x - p0.x) * (offset - p0.x)
-      }
-    }
-
-    return 0
-  }
-}
-
 export class VirtualBackend implements IBackend {
   private device: Device
-  private heater: Heater
-  private adrc: ADRC | null = null
-  private timeline = new Timeline()
-  private msTime = 0
+  heater: Heater
 
   private state = DeviceState.Idle
-  private history_mock: Point[] = []
+  history_mock: Point[] = [] // public, to update from tasks
   private ticker_id: number | null = null
 
   private static readonly LS_KEY = 'virtual_backend_profiles_data'
+  private task_iterator: Generator | null = null
 
   constructor(device: Device) {
     this.device = device
@@ -89,6 +54,7 @@ export class VirtualBackend implements IBackend {
     this.device.is_connected.value = true
     this.device.need_pairing.value = false
     this.device.is_authenticated.value = true
+    this.device.is_hotplate_ok.value = true
 
     await this.device.loadProfilesData()
 
@@ -106,6 +72,7 @@ export class VirtualBackend implements IBackend {
     this.device.is_connected.value = false
     this.device.is_authenticated.value = false
     this.device.is_ready.value = false
+    this.device.is_hotplate_ok.value = false
   }
 
   async connect() {}
@@ -124,96 +91,76 @@ export class VirtualBackend implements IBackend {
     // Heater emulator works non-stop mode
     this.heater.iterate(TICK_PERIOD_MS/1000)
 
-    if (this.state === DeviceState.Running) {
-      const time = this.msTime / 1000
-      const probe = this.heater.temperature
-
-      sparsedPush(this.history_mock, { x: time, y: probe }, 1.0)
-
-      const watts = this.adrc?.iterate(
-        probe,
-        this.timeline.getTarget(time),  // setpoint
-        this.heater.get_max_power(),    // power clamp limit
-        TICK_PERIOD_MS / 1000           // dt
-      ) ?? 0
-
-      this.heater.set_power(watts)
-
-      this.msTime += TICK_PERIOD_MS
-      // Uncomment to check heater model response & power clamping
-      //this.heater.setPoint(100)
-
-      if (time >= this.timeline.maxTime) this.stop()
-    }
-
-    if (this.state === DeviceState.RawPower) {
-      const time = this.msTime / 1000
-      const probe = this.heater.temperature
-      this.history_mock.push({ x: time, y: probe })
-
-      this.msTime += TICK_PERIOD_MS
-    }
+    if (this.task_iterator?.next().done === true) this.task_iterator = null
   }
 
-  async start() {
+  async stop() {
+    this.state = DeviceState.Idle
+    this.task_iterator = null
+    this.heater.set_power(0)
+  }
+
+  async run_reflow() {
     if (this.state !== DeviceState.Idle) throw new Error('Cannot start profile, device busy')
 
     const profilesStore = useProfilesStore()
     if (profilesStore.selected === null) throw new Error('No profile set')
 
-    //
-    // Setup ADRC
-    //
-
-    // this ones calibrated by step signal
-    const τ = 71.6 // Timing constant. Time ti reach 63% of final value
-    const b0 = 0.0237
-
-    // This ones simplify adrc params change, while keeping stability
-    //
-    // ω_o = N / τ; ω_c = ω_o / M
-    const N = 20 // usually 3..10, but can be more
-    const M = 3  // usually 2..5
-
-    // calculate the rest
-    const ω_o = N / τ
-    const ω_c = ω_o / M
-    const Kp = ω_c / b0
-
-    console.log('ADRC params:', { b0, ω_o, ω_c, Kp })
-
-    this.adrc = new ADRC(b0, ω_o, Kp)
-    this.adrc.reset_to(this.heater.temperature)
-
     this.device.history.value.length = 0
     this.device.history_id.value = profilesStore.selected.id
+    this.state = DeviceState.Reflow
 
-    this.msTime = 0
-    this.history_mock.length = 0
-    this.timeline.load(profilesStore.selected)
-    this.state = DeviceState.Running
+    this.task_iterator = task_reflow(this, profilesStore.selected)
+    this.task_iterator.next()
   }
 
-  async stop() {
-    this.state = DeviceState.Idle
-    this.adrc = null
-    this.heater.set_power(0)
-  }
-
-  async rawPower(watts: number) {
-    if (this.state !== DeviceState.Idle && this.state !== DeviceState.RawPower) {
-      throw new Error('Cannot apply direct power, stop profile first')
+  async run_sensor_bake(watts: number) {
+    if (this.state !== DeviceState.Idle && this.state !== DeviceState.SensorBake) {
+      throw new Error('Cannot heat sensor, device busy')
     }
 
     if (this.state === DeviceState.Idle) {
       this.device.history.value.length = 0
-      this.device.history_id.value = HISTORY_ID_RAW_MODE
-
-      this.msTime = 0
-      this.history_mock.length = 0
-      this.state = DeviceState.RawPower
+      this.device.history_id.value = HISTORY_ID_SENSOR_BAKE_MODE
+      this.state = DeviceState.SensorBake
+      this.task_iterator = task_sensor_bake(this)
     }
 
     this.heater.set_power(watts)
+  }
+
+  async run_adrc_test(temperature: number) {
+    if (this.state !== DeviceState.Idle && this.state !== DeviceState.AdrcTest) {
+      throw new Error('Cannot run test, device busy')
+    }
+
+    if (this.state === DeviceState.Idle) {
+      this.device.history.value.length = 0
+      this.device.history_id.value = HISTORY_ID_ADRC_TEST_MODE
+      this.state = DeviceState.AdrcTest
+      this.task_iterator = task_adrc_test(this)
+    }
+
+    task_adrc_test_setpoint(temperature)
+  }
+
+  async set_sensor_calibration_point(point_id: (0 | 1), value: number) {
+    const virtualBackendStore = useVirtualBackendStore()
+    virtualBackendStore.sensor_calibration_status[point_id] = value !== 0
+  }
+
+  async get_sensor_calibration_status(): Promise<[boolean, boolean]> {
+    const virtualBackendStore = useVirtualBackendStore()
+    return virtualBackendStore.sensor_calibration_status
+  }
+
+  async set_adrc_config(config: AdrcConfig): Promise<void> {
+    const virtualBackendStore = useVirtualBackendStore()
+    virtualBackendStore.adrc_config = config
+  }
+
+  async get_adrc_config(): Promise<AdrcConfig> {
+    const virtualBackendStore = useVirtualBackendStore()
+    return virtualBackendStore.adrc_config
   }
 }

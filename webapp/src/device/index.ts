@@ -3,34 +3,43 @@ import Ajv from "ajv"
 import { default as profiles_schema } from './profiles_schema.json'
 import { VirtualBackend } from "./virtual_backend"
 import { useProfilesStore } from '@/stores/profiles'
+import { type AdrcConfig } from "./adrc_config"
 
 const validate_profiles_data = new Ajv().compile(profiles_schema)
 
 export enum DeviceState {
   Idle = 0,
-  Running = 1,
-  RawPower = 2
+  Reflow = 1,
+  SensorBake = 2,
+  AdrcTest = 3
 }
 
 export type Point = { x: number, y: number }
 
-export const HISTORY_ID_RAW_MODE = -1
+export const HISTORY_ID_SENSOR_BAKE_MODE = -1
+export const HISTORY_ID_ADRC_TEST_MODE = -2
 
 export interface IBackend {
+  // init
   attach(): Promise<void>
   detach(): Promise<void>
+  connect(): Promise<void> // BLE only, to select GATT device from click
 
-  start(): Promise<void>
+  // tasks
+  run_reflow(): Promise<void>
+  run_sensor_bake(watts: number): Promise<void>
+  run_adrc_test(temperature: number): Promise<void>
   stop(): Promise<void>
-  rawPower(watts: number): Promise<void>
 
   load_profiles_data(): Promise<string>
   save_profiles_data(data: string): Promise<void>
   fetch_state(): Promise<void>
   fetch_history(): Promise<void>
 
-  // BLE only, to select GATT device from click
-  connect(): Promise<void>
+  set_sensor_calibration_point(point_id: (0 | 1), value: number): Promise<void>
+  get_sensor_calibration_status(): Promise<[boolean, boolean]>
+  set_adrc_config(config: AdrcConfig): Promise<void>
+  get_adrc_config(): Promise<AdrcConfig>
 }
 
 export class Device {
@@ -43,6 +52,7 @@ export class Device {
 
   // Essential properties
   state: Ref<DeviceState> = ref(DeviceState.Idle)
+  is_hotplate_ok: Ref<boolean> = ref(false)
   temperature: Ref<number> = ref(0)
 
   // Debug info properties
@@ -50,7 +60,7 @@ export class Device {
   volts: Ref<number> = ref(0)
   amperes: Ref<number> = ref(0)
   maxWatts: Ref<number> = ref(0)
- 
+
   history: Ref<Point[]> = ref<Point[]>([])
   history_id: Ref<number> = ref(0)
 
@@ -60,7 +70,7 @@ export class Device {
   private unsubscribeProfilesStore: (() => void) | null = null
 
   constructor() {
-    setInterval(async () => {      
+    setInterval(async () => {
       try {
         await this.backend?.fetch_state()
         await this.backend?.fetch_history()
@@ -68,10 +78,31 @@ export class Device {
     }, 1000)
   }
 
+
   async connect() { await this.backend?.connect() }
-  async start() { await this.backend?.start() }
+
+  async run_reflow() { await this.backend?.run_reflow() }
+  async run_sensor_bake(watts: number) { await this.backend?.run_sensor_bake(watts) }
+  async run_adrc_test(temperature: number) { await this.backend?.run_adrc_test(temperature) }
   async stop() { await this.backend?.stop() }
-  async rawPower(watts: number) { await this.backend?.rawPower(watts) }
+
+  async set_sensor_calibration_point(point_id: (0 | 1), value: number) {
+    if (!this.backend) throw Error('No backend selected')
+    await this.backend.set_sensor_calibration_point(point_id, value)
+  }
+  async get_sensor_calibration_status(): Promise<[boolean, boolean]> {
+    if (!this.backend) throw Error('No backend selected')
+    return await this.backend.get_sensor_calibration_status()
+  }
+  async set_adrc_config(config: AdrcConfig) {
+    if (!this.backend) throw Error('No backend selected')
+    await this.backend.set_adrc_config(config)
+  }
+  async get_adrc_config(): Promise<AdrcConfig> {
+    if (!this.backend) throw Error('No backend selected')
+    return await this.backend.get_adrc_config()
+  }
+
 
   // Control
   // id: computed(() => driverKey.value);
@@ -92,9 +123,9 @@ export class Device {
     // Remove old tracker is exists
     this.unsubscribeProfilesStore?.()
     this.unsubscribeProfilesStore = null
-    
+
     if (!this.backend) return;
-    
+
     const profilesStore = useProfilesStore()
 
     try {
