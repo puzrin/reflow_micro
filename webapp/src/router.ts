@@ -1,7 +1,8 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import HomeView from './views/HomeView.vue'
 import SettingsView from './views/SettingsView.vue'
-import CalibrateView from './views/CalibrateView.vue'
+import CalibrateSensorView from './views/CalibrateSensorView.vue'
+import CalibrateAdrcView from './views/CalibrateAdrcView.vue'
 import ProfileView from './views/ProfileView.vue'
 import NotFound from './views/NotFound.vue'
 
@@ -19,9 +20,14 @@ const router = createRouter({
       component: SettingsView
     },
     {
-      path: '/calibrate',
-      name: 'calibrate',
-      component: CalibrateView
+      path: '/calibrate_sensor',
+      name: 'calibrate_sensor',
+      component: CalibrateSensorView
+    },
+    {
+      path: '/calibrate_adrc',
+      name: 'calibrate_adrc',
+      component: CalibrateAdrcView
     },
     {
       path: '/profile/:id(0|[1-9]\\d*)',

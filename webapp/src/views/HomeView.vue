@@ -14,7 +14,7 @@ const localSettingsStore = useLocalSettingsStore()
 const device: Device = inject('device')!
 
 async function start() {
-  await device.start()
+  await device.run_reflow()
 }
 
 async function stop() {
@@ -65,7 +65,7 @@ async function stop() {
         </ButtonPrimary>
         <ButtonDanger
           class="ms-1"
-          :disabled="device.state.value !== DeviceState.Running"
+          :disabled="device.state.value !== DeviceState.Reflow"
           @click="stop"
         >
           Stop

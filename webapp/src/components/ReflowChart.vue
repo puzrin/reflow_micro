@@ -88,7 +88,7 @@ function buildChart() {
   let verticalGuide: Point[] = []
   let horizontalGuide: Point[] = []
 
-  if (device.state.value === DeviceState.Running) {
+  if (device.state.value === DeviceState.Reflow) {
     if (historyPoints.length > 1) {
       const lastProbe = historyPoints[historyPoints.length - 1]
       verticalGuide = [{ x: lastProbe.x, y: 0 }, { x: lastProbe.x, y: yRangeMax }]

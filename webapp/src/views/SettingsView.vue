@@ -123,10 +123,17 @@ function resetProfiles() {
       <label for="debug-on" class="ms-2 text-gray-900">Show debug info</label>
     </div>
 
-    <div>
-      <RouterLink :to="{ name: 'calibrate' }" class="me-2">
-        <ButtonNormal>Calibrate</ButtonNormal>
+    <div class=" mb-4">
+      <RouterLink :to="{ name: 'calibrate_sensor' }" class="me-2">
+        <ButtonNormal>Calibrate temperature sensor</ButtonNormal>
       </RouterLink>
+
+      <RouterLink :to="{ name: 'calibrate_adrc' }" class="me-2">
+        <ButtonNormal>Calibrate temperature controller</ButtonNormal>
+      </RouterLink>
+    </div>
+
+    <div class=" mb-4">
     </div>
   </PageLayout>
 
