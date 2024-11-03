@@ -10,6 +10,9 @@ import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
 
 const device: Device = inject('device')!
 
+const saveP1Btn = ref()
+const saveP2Btn = ref()
+
 const is_idle = computed(() => device.state.value === DeviceState.Idle)
 const is_baking = computed(() => device.state.value === DeviceState.SensorBake)
 
@@ -55,6 +58,7 @@ async function save_p1() {
 
   show_p1_error.value = false
   await device.set_sensor_calibration_point(0, toNumber(p1.value))
+  saveP1Btn.value?.showSuccess()
   await loadCalibrationStatus()
   p1.value = ''
 }
@@ -65,6 +69,7 @@ async function save_p2() {
 
   show_p2_error.value = false
   await device.set_sensor_calibration_point(1, toNumber(p2.value))
+  saveP2Btn.value?.showSuccess()
   await loadCalibrationStatus()
   p2.value = ''
   await device.stop()
@@ -112,7 +117,7 @@ async function save_p2() {
       <div class="mb-8">
         <div class="flex gap-2 flex-nowrap w-full">
           <input v-model="p1" type="number" inputmode="numeric" min="10" max="100" class="w-full" />
-          <ButtonNormal @click="save_p1" :disabled="!is_idle">Save</ButtonNormal>
+          <ButtonNormal ref="saveP1Btn" @click="save_p1" :disabled="!is_idle">Save</ButtonNormal>
         </div>
         <div v-if="show_p1_error" class="text-xs text-red-500 mt-0.5">Not a number</div>
         <div class="text-xs text-slate-400 mt-0.5">Temperature, °C</div>
@@ -143,7 +148,7 @@ async function save_p2() {
       <div class="mb-8">
         <div class="flex gap-2 flex-nowrap w-full">
           <input v-model="p2" type="number" inputmode="numeric" min="150" max="300" class="w-full" />
-          <ButtonNormal @click="save_p2" :disabled="!is_baking">Save</ButtonNormal>
+          <ButtonNormal ref="saveP2Btn" @click="save_p2" :disabled="!is_baking">Save</ButtonNormal>
         </div>
         <div v-if="show_p2_error" class="text-xs text-red-500 mt-0.5">Not a number</div>
         <div class="text-xs text-slate-400 mt-0.5">Temperature, °C</div>

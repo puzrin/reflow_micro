@@ -14,6 +14,9 @@ const device: Device = inject('device')!
 const is_idle = computed(() => device.state.value === DeviceState.Idle)
 const is_testing = computed(() => device.state.value === DeviceState.AdrcTest)
 
+const saveBtn = ref()
+const resetBtn = ref()
+
 const adrc_param_tau = ref('')
 const adrc_param_b0 = ref('')
 const adrc_param_n = ref('')
@@ -58,10 +61,10 @@ function toNumber(val: string | number) {
 }
 
 async function save_adrc_params() {
-  if (!isNumberLike(adrc_param_tau.value)) { adrc_error_tau.value = true; return }
-  if (!isNumberLike(adrc_param_b0.value)) { adrc_error_b0.value = true; return }
-  if (!isNumberLike(adrc_param_n.value)) { adrc_error_n.value = true; return }
-  if (!isNumberLike(adrc_param_m.value)) { adrc_error_m.value = true; return }
+  if (!isNumberLike(adrc_param_tau.value)) { adrc_error_tau.value = true; saveBtn.value?.showFailure(); return }
+  if (!isNumberLike(adrc_param_b0.value)) { adrc_error_b0.value = true; saveBtn.value?.showFailure(); return }
+  if (!isNumberLike(adrc_param_n.value)) { adrc_error_n.value = true; saveBtn.value?.showFailure(); return }
+  if (!isNumberLike(adrc_param_m.value)) { adrc_error_m.value = true; saveBtn.value?.showFailure(); return }
 
   adrc_error_tau.value = false
   adrc_error_b0.value = false
@@ -75,9 +78,13 @@ async function save_adrc_params() {
     M: toNumber(adrc_param_m.value),
   }
   await device.set_adrc_config(adrc_config)
+  saveBtn.value?.showSuccess();
 }
 
-async function default_adrc_params() { configToRefs(defaultAdrcConfig) }
+async function default_adrc_params() {
+  await configToRefs(defaultAdrcConfig)
+  resetBtn.value?.showSuccess()
+}
 </script>
 
 <template>
@@ -149,8 +156,8 @@ async function default_adrc_params() { configToRefs(defaultAdrcConfig) }
       </div>
 
       <div class="mb-8">
-        <ButtonNormal @click="save_adrc_params" class="mr-2">Save</ButtonNormal>
-        <ButtonNormal @click="default_adrc_params">Load default params</ButtonNormal>
+        <ButtonNormal ref="saveBtn" @click="save_adrc_params" class="mr-2">Save</ButtonNormal>
+        <ButtonNormal ref="resetBtn" @click="default_adrc_params">Load default params</ButtonNormal>
       </div>
 
 

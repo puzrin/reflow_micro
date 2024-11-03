@@ -21,6 +21,8 @@ const props = defineProps<{ id: number }>()
 const profilesStore = useProfilesStore()
 const localSettingsStore = useLocalSettingsStore()
 
+const saveBtn = ref()
+
 // Load profile object from store or create new one
 const srcProfile: Profile = profilesStore.exists(props.id) ?
   toRaw(profilesStore.find(props.id))! : createDummyProfile()
@@ -37,6 +39,7 @@ function saveForm() {
   // Save profile to store & auto-update id to avoid dupes on next save
   profile.id = profilesStore.add(toRaw(profile))
   isProfileEdited.value = false
+  saveBtn.value?.showSuccess()
 }
 
 const exitDlgRef = ref<InstanceType<typeof ConfirmDialog>>()
@@ -165,7 +168,7 @@ const str2int = (str: string) => parseInt(str.replace(/[^0-9]/g, '')) || 0
       </div>
 
       <div class="mt-6">
-        <ButtonNormal type="submit">Save</ButtonNormal>
+        <ButtonNormal ref="saveBtn" type="submit">Save</ButtonNormal>
       </div>
     </form>
   </PageLayout>
