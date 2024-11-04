@@ -1,10 +1,12 @@
 import { Heater, configured_heater } from './heater'
 import { useProfilesStore } from '@/stores/profiles'
 import { useVirtualBackendStore} from './virtualBackendStore'
-import { DeviceState, Device, type IBackend, type Point, HISTORY_ID_SENSOR_BAKE_MODE, HISTORY_ID_ADRC_TEST_MODE } from '@/device'
-import { task_sensor_bake } from './task_sensor_bake'
-import { task_adrc_test, task_adrc_test_setpoint } from './task_adrc_test'
-import { task_reflow } from './task_reflow'
+import { DeviceState, Device, type IBackend, type Point,
+  HISTORY_ID_SENSOR_BAKE_MODE, HISTORY_ID_ADRC_TEST_MODE, HISTORY_ID_STEP_RESPONSE } from '@/device'
+import { task_sensor_bake } from './tasks/task_sensor_bake'
+import { task_adrc_test, task_adrc_test_setpoint } from './tasks/task_adrc_test'
+import { task_reflow } from './tasks/task_reflow'
+import { task_step_response } from './tasks/task_step_response'
 import type { AdrcConfig } from '../adrc_config'
 
 // Tick step in ms, 10Hz.
@@ -143,6 +145,15 @@ export class VirtualBackend implements IBackend {
 
     task_adrc_test_setpoint(temperature)
   }
+
+  async run_step_response(watts: number) {
+    if (this.state !== DeviceState.Idle) throw new Error('Cannot run test, device busy')
+
+    this.device.history.value.length = 0
+    this.device.history_id.value = HISTORY_ID_STEP_RESPONSE
+    this.state = DeviceState.StepResponse
+    this.task_iterator = task_step_response(this, watts)
+}
 
   async set_sensor_calibration_point(point_id: (0 | 1), value: number) {
     const virtualBackendStore = useVirtualBackendStore()

@@ -1,9 +1,9 @@
-import { VirtualBackend, TICK_PERIOD_MS } from './';
-import { sparsedPush } from './utils';
+import { VirtualBackend, TICK_PERIOD_MS } from '../';
+import { sparsedPush } from '../utils';
 import { startTemperature, type Profile } from '@/device/heater_config'
 import { type Point } from '@/device'
-import { useVirtualBackendStore} from './virtualBackendStore'
-import { createADRC } from './utils';
+import { useVirtualBackendStore} from '../virtualBackendStore'
+import { createADRC } from '../utils';
 
 class Timeline {
   profilePoints: Point[] = [{ x: 0, y: 0 }]

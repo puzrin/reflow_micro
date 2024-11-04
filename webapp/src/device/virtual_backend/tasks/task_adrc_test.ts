@@ -1,8 +1,8 @@
-import { VirtualBackend, TICK_PERIOD_MS } from './';
-import { sparsedPush } from './utils';
+import { VirtualBackend, TICK_PERIOD_MS } from '../';
+import { sparsedPush } from '../utils';
 import { startTemperature, type Profile } from '@/device/heater_config'
-import { useVirtualBackendStore} from './virtualBackendStore'
-import { createADRC } from './utils';
+import { useVirtualBackendStore} from '../virtualBackendStore'
+import { createADRC } from '../utils';
 
 let setpoint = 0
 

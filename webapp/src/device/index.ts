@@ -11,13 +11,15 @@ export enum DeviceState {
   Idle = 0,
   Reflow = 1,
   SensorBake = 2,
-  AdrcTest = 3
+  AdrcTest = 3,
+  StepResponse = 4
 }
 
 export type Point = { x: number, y: number }
 
 export const HISTORY_ID_SENSOR_BAKE_MODE = -1
 export const HISTORY_ID_ADRC_TEST_MODE = -2
+export const HISTORY_ID_STEP_RESPONSE = -3
 
 export interface IBackend {
   // init
@@ -29,6 +31,7 @@ export interface IBackend {
   run_reflow(): Promise<void>
   run_sensor_bake(watts: number): Promise<void>
   run_adrc_test(temperature: number): Promise<void>
+  run_step_response(watts: number): Promise<void>
   stop(): Promise<void>
 
   load_profiles_data(): Promise<string>
@@ -84,6 +87,7 @@ export class Device {
   async run_reflow() { await this.backend?.run_reflow() }
   async run_sensor_bake(watts: number) { await this.backend?.run_sensor_bake(watts) }
   async run_adrc_test(temperature: number) { await this.backend?.run_adrc_test(temperature) }
+  async run_step_response(watts: number) { await this.backend?.run_step_response(watts) }
   async stop() { await this.backend?.stop() }
 
   async set_sensor_calibration_point(point_id: (0 | 1), value: number) {
@@ -120,7 +124,7 @@ export class Device {
   };
 
   async loadProfilesData() {
-    // Remove old tracker is exists
+    // Remove old tracker if exists
     this.unsubscribeProfilesStore?.()
     this.unsubscribeProfilesStore = null
 

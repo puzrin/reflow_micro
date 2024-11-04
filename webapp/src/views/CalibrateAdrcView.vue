@@ -2,8 +2,8 @@
 import PageLayout from '@/components/PageLayout.vue'
 import { RouterLink, onBeforeRouteLeave } from 'vue-router'
 import { watchDebounced } from '@vueuse/core'
-import { inject, onMounted, ref, computed } from 'vue'
-import { Device, DeviceState, HISTORY_ID_ADRC_TEST_MODE } from '@/device'
+import { inject, onMounted, ref, computed, watch } from 'vue'
+import { Device, DeviceState, HISTORY_ID_ADRC_TEST_MODE, HISTORY_ID_STEP_RESPONSE } from '@/device'
 import ReflowChart from '@/components/ReflowChart.vue'
 import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
 import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
@@ -13,6 +13,7 @@ const device: Device = inject('device')!
 
 const is_idle = computed(() => device.state.value === DeviceState.Idle)
 const is_testing = computed(() => device.state.value === DeviceState.AdrcTest)
+const is_step_response = computed(() => device.state.value === DeviceState.StepResponse)
 
 const saveBtn = ref()
 const resetBtn = ref()
@@ -26,7 +27,8 @@ const adrc_error_b0 = ref(false)
 const adrc_error_n = ref(false)
 const adrc_error_m = ref(false)
 
-const test_temperature = ref(50)
+const test_temperature = ref(200)
+const step_response_power = ref(50)
 
 function configToRefs(config: AdrcConfig) {
   adrc_param_tau.value = config.response.toString()
@@ -49,6 +51,14 @@ onBeforeRouteLeave(async () => {
 watchDebounced(test_temperature, async () => {
   if (device.state.value === DeviceState.AdrcTest) await device.run_adrc_test(test_temperature.value)
 }, { debounce: 500 })
+
+// Reload ADRC settings when finish any task
+watch(device.state, async (newState) => {
+  if (newState === DeviceState.Idle) {
+    const adrc_config = await device.get_adrc_config()
+    configToRefs(adrc_config)
+  }
+})
 
 function isNumberLike(val: string | number): boolean {
   if (typeof val === 'number') return true
@@ -161,6 +171,24 @@ async function default_adrc_params() {
       </div>
 
 
+      <h2 class="text-2xl mb-4 mt-4 text-slate-800">Auto tuning</h2>
+
+
+      <h3 class="text-base mb-4 text-slate-800">Measure step response</h3>
+      <p class="text-sm text-slate-400 mb-4">
+          Used to calculate <b>τ</b> and <b>b0</b> params. Don't use max power, to avoid clamping
+          when temperature increases. Usually 50W should be ok.
+      </p>
+      <div class="mb-8">
+        <div class="flex gap-2 flex-nowrap w-full">
+          <input v-model="step_response_power" type="number" min="0" max="100" class="w-full" />
+          <ButtonNormal @click="device.run_step_response(step_response_power)" :disabled="!is_idle">Run</ButtonNormal>
+          <ButtonNormal @click="device.stop()" :disabled="!is_step_response">Stop</ButtonNormal>
+        </div>
+        <div class="text-xs text-slate-400 mt-0.5">Power {{step_response_power}}W</div>
+      </div>
+
+
       <h2 class="text-2xl mb-4 text-slate-800">Test controller</h2>
       <div class="mb-2">
         <div class="flex gap-2 flex-nowrap w-full">
@@ -173,10 +201,10 @@ async function default_adrc_params() {
 
       <div class="mt-4 relative rounded-md bg-slate-100 h-[300px]">
         <div class="absolute top-0 left-0 right-0 bottom-0">
-          <ReflowChart id="profile-edit-chart"
+          <ReflowChart id="calibrate-adrc-test"
             :profile="null"
             :history="device.history.value"
-            :show_history="device.history_id.value === HISTORY_ID_ADRC_TEST_MODE" />
+            :show_history="device.history_id.value === HISTORY_ID_ADRC_TEST_MODE || device.history_id.value === HISTORY_ID_STEP_RESPONSE" />
         </div>
       </div>
     </template>

@@ -157,7 +157,7 @@ async function save_p2() {
 
       <div class="mt-4 relative rounded-md bg-slate-100 h-[300px]">
         <div class="absolute top-0 left-0 right-0 bottom-0">
-          <ReflowChart id="profile-edit-chart"
+          <ReflowChart id="calibrate-sensor-bake"
             :profile="null"
             :history="device.history.value"
             :show_history="device.history_id.value === HISTORY_ID_SENSOR_BAKE_MODE" />
