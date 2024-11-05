@@ -43,7 +43,10 @@ onMounted(async () => {
 })
 
 onBeforeRouteLeave(async () => {
-  if (device.state.value === DeviceState.SensorBake) await device.stop()
+  if ((device.state.value === DeviceState.AdrcTest) ||
+      (device.state.value === DeviceState.StepResponse)) {
+    await device.stop()
+  }
   return true
 })
 

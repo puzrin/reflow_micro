@@ -1,7 +1,7 @@
 import { Heater, configured_heater } from './heater'
 import { useProfilesStore } from '@/stores/profiles'
 import { useVirtualBackendStore} from './virtualBackendStore'
-import { DeviceState, Device, type IBackend, type Point,
+import { DeviceState, Device, type IBackend, type Point, type HistoryChunk,
   HISTORY_ID_SENSOR_BAKE_MODE, HISTORY_ID_ADRC_TEST_MODE, HISTORY_ID_STEP_RESPONSE } from '@/device'
 import { task_sensor_bake } from './tasks/task_sensor_bake'
 import { task_adrc_test, task_adrc_test_setpoint } from './tasks/task_adrc_test'
@@ -19,10 +19,16 @@ export class VirtualBackend implements IBackend {
 
   private state = DeviceState.Idle
   history_mock: Point[] = [] // public, to update from tasks
+
   private ticker_id: number | null = null
 
   private static readonly LS_KEY = 'virtual_backend_profiles_data'
   private task_iterator: Generator | null = null
+
+  // Used to simulate remote history sync.
+  client_history_version: number = -1
+  remote_history_version: number = 0
+  remote_history_id: number = 0
 
   constructor(device: Device) {
     this.device = device
@@ -48,7 +54,23 @@ export class VirtualBackend implements IBackend {
   async fetch_history(): Promise<void> {
     if (!this.device.is_ready.value) return
 
-    this.device.history.value.splice(0, this.device.history.value.length, ...this.history_mock)
+    const len = this.device.history.value.length
+    const after = len ? this.device.history.value[len-1].x : -1
+
+    const history_slice = await this.get_history_slice(this.client_history_version, after)
+
+    if (!history_slice) return
+
+    // Merge update
+    if (history_slice.version === this.client_history_version) {
+      this.device.history.value.push(...history_slice.data)
+      return
+    }
+
+    // Full replace
+    this.client_history_version = history_slice.version
+    this.device.history.value.splice(0, this.device.history.value.length, ...history_slice.data)
+    this.device.history_id.value = history_slice.type
   }
 
   async attach() {
@@ -57,6 +79,7 @@ export class VirtualBackend implements IBackend {
     this.device.need_pairing.value = false
     this.device.is_authenticated.value = true
     this.device.is_hotplate_ok.value = true
+    this.client_history_version = -1
 
     await this.device.loadProfilesData()
 
@@ -102,14 +125,41 @@ export class VirtualBackend implements IBackend {
     this.heater.set_power(0)
   }
 
+  private reset_remote_history(new_id: number) {
+    this.remote_history_id = new_id
+    this.remote_history_version++
+    this.history_mock.length = 0
+  }
+
+  private async get_history_slice(version: number, after: number): Promise<HistoryChunk | null> {
+    // History outdated => return full new one
+    if (this.remote_history_version != version) {
+      return {
+        type: this.remote_history_id,
+        version: this.remote_history_version,
+        data: this.history_mock
+      }
+    }
+
+    // Calculate diff len, return null if no data to update.
+    const diff =  this.history_mock.filter(point => point.x > after)
+
+    if (!diff.length) return null
+
+    return {
+      type: this.remote_history_id,
+      version: this.remote_history_version,
+      data: diff
+    }
+}
+
   async run_reflow() {
     if (this.state !== DeviceState.Idle) throw new Error('Cannot start profile, device busy')
 
     const profilesStore = useProfilesStore()
     if (profilesStore.selected === null) throw new Error('No profile set')
 
-    this.device.history.value.length = 0
-    this.device.history_id.value = profilesStore.selected.id
+    this.reset_remote_history(profilesStore.selected.id)
     this.state = DeviceState.Reflow
 
     this.task_iterator = task_reflow(this, profilesStore.selected)
@@ -122,8 +172,7 @@ export class VirtualBackend implements IBackend {
     }
 
     if (this.state === DeviceState.Idle) {
-      this.device.history.value.length = 0
-      this.device.history_id.value = HISTORY_ID_SENSOR_BAKE_MODE
+      this.reset_remote_history(HISTORY_ID_SENSOR_BAKE_MODE)
       this.state = DeviceState.SensorBake
       this.task_iterator = task_sensor_bake(this)
     }
@@ -137,8 +186,7 @@ export class VirtualBackend implements IBackend {
     }
 
     if (this.state === DeviceState.Idle) {
-      this.device.history.value.length = 0
-      this.device.history_id.value = HISTORY_ID_ADRC_TEST_MODE
+      this.reset_remote_history(HISTORY_ID_ADRC_TEST_MODE)
       this.state = DeviceState.AdrcTest
       this.task_iterator = task_adrc_test(this)
     }
@@ -149,8 +197,7 @@ export class VirtualBackend implements IBackend {
   async run_step_response(watts: number) {
     if (this.state !== DeviceState.Idle) throw new Error('Cannot run test, device busy')
 
-    this.device.history.value.length = 0
-    this.device.history_id.value = HISTORY_ID_STEP_RESPONSE
+    this.reset_remote_history(HISTORY_ID_STEP_RESPONSE)
     this.state = DeviceState.StepResponse
     this.task_iterator = task_step_response(this, watts)
 }

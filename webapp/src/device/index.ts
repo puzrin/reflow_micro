@@ -21,6 +21,12 @@ export const HISTORY_ID_SENSOR_BAKE_MODE = -1
 export const HISTORY_ID_ADRC_TEST_MODE = -2
 export const HISTORY_ID_STEP_RESPONSE = -3
 
+export interface HistoryChunk {
+  type: number
+  version: number
+  data: Point[]
+}
+
 export interface IBackend {
   // init
   attach(): Promise<void>
