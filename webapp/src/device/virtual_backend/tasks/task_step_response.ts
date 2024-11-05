@@ -40,10 +40,13 @@ export function* task_step_response(backend: VirtualBackend, watts: number) {
     yield
   }
 
-  const temperature_63 = temperature_log[temperature_log.length-1] * 0.63
+  const t_final = temperature_log[temperature_log.length-1]
+  const t_initial = temperature_log[0]
+
+  const temperature_63 = t_initial + (t_final - t_initial) * 0.63
   const time_63 = temperature_log.findIndex(val => val >= temperature_63)
 
-  const b0 = (temperature_63 - temperature_log[0]) / time_63 / watts
+  const b0 = (temperature_63 - t_initial) / time_63 / watts
 
   console.log(`Temperature = ${temperature_63}, time = ${time_63}, b0 = ${b0}`)
 
