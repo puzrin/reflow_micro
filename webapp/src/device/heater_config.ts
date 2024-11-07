@@ -70,33 +70,14 @@ const defaultProfiles: Profile[] = [
   }
 ]
 
-export interface ProfilesStoreData {
+export interface ProfilesData {
   items: Profile[]
   selectedId: number
 }
 
-export const defaultProfilesStoreData: ProfilesStoreData = {
+export const defaultProfilesData: ProfilesData = {
   items: defaultProfiles,
   selectedId: 1
 }
 
-export function createDummyProfile(): Profile {
-  return {
-    id: 0,
-    name: '',
-    segments: [
-      { target: 150, duration: 60 }
-    ]
-  }
-}
-
 export const startTemperature = 30
-export const coolDownTemperature = 50
-export const limits = {
-  targetMin: 30,
-  targetMax: 300,
-  durationMin: 5,
-  durationMax: 60*60*24,
-  nameMin: 3,
-  nameMax: 30
-}

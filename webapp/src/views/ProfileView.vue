@@ -4,7 +4,7 @@ import { RouterLink, onBeforeRouteLeave } from 'vue-router'
 import { useProfilesStore } from '@/stores/profiles'
 import { useLocalSettingsStore } from '@/stores/localSettings'
 import { reactive, ref, toRaw, watch } from 'vue'
-import { startTemperature, limits, createDummyProfile, type Profile } from '@/device/heater_config'
+import { startTemperature, type Profile } from '@/device/heater_config'
 
 import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
 import ButtonDanger from '@/components/buttons/ButtonDanger.vue'
@@ -17,6 +17,16 @@ import DeleteIcon from '@heroicons/vue/24/outline/XMarkIcon'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import ReflowChart from '@/components/ReflowChart.vue'
 
+// GUI fields restrictions
+const limits = {
+  targetMin: 30,
+  targetMax: 300,
+  durationMin: 5,
+  durationMax: 60*60*24,
+  nameMin: 3,
+  nameMax: 30
+}
+
 const props = defineProps<{ id: number }>()
 const profilesStore = useProfilesStore()
 const localSettingsStore = useLocalSettingsStore()
@@ -25,7 +35,13 @@ const saveBtn = ref()
 
 // Load profile object from store or create new one
 const srcProfile: Profile = profilesStore.exists(props.id) ?
-  toRaw(profilesStore.find(props.id))! : createDummyProfile()
+  toRaw(profilesStore.find(props.id))! : {
+    id: 0,
+    name: '',
+    segments: [
+      { target: 150, duration: 60 }
+    ]
+  }
 
 // Create reactive clone to accumulate and track changes
 const profile = reactive(structuredClone(srcProfile)!)

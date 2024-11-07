@@ -1,13 +1,13 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue';
+import { toRefs, reactive } from 'vue';
 import { type AdrcConfig, defaultAdrcConfig } from '../adrc_config';
 
 export const useVirtualBackendStore = defineStore('virtualBackendStore', () => {
-  const rawProfilesData = ref<string>('')
+  const state = reactive({
+    rawProfilesData: '',
+    sensor_calibration_status: [false, false] as [boolean, boolean],
+    adrc_config: structuredClone(defaultAdrcConfig)
+  })
 
-  const sensor_calibration_status = ref<[boolean, boolean]>([false, false])
-
-  const adrc_config = ref<AdrcConfig>(JSON.parse(JSON.stringify(defaultAdrcConfig)))
-
-  return { rawProfilesData, sensor_calibration_status, adrc_config }
+  return { ...toRefs(state) }
 }, { persist: true })

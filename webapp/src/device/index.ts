@@ -1,9 +1,10 @@
-import { ref, type App, type Ref } from "vue"
+import { ref, type App, type Ref, toValue } from "vue"
 import Ajv from "ajv"
 import { default as profiles_schema } from './profiles_schema.json'
 import { VirtualBackend } from "./virtual_backend"
 import { useProfilesStore } from '@/stores/profiles'
 import { type AdrcConfig } from "./adrc_config"
+import { type ProfilesData } from './heater_config'
 
 const validate_profiles_data = new Ajv().compile(profiles_schema)
 
@@ -40,8 +41,8 @@ export interface IBackend {
   run_step_response(watts: number): Promise<void>
   stop(): Promise<void>
 
-  load_profiles_data(): Promise<string>
-  save_profiles_data(data: string): Promise<void>
+  load_profiles_data(reset: boolean): Promise<ProfilesData>
+  save_profiles_data(data: ProfilesData): Promise<void>
   fetch_state(): Promise<void>
   fetch_history(): Promise<void>
 
@@ -129,7 +130,7 @@ export class Device {
     await this.backend.attach();
   };
 
-  async loadProfilesData() {
+  async loadProfilesData(reset: boolean = false) {
     // Remove old tracker if exists
     this.unsubscribeProfilesStore?.()
     this.unsubscribeProfilesStore = null
@@ -138,27 +139,10 @@ export class Device {
 
     const profilesStore = useProfilesStore()
 
-    try {
-      const raw_data = await this.backend.load_profiles_data()
-      if (!raw_data) throw new Error('No data, load defaults')
-
-      const data: any = JSON.parse(raw_data);
-
-      if (!validate_profiles_data(data)) {
-        console.error(validate_profiles_data.errors)
-        throw new Error('Invalid data, load defaults')
-      }
-
-      profilesStore.fromRawObj(data as any)
-    }
-    catch (error) {
-      console.error('Error loading profiles data:', (error as any)?.message || error)
-      profilesStore.reset()
-      this.backend?.save_profiles_data(JSON.stringify(profilesStore.toRawObj()))
-    }
+    profilesStore.$state = await this.backend.load_profiles_data(reset)
 
     this.unsubscribeProfilesStore = profilesStore.$subscribe(() => {
-      this.backend?.save_profiles_data(JSON.stringify(profilesStore.toRawObj()))
+      this.backend?.save_profiles_data(toValue(profilesStore.$state))
     })
   }
 }

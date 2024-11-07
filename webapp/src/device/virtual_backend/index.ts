@@ -8,6 +8,11 @@ import { task_adrc_test, task_adrc_test_setpoint } from './tasks/task_adrc_test'
 import { task_reflow } from './tasks/task_reflow'
 import { task_step_response } from './tasks/task_step_response'
 import type { AdrcConfig } from '../adrc_config'
+import { type ProfilesData, defaultProfilesData } from '../heater_config'
+import { default as profiles_schema } from '../profiles_schema.json'
+import Ajv from "ajv"
+
+const validate_profiles_data = new Ajv().compile(profiles_schema)
 
 // Tick step in ms, 10Hz.
 // The real timer interval can be faster, to increase simulation speed.
@@ -102,14 +107,35 @@ export class VirtualBackend implements IBackend {
 
   async connect() {}
 
-  async load_profiles_data(): Promise<string> {
+  async load_profiles_data(reset = false): Promise<ProfilesData> {
+    if (reset) {
+      await this.save_profiles_data(defaultProfilesData)
+      return await this.load_profiles_data(false)
+    }
+
+    let data: ProfilesData;
     const virtualBackendStore = useVirtualBackendStore()
-    return virtualBackendStore.rawProfilesData
+
+    try {
+      data = JSON.parse(virtualBackendStore.rawProfilesData)
+
+      if (!validate_profiles_data(data)) {
+        console.error(validate_profiles_data.errors)
+        throw new Error('Invalid data, load defaults')
+      }
+
+    } catch (error) {
+      console.error('Error loading profiles data:', (error as any)?.message || error)
+      await this.save_profiles_data(defaultProfilesData)
+      data = structuredClone(defaultProfilesData)
+    }
+
+    return data
   }
 
-  async save_profiles_data(data: string): Promise<void> {
+  async save_profiles_data(data: ProfilesData): Promise<void> {
     const virtualBackendStore = useVirtualBackendStore()
-    virtualBackendStore.rawProfilesData = data
+    virtualBackendStore.rawProfilesData = JSON.stringify(data)
   }
 
   private _tick() {

@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue';
+import { toRefs, reactive } from 'vue';
 
 export const useLocalSettingsStore = defineStore('localSettings', () => {
-  const showDebugInfo = ref(true);
-  const profileEditorShowPreview = ref(false);
-  const demoMode = ref(false);
-
-  return { showDebugInfo, profileEditorShowPreview, demoMode }
+  const state = reactive({
+    showDebugInfo: true,
+    profileEditorShowPreview: false,
+    demoMode: false
+  })
+  return { ...toRefs(state) }
 }, { persist: true })

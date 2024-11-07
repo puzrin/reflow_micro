@@ -3,8 +3,9 @@ import PageLayout from '@/components/PageLayout.vue'
 import { RouterLink } from 'vue-router'
 import { useProfilesStore } from '@/stores/profiles'
 import { useLocalSettingsStore } from '@/stores/localSettings'
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
 import { type UseDraggableReturn, VueDraggable } from 'vue-draggable-plus'
+import { Device } from '@/device'
 
 import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
 import EditIcon from '@heroicons/vue/24/outline/PencilIcon'
@@ -16,6 +17,8 @@ import ButtonDanger from '@/components/buttons/ButtonDanger.vue'
 import ButtonNormalSquareSmall from '@/components/buttons/ButtonNormalSquareSmall.vue'
 
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+
+const device: Device = inject('device')!
 
 const profilesStore = useProfilesStore()
 const localSettingsStore = useLocalSettingsStore()
@@ -42,7 +45,7 @@ const resetDlgRef = ref<InstanceType<typeof ConfirmDialog>>()
 function resetProfiles() {
   resetDlgRef.value?.run().then((result) => {
     if (result === 'ok') {
-      profilesStore.reset()
+      device.loadProfilesData(true)
     }
   })
 }
