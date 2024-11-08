@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import * as d3 from 'd3'
 import { onMounted, onUnmounted, ref, watch, inject, toRaw } from 'vue';
-import { startTemperature, type Profile } from '@/device/heater_config';
 import { Device, DeviceState, type Point } from '@/device'
+import { Profile, Constants } from '@/proto/generated/types'
 
 const device: Device = inject('device')!
 
@@ -33,7 +33,7 @@ function buildChart() {
   // Collect profile points/segments data
   //
 
-  const profilePoints: Point[] = [{ x: 0, y: startTemperature }]
+  const profilePoints: Point[] = [{ x: 0, y: Constants.START_TEMPERATURE }]
   props.profile?.segments.forEach((segment, i) => {
     profilePoints.push({ x: profilePoints[i].x + segment.duration, y: segment.target })
   })

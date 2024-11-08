@@ -2,7 +2,7 @@ import { ref, type App, type Ref, toValue } from "vue"
 import { VirtualBackend } from "./virtual_backend"
 import { useProfilesStore } from '@/stores/profiles'
 import { type AdrcConfig } from "./adrc_config"
-import { type ProfilesData } from './heater_config'
+import { ProfilesData } from '@/proto/generated/types'
 
 export enum DeviceState {
   Idle = 0,

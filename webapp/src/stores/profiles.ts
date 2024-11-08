@@ -1,6 +1,6 @@
-import type { Profile, ProfilesData } from '@/device/heater_config'
 import { defineStore } from 'pinia'
 import { computed, reactive, toRefs } from 'vue';
+import { Profile, ProfilesData } from '@/proto/generated/types'
 
 export const useProfilesStore = defineStore('profiles', () => {
   const state = reactive<ProfilesData>({

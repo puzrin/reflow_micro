@@ -8,11 +8,8 @@ import { task_adrc_test, task_adrc_test_setpoint } from './tasks/task_adrc_test'
 import { task_reflow } from './tasks/task_reflow'
 import { task_step_response } from './tasks/task_step_response'
 import type { AdrcConfig } from '../adrc_config'
-import { type ProfilesData, defaultProfilesData } from '../heater_config'
-import { default as profiles_schema } from '../profiles_schema.json'
-import Ajv from "ajv"
-
-const validate_profiles_data = new Ajv().compile(profiles_schema)
+import { ProfilesData } from '@/proto/generated/types'
+import { DEFAULT_PROFILES_DATA_PB } from '@/proto/generated/profiles_data_pb'
 
 // Tick step in ms, 10Hz.
 // The real timer interval can be faster, to increase simulation speed.
@@ -108,26 +105,22 @@ export class VirtualBackend implements IBackend {
   async connect() {}
 
   async load_profiles_data(reset = false): Promise<ProfilesData> {
+    const virtualBackendStore = useVirtualBackendStore()
+    const defObj = ProfilesData.decode(DEFAULT_PROFILES_DATA_PB)
+
     if (reset) {
-      await this.save_profiles_data(defaultProfilesData)
+      await this.save_profiles_data(defObj)
       return await this.load_profiles_data(false)
     }
 
     let data: ProfilesData;
-    const virtualBackendStore = useVirtualBackendStore()
 
     try {
-      data = JSON.parse(virtualBackendStore.rawProfilesData)
-
-      if (!validate_profiles_data(data)) {
-        console.error(validate_profiles_data.errors)
-        throw new Error('Invalid data, load defaults')
-      }
-
+      data = ProfilesData.decode(Uint8Array.from(virtualBackendStore.rawProfilesData))
     } catch (error) {
       console.error('Error loading profiles data:', (error as Error).message || error)
-      await this.save_profiles_data(defaultProfilesData)
-      data = structuredClone(defaultProfilesData)
+      await this.save_profiles_data(defObj)
+      data = defObj
     }
 
     return data
@@ -135,7 +128,7 @@ export class VirtualBackend implements IBackend {
 
   async save_profiles_data(data: ProfilesData): Promise<void> {
     const virtualBackendStore = useVirtualBackendStore()
-    virtualBackendStore.rawProfilesData = JSON.stringify(data)
+    virtualBackendStore.rawProfilesData = Array.from(ProfilesData.encode(data).finish())
   }
 
   private _tick() {

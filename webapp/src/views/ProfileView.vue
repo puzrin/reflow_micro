@@ -4,7 +4,7 @@ import { RouterLink, onBeforeRouteLeave } from 'vue-router'
 import { useProfilesStore } from '@/stores/profiles'
 import { useLocalSettingsStore } from '@/stores/localSettings'
 import { reactive, ref, toRaw, watch } from 'vue'
-import { startTemperature, type Profile } from '@/device/heater_config'
+import { Profile, Constants } from '@/proto/generated/types'
 
 import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
 import ButtonDanger from '@/components/buttons/ButtonDanger.vue'
@@ -82,7 +82,7 @@ function duplicateSegment(segmentIdx: number) {
 }
 
 function heatingSpeed(segmentIdx: number) {
-  const start = segmentIdx === 0 ? startTemperature : (profile.segments[segmentIdx - 1].target || 0)
+  const start = segmentIdx === 0 ? Constants.START_TEMPERATURE : (profile.segments[segmentIdx - 1].target || 0)
   const segment = profile.segments[segmentIdx]
   const speed = (segment.target - start) / (segment.duration || 0)
 
