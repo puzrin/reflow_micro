@@ -8,7 +8,7 @@ export default {
     extend: {},
   },
   plugins: [
-    /* eslint-disable no-undef */
+    /* eslint-disable @typescript-eslint/no-require-imports */
     require('@headlessui/tailwindcss'),
     require('@tailwindcss/forms')
   ]

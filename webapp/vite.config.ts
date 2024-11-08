@@ -23,7 +23,7 @@ export default defineConfig(async () => {
       base = `/${match[2]}/`
       repoUrl = `https://github.com/${match[1]}/${match[2]}`
     }
-  } catch (_) {/* ignore */}
+  } catch {/* ignore */}
 
   return {
     base: base,

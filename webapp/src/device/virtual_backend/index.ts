@@ -125,7 +125,7 @@ export class VirtualBackend implements IBackend {
       }
 
     } catch (error) {
-      console.error('Error loading profiles data:', (error as any)?.message || error)
+      console.error('Error loading profiles data:', (error as Error).message || error)
       await this.save_profiles_data(defaultProfilesData)
       data = structuredClone(defaultProfilesData)
     }

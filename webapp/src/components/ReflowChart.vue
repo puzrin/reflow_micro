@@ -22,6 +22,8 @@ const x = d3.scaleLinear()
 const y = d3.scaleLinear()
 
 function buildChart() {
+  // d3 is not ok with ts types. Disable some rules.
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   if (!svgRef.value || !svgRef.value.parentElement) return
 
   const width = svgRef.value.parentElement.clientWidth - margin.left - margin.right

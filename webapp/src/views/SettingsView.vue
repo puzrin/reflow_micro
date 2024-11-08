@@ -4,7 +4,7 @@ import { RouterLink } from 'vue-router'
 import { useProfilesStore } from '@/stores/profiles'
 import { useLocalSettingsStore } from '@/stores/localSettings'
 import { ref, inject } from 'vue'
-import { type UseDraggableReturn, VueDraggable } from 'vue-draggable-plus'
+import { type UseDraggableReturn, VueDraggable, type SortableEvent } from 'vue-draggable-plus'
 import { Device } from '@/device'
 
 import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
@@ -25,9 +25,9 @@ const localSettingsStore = useLocalSettingsStore()
 const el = ref<UseDraggableReturn>()
 
 // On drag - move profile with store's method to keep reactivity working
-function customUpdate(evt: any) {
+function customUpdate(evt: SortableEvent) {
   const { oldIndex, newIndex } = evt
-  profilesStore.move(oldIndex, newIndex)
+  profilesStore.move(oldIndex ?? 0, newIndex ?? 0)
 }
 
 // Stuff for profile delete confirmation dialog

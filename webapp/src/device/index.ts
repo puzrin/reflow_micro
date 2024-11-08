@@ -1,12 +1,8 @@
 import { ref, type App, type Ref, toValue } from "vue"
-import Ajv from "ajv"
-import { default as profiles_schema } from './profiles_schema.json'
 import { VirtualBackend } from "./virtual_backend"
 import { useProfilesStore } from '@/stores/profiles'
 import { type AdrcConfig } from "./adrc_config"
 import { type ProfilesData } from './heater_config'
-
-const validate_profiles_data = new Ajv().compile(profiles_schema)
 
 export enum DeviceState {
   Idle = 0,
@@ -84,7 +80,7 @@ export class Device {
       try {
         await this.backend?.fetch_state()
         await this.backend?.fetch_history()
-      } catch (_) {}
+      } catch {}
     }, 1000)
   }
 

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { toRefs, reactive } from 'vue';
-import { type AdrcConfig, defaultAdrcConfig } from '../adrc_config';
+import { defaultAdrcConfig } from '../adrc_config';
 
 export const useVirtualBackendStore = defineStore('virtualBackendStore', () => {
   const state = reactive({
