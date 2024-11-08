@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+message Segment {
+  // Target temperature in Celsius
+  int32 target = 1;
+  // Duration in seconds
+  int32 duration = 2;
+}
+
+message Profile {
+  // Unique profile identifier
+  int32 id = 1;
+  // Profile name
+  string name = 2;
+  // Temperature segments sequence
+  repeated Segment segments = 3;
+}
+
+message ProfilesData {
+  // Available profiles
+  repeated Profile items = 1;
+  // Currently selected profile id
+  int32 selectedId = 2;
+}
+
+enum Constants {
+  UNSPECIFIED = 0;
+  // Initial temperature for all profiles
+  START_TEMPERATURE = 30;
+}
