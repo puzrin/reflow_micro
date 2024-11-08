@@ -1,8 +1,7 @@
 import { ref, type App, type Ref, toValue } from "vue"
 import { VirtualBackend } from "./virtual_backend"
 import { useProfilesStore } from '@/stores/profiles'
-import { type AdrcConfig } from "./adrc_config"
-import { ProfilesData } from '@/proto/generated/types'
+import { ProfilesData, Point, AdrcConfig } from '@/proto/generated/types'
 
 export enum DeviceState {
   Idle = 0,
@@ -12,17 +11,9 @@ export enum DeviceState {
   StepResponse = 4
 }
 
-export type Point = { x: number, y: number }
-
 export const HISTORY_ID_SENSOR_BAKE_MODE = -1
 export const HISTORY_ID_ADRC_TEST_MODE = -2
 export const HISTORY_ID_STEP_RESPONSE = -3
-
-export interface HistoryChunk {
-  type: number
-  version: number
-  data: Point[]
-}
 
 export interface IBackend {
   // init

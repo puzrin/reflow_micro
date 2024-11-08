@@ -1,9 +1,8 @@
 import { VirtualBackend, TICK_PERIOD_MS } from '../';
 import { sparsedPush } from '../utils';
-import { type Point } from '@/device'
 import { useVirtualBackendStore} from '../virtualBackendStore'
 import { createADRC } from '../utils';
-import { Profile, Constants } from '@/proto/generated/types'
+import { Profile, Constants, Point } from '@/proto/generated/types'
 
 class Timeline {
   profilePoints: Point[] = [{ x: 0, y: 0 }]

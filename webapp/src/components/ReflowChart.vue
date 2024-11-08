@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import * as d3 from 'd3'
 import { onMounted, onUnmounted, ref, watch, inject, toRaw } from 'vue';
-import { Device, DeviceState, type Point } from '@/device'
-import { Profile, Constants } from '@/proto/generated/types'
+import { Device, DeviceState } from '@/device'
+import { Profile, Constants, Point } from '@/proto/generated/types'
 
 const device: Device = inject('device')!
 

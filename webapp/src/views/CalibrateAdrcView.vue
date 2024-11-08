@@ -7,7 +7,8 @@ import { Device, DeviceState, HISTORY_ID_ADRC_TEST_MODE, HISTORY_ID_STEP_RESPONS
 import ReflowChart from '@/components/ReflowChart.vue'
 import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
 import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
-import { type AdrcConfig, defaultAdrcConfig } from '@/device/adrc_config'
+import { AdrcConfig } from '@/proto/generated/types'
+import { DEFAULT_ADRC_CONFIG_PB } from '@/proto/generated/adrc_config_pb'
 
 const device: Device = inject('device')!
 
@@ -95,7 +96,7 @@ async function save_adrc_params() {
 }
 
 async function default_adrc_params() {
-  await configToRefs(defaultAdrcConfig)
+  configToRefs(AdrcConfig.decode(DEFAULT_ADRC_CONFIG_PB))
   resetBtn.value?.showSuccess()
 }
 </script>

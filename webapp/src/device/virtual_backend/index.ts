@@ -1,14 +1,13 @@
 import { Heater, configured_heater } from './heater'
 import { useProfilesStore } from '@/stores/profiles'
 import { useVirtualBackendStore} from './virtualBackendStore'
-import { DeviceState, Device, type IBackend, type Point, type HistoryChunk,
+import { DeviceState, Device, type IBackend,
   HISTORY_ID_SENSOR_BAKE_MODE, HISTORY_ID_ADRC_TEST_MODE, HISTORY_ID_STEP_RESPONSE } from '@/device'
 import { task_sensor_bake } from './tasks/task_sensor_bake'
 import { task_adrc_test, task_adrc_test_setpoint } from './tasks/task_adrc_test'
 import { task_reflow } from './tasks/task_reflow'
 import { task_step_response } from './tasks/task_step_response'
-import type { AdrcConfig } from '../adrc_config'
-import { ProfilesData } from '@/proto/generated/types'
+import { ProfilesData, Point, AdrcConfig, HistoryChunk } from '@/proto/generated/types'
 import { DEFAULT_PROFILES_DATA_PB } from '@/proto/generated/profiles_data_pb'
 
 // Tick step in ms, 10Hz.
@@ -22,7 +21,7 @@ export class VirtualBackend implements IBackend {
   private state = DeviceState.Idle
   history_mock: Point[] = [] // public, to update from tasks
 
-  private ticker_id: number | null = null
+  private ticker_id: ReturnType<typeof setInterval> | null = null
 
   private static readonly LS_KEY = 'virtual_backend_profiles_data'
   private task_iterator: Generator | null = null

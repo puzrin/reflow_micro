@@ -4,7 +4,7 @@ import { ref } from 'vue'
 enum Effect { None, Success, Failure }
 
 const currentEffect = ref<Effect>(Effect.None)
-let timeoutId: number
+let timeoutId: ReturnType<typeof setTimeout>
 
 const showSuccess = () => {
   if (timeoutId) clearTimeout(timeoutId)

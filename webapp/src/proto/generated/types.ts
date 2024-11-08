@@ -66,6 +66,34 @@ export interface ProfilesData {
   selectedId: number;
 }
 
+export interface Point {
+  x: number;
+  y: number;
+}
+
+export interface HistoryChunk {
+  type: number;
+  version: number;
+  data: Point[];
+}
+
+export interface AdrcConfig {
+  /** System response time (when temperature reaches 63% of final value) */
+  response: number;
+  /** Scale. Max derivative / power */
+  b0: number;
+  /**
+   * ω_observer = N / τ. Usually 3..10
+   * 5 is good for the start. Increase until oscillates, then back 10-20%.
+   */
+  N: number;
+  /**
+   * ω_controller = ω_observer / M. Usually 2..5
+   * 3 is a good for the start. Probably, changes not required.
+   */
+  M: number;
+}
+
 function createBaseSegment(): Segment {
   return { target: 0, duration: 0 };
 }
@@ -306,6 +334,282 @@ export const ProfilesData: MessageFns<ProfilesData> = {
     const message = createBaseProfilesData();
     message.items = object.items?.map((e) => Profile.fromPartial(e)) || [];
     message.selectedId = object.selectedId ?? 0;
+    return message;
+  },
+};
+
+function createBasePoint(): Point {
+  return { x: 0, y: 0 };
+}
+
+export const Point: MessageFns<Point> = {
+  encode(message: Point, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.x !== 0) {
+      writer.uint32(8).int32(message.x);
+    }
+    if (message.y !== 0) {
+      writer.uint32(16).int32(message.y);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Point {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePoint();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.x = reader.int32();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.y = reader.int32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Point {
+    return {
+      x: isSet(object.x) ? globalThis.Number(object.x) : 0,
+      y: isSet(object.y) ? globalThis.Number(object.y) : 0,
+    };
+  },
+
+  toJSON(message: Point): unknown {
+    const obj: any = {};
+    if (message.x !== 0) {
+      obj.x = Math.round(message.x);
+    }
+    if (message.y !== 0) {
+      obj.y = Math.round(message.y);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Point>, I>>(base?: I): Point {
+    return Point.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Point>, I>>(object: I): Point {
+    const message = createBasePoint();
+    message.x = object.x ?? 0;
+    message.y = object.y ?? 0;
+    return message;
+  },
+};
+
+function createBaseHistoryChunk(): HistoryChunk {
+  return { type: 0, version: 0, data: [] };
+}
+
+export const HistoryChunk: MessageFns<HistoryChunk> = {
+  encode(message: HistoryChunk, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.type !== 0) {
+      writer.uint32(8).int32(message.type);
+    }
+    if (message.version !== 0) {
+      writer.uint32(16).int32(message.version);
+    }
+    for (const v of message.data) {
+      Point.encode(v!, writer.uint32(26).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): HistoryChunk {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseHistoryChunk();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.type = reader.int32();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.version = reader.int32();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.data.push(Point.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): HistoryChunk {
+    return {
+      type: isSet(object.type) ? globalThis.Number(object.type) : 0,
+      version: isSet(object.version) ? globalThis.Number(object.version) : 0,
+      data: globalThis.Array.isArray(object?.data) ? object.data.map((e: any) => Point.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: HistoryChunk): unknown {
+    const obj: any = {};
+    if (message.type !== 0) {
+      obj.type = Math.round(message.type);
+    }
+    if (message.version !== 0) {
+      obj.version = Math.round(message.version);
+    }
+    if (message.data?.length) {
+      obj.data = message.data.map((e) => Point.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<HistoryChunk>, I>>(base?: I): HistoryChunk {
+    return HistoryChunk.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<HistoryChunk>, I>>(object: I): HistoryChunk {
+    const message = createBaseHistoryChunk();
+    message.type = object.type ?? 0;
+    message.version = object.version ?? 0;
+    message.data = object.data?.map((e) => Point.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseAdrcConfig(): AdrcConfig {
+  return { response: 0, b0: 0, N: 0, M: 0 };
+}
+
+export const AdrcConfig: MessageFns<AdrcConfig> = {
+  encode(message: AdrcConfig, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.response !== 0) {
+      writer.uint32(13).float(message.response);
+    }
+    if (message.b0 !== 0) {
+      writer.uint32(21).float(message.b0);
+    }
+    if (message.N !== 0) {
+      writer.uint32(29).float(message.N);
+    }
+    if (message.M !== 0) {
+      writer.uint32(37).float(message.M);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): AdrcConfig {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAdrcConfig();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 13) {
+            break;
+          }
+
+          message.response = reader.float();
+          continue;
+        }
+        case 2: {
+          if (tag !== 21) {
+            break;
+          }
+
+          message.b0 = reader.float();
+          continue;
+        }
+        case 3: {
+          if (tag !== 29) {
+            break;
+          }
+
+          message.N = reader.float();
+          continue;
+        }
+        case 4: {
+          if (tag !== 37) {
+            break;
+          }
+
+          message.M = reader.float();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AdrcConfig {
+    return {
+      response: isSet(object.response) ? globalThis.Number(object.response) : 0,
+      b0: isSet(object.b0) ? globalThis.Number(object.b0) : 0,
+      N: isSet(object.N) ? globalThis.Number(object.N) : 0,
+      M: isSet(object.M) ? globalThis.Number(object.M) : 0,
+    };
+  },
+
+  toJSON(message: AdrcConfig): unknown {
+    const obj: any = {};
+    if (message.response !== 0) {
+      obj.response = message.response;
+    }
+    if (message.b0 !== 0) {
+      obj.b0 = message.b0;
+    }
+    if (message.N !== 0) {
+      obj.N = message.N;
+    }
+    if (message.M !== 0) {
+      obj.M = message.M;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AdrcConfig>, I>>(base?: I): AdrcConfig {
+    return AdrcConfig.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AdrcConfig>, I>>(object: I): AdrcConfig {
+    const message = createBaseAdrcConfig();
+    message.response = object.response ?? 0;
+    message.b0 = object.b0 ?? 0;
+    message.N = object.N ?? 0;
+    message.M = object.M ?? 0;
     return message;
   },
 };

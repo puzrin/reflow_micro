@@ -1,6 +1,6 @@
-import { type Point } from "@/device"
+import { Point } from '@/proto/generated/types'
 import { ADRC } from './adrc'
-import { type AdrcConfig } from "../adrc_config";
+import { AdrcConfig } from '@/proto/generated/types'
 
 function near(p1: Point, p2: Point, precision: number): boolean {
   return Math.abs(p1.x - p2.x) < precision && Math.abs(p1.y - p2.y) < precision;

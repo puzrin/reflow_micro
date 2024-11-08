@@ -2,14 +2,14 @@ syntax = "proto3";
 
 message Segment {
   // Target temperature in Celsius
-  int16 target = 1;
+  int32 target = 1;
   // Duration in seconds
   int32 duration = 2;
 }
 
 message Profile {
   // Unique profile identifier
-  int16 id = 1;
+  int32 id = 1;
   // Profile name
   string name = 2;
   // Temperature segments sequence
@@ -27,4 +27,29 @@ enum Constants {
   UNSPECIFIED = 0;
   // Initial temperature for all profiles
   START_TEMPERATURE = 30;
+}
+
+message Point {
+  int32 x = 1;
+  int32 y = 2;
+}
+
+message HistoryChunk {
+  int32 type = 1;
+  int32 version = 2;
+  repeated Point data = 3;
+}
+
+
+message AdrcConfig {
+  // System response time (when temperature reaches 63% of final value)
+  float response = 1;
+  // Scale. Max derivative / power
+  float b0 = 2;
+  // ω_observer = N / τ. Usually 3..10
+  // 5 is good for the start. Increase until oscillates, then back 10-20%.
+  float N = 3;
+  // ω_controller = ω_observer / M. Usually 2..5
+  // 3 is a good for the start. Probably, changes not required.
+  float M = 4;
 }
