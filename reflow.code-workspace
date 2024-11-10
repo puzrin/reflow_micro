@@ -1,11 +1,16 @@
 {
 	"folders": [
 		{
+			"name": "webapp",
 			"path": "webapp"
 		},
 		{
-			"path": ".",
-			"name": "Root"
+			"name": "firmware",
+			"path": "firmware"
+		},
+		{
+			"name": "Root",
+			"path": "."
 		}
 	],
 	"settings": {}
