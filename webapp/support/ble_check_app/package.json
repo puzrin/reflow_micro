@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "scripts": {
+    "start": "webpack serve --open"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "ts-loader": "^9.5.1",
+    "tsimp": "^2.0.12",
+    "typescript": "^5.6.3",
+    "webpack": "^5.96.1",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.1.0"
+  }
+}

@@ -10,7 +10,10 @@ export default [
 
   {
     name: 'app/files-to-ignore',
-    ignores: ['**/dist/**', '**/dist-ssr/**', '**/coverage/**', '.tsimp/**'],
+    ignores: [
+      '**/dist/**', '**/dist-ssr/**', '**/coverage/**',
+      '**/.tsimp/**'
+    ],
   },
 
   ...pluginVue.configs['flat/essential'],
