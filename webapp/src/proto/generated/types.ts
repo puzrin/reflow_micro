@@ -155,7 +155,7 @@ export interface SensorCalibrationPoint {
   /** Real temperature */
   temperature: number;
   /** Sensor voltage */
-  sensorValue: number;
+  sensor_value: number;
 }
 
 export interface SensorParams {
@@ -703,7 +703,7 @@ export const AdrcParams: MessageFns<AdrcParams> = {
 };
 
 function createBaseSensorCalibrationPoint(): SensorCalibrationPoint {
-  return { temperature: 0, sensorValue: 0 };
+  return { temperature: 0, sensor_value: 0 };
 }
 
 export const SensorCalibrationPoint: MessageFns<SensorCalibrationPoint> = {
@@ -711,8 +711,8 @@ export const SensorCalibrationPoint: MessageFns<SensorCalibrationPoint> = {
     if (message.temperature !== 0) {
       writer.uint32(13).float(message.temperature);
     }
-    if (message.sensorValue !== 0) {
-      writer.uint32(21).float(message.sensorValue);
+    if (message.sensor_value !== 0) {
+      writer.uint32(21).float(message.sensor_value);
     }
     return writer;
   },
@@ -737,7 +737,7 @@ export const SensorCalibrationPoint: MessageFns<SensorCalibrationPoint> = {
             break;
           }
 
-          message.sensorValue = reader.float();
+          message.sensor_value = reader.float();
           continue;
         }
       }
@@ -752,7 +752,7 @@ export const SensorCalibrationPoint: MessageFns<SensorCalibrationPoint> = {
   fromJSON(object: any): SensorCalibrationPoint {
     return {
       temperature: isSet(object.temperature) ? globalThis.Number(object.temperature) : 0,
-      sensorValue: isSet(object.sensorValue) ? globalThis.Number(object.sensorValue) : 0,
+      sensor_value: isSet(object.sensor_value) ? globalThis.Number(object.sensor_value) : 0,
     };
   },
 
@@ -761,8 +761,8 @@ export const SensorCalibrationPoint: MessageFns<SensorCalibrationPoint> = {
     if (message.temperature !== 0) {
       obj.temperature = message.temperature;
     }
-    if (message.sensorValue !== 0) {
-      obj.sensorValue = message.sensorValue;
+    if (message.sensor_value !== 0) {
+      obj.sensor_value = message.sensor_value;
     }
     return obj;
   },
@@ -773,7 +773,7 @@ export const SensorCalibrationPoint: MessageFns<SensorCalibrationPoint> = {
   fromPartial<I extends Exact<DeepPartial<SensorCalibrationPoint>, I>>(object: I): SensorCalibrationPoint {
     const message = createBaseSensorCalibrationPoint();
     message.temperature = object.temperature ?? 0;
-    message.sensorValue = object.sensorValue ?? 0;
+    message.sensor_value = object.sensor_value ?? 0;
     return message;
   },
 };

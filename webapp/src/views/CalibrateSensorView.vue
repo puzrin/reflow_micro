@@ -26,9 +26,9 @@ const is_p2_calibrated = ref(false)
 const power = ref(50)
 
 async function loadCalibrationStatus() {
-  const status = await device.get_sensor_calibration_status()
-  is_p1_calibrated.value = status[0]
-  is_p2_calibrated.value = status[1]
+  const sensor_params = await device.get_sensor_params()
+  is_p1_calibrated.value = !!sensor_params.points[0]
+  is_p2_calibrated.value = !!sensor_params.points[1]
 }
 
 onMounted(async () => { await loadCalibrationStatus() })

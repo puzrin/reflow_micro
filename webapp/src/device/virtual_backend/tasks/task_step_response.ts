@@ -1,11 +1,9 @@
 import { VirtualBackend, TICK_PERIOD_MS } from '../';
 import { sparsedPush } from '../utils';
-import { useVirtualBackendStore } from '../virtualBackendStore';
 
 export function* task_step_response(backend: VirtualBackend, watts: number) {
   let msTime = 0
   backend.history_mock.length = 0
-  const virtualBackendStore = useVirtualBackendStore()
 
   // ts of next log storage
   let next_record_ts = 0
@@ -50,7 +48,9 @@ export function* task_step_response(backend: VirtualBackend, watts: number) {
 
   console.log(`Temperature = ${temperature_63}, time = ${time_63}, b0 = ${b0}`)
 
-  virtualBackendStore.adrc_config.response = time_63
-  virtualBackendStore.adrc_config.b0 = b0
+  const adrc_params = backend.pick_adrc_params()
+  adrc_params.response = time_63
+  adrc_params.b0 = b0
+  backend.set_adrc_params(adrc_params)
   backend.stop()
 }

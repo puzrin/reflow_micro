@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "format": "prettier --write src/",
-    "gen:proto:ts": "protoc --ts_proto_out=./src/proto/generated --ts_proto_opt=esModuleInterop=true --proto_path=./src/proto types.proto",
+    "gen:proto:ts": "protoc --ts_proto_out=./src/proto/generated --ts_proto_opt=esModuleInterop=true,snakeToCamel=false --proto_path=./src/proto types.proto",
     "gen:proto:data": "node --import=tsimp/import ./src/proto/gen_defaults.ts",
     "gen:proto": "run-p gen:proto:ts gen:proto:data",
     "test": "run-p lint type-check && node --test --import=tsimp/import test/**/*.ts"

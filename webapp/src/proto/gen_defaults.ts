@@ -1,6 +1,6 @@
 /// <reference types="node" />
 
-import { ProfilesData, AdrcParams, SensorParams } from './generated/types'
+import { ProfilesData, AdrcParams } from './generated/types'
 import { writeFileSync} from 'fs'
 
 function toHexBlock(bytes: Uint8Array, indent: number = 0): string {
@@ -114,13 +114,5 @@ const defaultAdrcParams: AdrcParams = {
 }
 
 bin = AdrcParams.encode(defaultAdrcParams).finish()
-to_ts('./generated/adrc_config_pb.ts', 'DEFAULT_ADRC_PARAMS_PB', bin)
-to_hpp('./generated/adrc_config_pb.hpp', 'DEFAULT_ADRC_PARAMS_PB', bin)
-
-const defaultSensorParams: SensorParams = {
-  points: {}
-}
-
-bin = SensorParams.encode(defaultSensorParams).finish()
-to_ts('./generated/sensor_config_pb.ts', 'DEFAULT_SENSOR_PARAMS_PB', bin)
-to_hpp('./generated/sensor_config_pb.hpp', 'DEFAULT_SENSOR_PARAMS_PB', bin)
+to_ts('./generated/adrc_params_pb.ts', 'DEFAULT_ADRC_PARAMS_PB', bin)
+to_hpp('./generated/adrc_params_pb.hpp', 'DEFAULT_ADRC_PARAMS_PB', bin)

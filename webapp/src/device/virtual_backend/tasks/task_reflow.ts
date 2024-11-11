@@ -1,6 +1,5 @@
 import { VirtualBackend, TICK_PERIOD_MS } from '../';
 import { sparsedPush } from '../utils';
-import { useVirtualBackendStore} from '../virtualBackendStore'
 import { createADRC } from '../utils';
 import { Profile, Constants, Point } from '@/proto/generated/types'
 
@@ -43,8 +42,7 @@ export function* task_reflow(backend: VirtualBackend, profile: Profile) {
   backend.history_mock.length = 0
   timeline.load(profile)
 
-  const virtualBackendStore = useVirtualBackendStore()
-  const adrc = createADRC(virtualBackendStore.adrc_config)
+  const adrc = createADRC(backend.pick_adrc_params())
   adrc.reset_to(backend.heater.temperature)
 
 

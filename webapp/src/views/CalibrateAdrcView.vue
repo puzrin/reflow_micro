@@ -8,7 +8,7 @@ import ReflowChart from '@/components/ReflowChart.vue'
 import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
 import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
 import { AdrcParams, DeviceState } from '@/proto/generated/types'
-import { DEFAULT_ADRC_CONFIG_PB } from '@/proto/generated/adrc_config_pb'
+import { DEFAULT_ADRC_PARAMS_PB } from '@/proto/generated/adrc_params_pb'
 
 const device: Device = inject('device')!
 
@@ -39,7 +39,7 @@ function configToRefs(config: AdrcParams) {
 }
 
 onMounted(async () => {
-  const adrc_config = await device.get_adrc_config()
+  const adrc_config = await device.get_adrc_params()
   configToRefs(adrc_config)
 })
 
@@ -59,7 +59,7 @@ watchDebounced(test_temperature, async () => {
 // Reload ADRC settings when finish any task
 watch(device.state, async (newState) => {
   if (newState === DeviceState.Idle) {
-    const adrc_config = await device.get_adrc_config()
+    const adrc_config = await device.get_adrc_params()
     configToRefs(adrc_config)
   }
 })
@@ -91,12 +91,12 @@ async function save_adrc_params() {
     N: toNumber(adrc_param_n.value),
     M: toNumber(adrc_param_m.value),
   }
-  await device.set_adrc_config(adrc_config)
+  await device.set_adrc_params(adrc_config)
   saveBtn.value?.showSuccess();
 }
 
 async function default_adrc_params() {
-  configToRefs(AdrcParams.decode(DEFAULT_ADRC_CONFIG_PB))
+  configToRefs(AdrcParams.decode(DEFAULT_ADRC_PARAMS_PB))
   resetBtn.value?.showSuccess()
 }
 </script>

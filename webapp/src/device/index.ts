@@ -1,7 +1,7 @@
 import { ref, type App, type Ref, toValue } from "vue"
 import { VirtualBackend } from "./virtual_backend"
 import { useProfilesStore } from '@/stores/profiles'
-import { ProfilesData, Point, AdrcParams, DeviceState } from '@/proto/generated/types'
+import { ProfilesData, Point, AdrcParams, SensorParams, DeviceState } from '@/proto/generated/types'
 
 export const HISTORY_ID_SENSOR_BAKE_MODE = -1
 export const HISTORY_ID_ADRC_TEST_MODE = -2
@@ -26,9 +26,9 @@ export interface IBackend {
   fetch_history(): Promise<void>
 
   set_sensor_calibration_point(point_id: (0 | 1), value: number): Promise<void>
-  get_sensor_calibration_status(): Promise<[boolean, boolean]>
-  set_adrc_config(config: AdrcParams): Promise<void>
-  get_adrc_config(): Promise<AdrcParams>
+  get_sensor_params(): Promise<SensorParams>
+  set_adrc_params(config: AdrcParams): Promise<void>
+  get_adrc_params(): Promise<AdrcParams>
 }
 
 export class Device {
@@ -80,17 +80,17 @@ export class Device {
     if (!this.backend) throw Error('No backend selected')
     await this.backend.set_sensor_calibration_point(point_id, value)
   }
-  async get_sensor_calibration_status(): Promise<[boolean, boolean]> {
+  async get_sensor_params(): Promise<SensorParams> {
     if (!this.backend) throw Error('No backend selected')
-    return await this.backend.get_sensor_calibration_status()
+    return await this.backend.get_sensor_params()
   }
-  async set_adrc_config(config: AdrcParams) {
+  async set_adrc_params(config: AdrcParams) {
     if (!this.backend) throw Error('No backend selected')
-    await this.backend.set_adrc_config(config)
+    await this.backend.set_adrc_params(config)
   }
-  async get_adrc_config(): Promise<AdrcParams> {
+  async get_adrc_params(): Promise<AdrcParams> {
     if (!this.backend) throw Error('No backend selected')
-    return await this.backend.get_adrc_config()
+    return await this.backend.get_adrc_params()
   }
 
 

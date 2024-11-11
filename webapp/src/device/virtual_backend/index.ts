@@ -1,14 +1,15 @@
 import { Heater, configured_heater } from './heater'
 import { useProfilesStore } from '@/stores/profiles'
-import { useVirtualBackendStore} from './virtualBackendStore'
+import { useVirtualBackendStore } from './virtualBackendStore'
 import { Device, type IBackend,
   HISTORY_ID_SENSOR_BAKE_MODE, HISTORY_ID_ADRC_TEST_MODE, HISTORY_ID_STEP_RESPONSE } from '@/device'
 import { task_sensor_bake } from './tasks/task_sensor_bake'
 import { task_adrc_test, task_adrc_test_setpoint } from './tasks/task_adrc_test'
 import { task_reflow } from './tasks/task_reflow'
 import { task_step_response } from './tasks/task_step_response'
-import { ProfilesData, Point, AdrcParams, HistoryChunk, DeviceState } from '@/proto/generated/types'
+import { ProfilesData, Point, AdrcParams, SensorParams, HistoryChunk, DeviceState, HeaterConfigs } from '@/proto/generated/types'
 import { DEFAULT_PROFILES_DATA_PB } from '@/proto/generated/profiles_data_pb'
+import { DEFAULT_ADRC_PARAMS_PB } from '@/proto/generated/adrc_params_pb'
 
 // Tick step in ms, 10Hz.
 // The real timer interval can be faster, to increase simulation speed.
@@ -30,6 +31,9 @@ export class VirtualBackend implements IBackend {
   client_history_version: number = -1
   remote_history_version: number = 0
   remote_history_id: number = 0
+
+  private readonly head_id = 0
+  private heater_configs: HeaterConfigs = HeaterConfigs.create()
 
   constructor(device: Device) {
     this.device = device
@@ -84,6 +88,15 @@ export class VirtualBackend implements IBackend {
 
     await this.device.loadProfilesData()
 
+    // Load heater configs
+    const virtualBackendStore = useVirtualBackendStore()
+    try {
+      this.heater_configs = HeaterConfigs.fromJSON(virtualBackendStore.rawHeaterConfigs)
+    } catch {
+      console.error('Error loading heater configs, use empty one')
+      this.heater_configs = HeaterConfigs.create()
+    }
+
     this.device.is_ready.value = true
 
     // Increase simulation speed 10x
@@ -115,7 +128,7 @@ export class VirtualBackend implements IBackend {
     let data: ProfilesData;
 
     try {
-      data = ProfilesData.decode(Uint8Array.from(virtualBackendStore.rawProfilesData))
+      data = ProfilesData.fromJSON(virtualBackendStore.rawProfilesData)
     } catch (error) {
       console.error('Error loading profiles data:', (error as Error).message || error)
       await this.save_profiles_data(defObj)
@@ -127,7 +140,7 @@ export class VirtualBackend implements IBackend {
 
   async save_profiles_data(data: ProfilesData): Promise<void> {
     const virtualBackendStore = useVirtualBackendStore()
-    virtualBackendStore.rawProfilesData = Array.from(ProfilesData.encode(data).finish())
+    virtualBackendStore.rawProfilesData = ProfilesData.toJSON(data) as string
   }
 
   private _tick() {
@@ -220,23 +233,44 @@ export class VirtualBackend implements IBackend {
     this.task_iterator = task_step_response(this, watts)
 }
 
-  async set_sensor_calibration_point(point_id: (0 | 1), value: number) {
+  async set_sensor_calibration_point(point_id: (0 | 1), temperature: number) {
+    const hc = this.heater_configs
+    if (!hc.sensor[this.head_id]) hc.sensor[this.head_id] = SensorParams.create()
+
+    // Write point with dummy sensor value
+    if (temperature === 0) {
+      delete hc.sensor[this.head_id].points[point_id]
+    } else {
+      hc.sensor[this.head_id].points[point_id] = { temperature, sensor_value: 0 }
+    }
+
     const virtualBackendStore = useVirtualBackendStore()
-    virtualBackendStore.sensor_calibration_status[point_id] = value !== 0
+    virtualBackendStore.rawHeaterConfigs = HeaterConfigs.toJSON(hc) as string
   }
 
-  async get_sensor_calibration_status(): Promise<[boolean, boolean]> {
-    const virtualBackendStore = useVirtualBackendStore()
-    return virtualBackendStore.sensor_calibration_status
+  async get_sensor_params(): Promise<SensorParams> {
+    const hc = this.heater_configs
+
+    if (hc.sensor[this.head_id]) return structuredClone(hc.sensor[this.head_id])
+    return SensorParams.create()
   }
 
-  async set_adrc_config(config: AdrcParams): Promise<void> {
+  async set_adrc_params(config: AdrcParams): Promise<void> {
+    const hc = this.heater_configs
+    hc.adrc[this.head_id] = structuredClone(config)
+
     const virtualBackendStore = useVirtualBackendStore()
-    virtualBackendStore.adrc_config = config
+    virtualBackendStore.rawHeaterConfigs = HeaterConfigs.toJSON(hc) as string
   }
 
-  async get_adrc_config(): Promise<AdrcParams> {
-    const virtualBackendStore = useVirtualBackendStore()
-    return virtualBackendStore.adrc_config
+  // Sync, for local use from tasks
+  pick_adrc_params(): AdrcParams {
+    const hc = this.heater_configs
+    if (hc.adrc[this.head_id]) return structuredClone(hc.adrc[this.head_id])
+    return AdrcParams.decode(DEFAULT_ADRC_PARAMS_PB)
+  }
+
+  async get_adrc_params(): Promise<AdrcParams> {
+    return this.pick_adrc_params()
   }
 }

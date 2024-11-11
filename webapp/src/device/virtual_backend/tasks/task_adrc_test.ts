@@ -1,6 +1,5 @@
 import { VirtualBackend, TICK_PERIOD_MS } from '../';
 import { sparsedPush } from '../utils';
-import { useVirtualBackendStore} from '../virtualBackendStore'
 import { createADRC } from '../utils';
 
 let setpoint = 0
@@ -11,8 +10,7 @@ export function* task_adrc_test(backend: VirtualBackend) {
   let msTime = 0
   backend.history_mock.length = 0
 
-  const virtualBackendStore = useVirtualBackendStore()
-  const adrc = createADRC(virtualBackendStore.adrc_config)
+  const adrc = createADRC(backend.pick_adrc_params())
   adrc.reset_to(backend.heater.temperature)
 
   while (true) {
