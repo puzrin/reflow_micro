@@ -1,15 +1,7 @@
 import { ref, type App, type Ref, toValue } from "vue"
 import { VirtualBackend } from "./virtual_backend"
 import { useProfilesStore } from '@/stores/profiles'
-import { ProfilesData, Point, AdrcConfig } from '@/proto/generated/types'
-
-export enum DeviceState {
-  Idle = 0,
-  Reflow = 1,
-  SensorBake = 2,
-  AdrcTest = 3,
-  StepResponse = 4
-}
+import { ProfilesData, Point, AdrcParams, DeviceState } from '@/proto/generated/types'
 
 export const HISTORY_ID_SENSOR_BAKE_MODE = -1
 export const HISTORY_ID_ADRC_TEST_MODE = -2
@@ -35,8 +27,8 @@ export interface IBackend {
 
   set_sensor_calibration_point(point_id: (0 | 1), value: number): Promise<void>
   get_sensor_calibration_status(): Promise<[boolean, boolean]>
-  set_adrc_config(config: AdrcConfig): Promise<void>
-  get_adrc_config(): Promise<AdrcConfig>
+  set_adrc_config(config: AdrcParams): Promise<void>
+  get_adrc_config(): Promise<AdrcParams>
 }
 
 export class Device {
@@ -92,11 +84,11 @@ export class Device {
     if (!this.backend) throw Error('No backend selected')
     return await this.backend.get_sensor_calibration_status()
   }
-  async set_adrc_config(config: AdrcConfig) {
+  async set_adrc_config(config: AdrcParams) {
     if (!this.backend) throw Error('No backend selected')
     await this.backend.set_adrc_config(config)
   }
-  async get_adrc_config(): Promise<AdrcConfig> {
+  async get_adrc_config(): Promise<AdrcParams> {
     if (!this.backend) throw Error('No backend selected')
     return await this.backend.get_adrc_config()
   }

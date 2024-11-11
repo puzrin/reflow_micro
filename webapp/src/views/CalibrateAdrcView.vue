@@ -3,11 +3,11 @@ import PageLayout from '@/components/PageLayout.vue'
 import { RouterLink, onBeforeRouteLeave } from 'vue-router'
 import { watchDebounced } from '@vueuse/core'
 import { inject, onMounted, ref, computed, watch } from 'vue'
-import { Device, DeviceState, HISTORY_ID_ADRC_TEST_MODE, HISTORY_ID_STEP_RESPONSE } from '@/device'
+import { Device, HISTORY_ID_ADRC_TEST_MODE, HISTORY_ID_STEP_RESPONSE } from '@/device'
 import ReflowChart from '@/components/ReflowChart.vue'
 import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
 import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
-import { AdrcConfig } from '@/proto/generated/types'
+import { AdrcParams, DeviceState } from '@/proto/generated/types'
 import { DEFAULT_ADRC_CONFIG_PB } from '@/proto/generated/adrc_config_pb'
 
 const device: Device = inject('device')!
@@ -31,7 +31,7 @@ const adrc_error_m = ref(false)
 const test_temperature = ref(200)
 const step_response_power = ref(50)
 
-function configToRefs(config: AdrcConfig) {
+function configToRefs(config: AdrcParams) {
   adrc_param_tau.value = config.response.toString()
   adrc_param_b0.value = config.b0.toString()
   adrc_param_n.value = config.N.toString()
@@ -85,7 +85,7 @@ async function save_adrc_params() {
   adrc_error_n.value = false
   adrc_error_m.value = false
 
-  const adrc_config: AdrcConfig = {
+  const adrc_config: AdrcParams = {
     response: toNumber(adrc_param_tau.value),
     b0: toNumber(adrc_param_b0.value),
     N: toNumber(adrc_param_n.value),
@@ -96,7 +96,7 @@ async function save_adrc_params() {
 }
 
 async function default_adrc_params() {
-  configToRefs(AdrcConfig.decode(DEFAULT_ADRC_CONFIG_PB))
+  configToRefs(AdrcParams.decode(DEFAULT_ADRC_CONFIG_PB))
   resetBtn.value?.showSuccess()
 }
 </script>

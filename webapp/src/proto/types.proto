@@ -1,5 +1,14 @@
 syntax = "proto3";
 
+enum DeviceState {
+  DEVICE_STATE_UNSPECIFIED = 0;
+  Idle = 1;
+  Reflow = 2;
+  SensorBake = 3;
+  AdrcTest = 4;
+  StepResponse = 5;
+}
+
 message Segment {
   // Target temperature in Celsius
   int32 target = 1;
@@ -24,7 +33,7 @@ message ProfilesData {
 }
 
 enum Constants {
-  UNSPECIFIED = 0;
+  CONSTANT_UNSPECIFIED = 0;
   // Initial temperature for all profiles
   START_TEMPERATURE = 30;
 }
@@ -41,7 +50,7 @@ message HistoryChunk {
 }
 
 
-message AdrcConfig {
+message AdrcParams {
   // System response time (when temperature reaches 63% of final value)
   float response = 1;
   // Scale. Max derivative / power
@@ -52,4 +61,21 @@ message AdrcConfig {
   // ω_controller = ω_observer / M. Usually 2..5
   // 3 is a good for the start. Probably, changes not required.
   float M = 4;
+}
+
+message SensorCalibrationPoint {
+  // Real temperature
+  float temperature = 1;
+  // Sensor voltage
+  float sensor_value = 2;
+}
+
+message SensorParams {
+  map<uint32, SensorCalibrationPoint> points = 1;
+}
+
+
+message HeaterConfigs {
+  map<uint32, AdrcParams> adrc = 1;
+  map<uint32, SensorParams> sensor = 2;
 }

@@ -1,13 +1,13 @@
 import { Heater, configured_heater } from './heater'
 import { useProfilesStore } from '@/stores/profiles'
 import { useVirtualBackendStore} from './virtualBackendStore'
-import { DeviceState, Device, type IBackend,
+import { Device, type IBackend,
   HISTORY_ID_SENSOR_BAKE_MODE, HISTORY_ID_ADRC_TEST_MODE, HISTORY_ID_STEP_RESPONSE } from '@/device'
 import { task_sensor_bake } from './tasks/task_sensor_bake'
 import { task_adrc_test, task_adrc_test_setpoint } from './tasks/task_adrc_test'
 import { task_reflow } from './tasks/task_reflow'
 import { task_step_response } from './tasks/task_step_response'
-import { ProfilesData, Point, AdrcConfig, HistoryChunk } from '@/proto/generated/types'
+import { ProfilesData, Point, AdrcParams, HistoryChunk, DeviceState } from '@/proto/generated/types'
 import { DEFAULT_PROFILES_DATA_PB } from '@/proto/generated/profiles_data_pb'
 
 // Tick step in ms, 10Hz.
@@ -230,12 +230,12 @@ export class VirtualBackend implements IBackend {
     return virtualBackendStore.sensor_calibration_status
   }
 
-  async set_adrc_config(config: AdrcConfig): Promise<void> {
+  async set_adrc_config(config: AdrcParams): Promise<void> {
     const virtualBackendStore = useVirtualBackendStore()
     virtualBackendStore.adrc_config = config
   }
 
-  async get_adrc_config(): Promise<AdrcConfig> {
+  async get_adrc_config(): Promise<AdrcParams> {
     const virtualBackendStore = useVirtualBackendStore()
     return virtualBackendStore.adrc_config
   }
