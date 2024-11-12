@@ -103,7 +103,7 @@ let bin
 
 bin = ProfilesData.encode(defaultProfilesData).finish()
 to_ts('./generated/profiles_data_pb.ts', 'DEFAULT_PROFILES_DATA_PB', bin)
-to_hpp('./generated/profiles_data_pb.hpp', 'DEFAULT_PROFILES_DATA_PB', bin)
+to_hpp('../../../firmware/src/proto/generated/profiles_data_pb.hpp', 'DEFAULT_PROFILES_DATA_PB', bin)
 
 
 const defaultAdrcParams: AdrcParams = {
@@ -115,4 +115,4 @@ const defaultAdrcParams: AdrcParams = {
 
 bin = AdrcParams.encode(defaultAdrcParams).finish()
 to_ts('./generated/adrc_params_pb.ts', 'DEFAULT_ADRC_PARAMS_PB', bin)
-to_hpp('./generated/adrc_params_pb.hpp', 'DEFAULT_ADRC_PARAMS_PB', bin)
+to_hpp('../../../firmware/src/proto/generated/adrc_params_pb.hpp', 'DEFAULT_ADRC_PARAMS_PB', bin)

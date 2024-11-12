@@ -1,5 +1,13 @@
 syntax = "proto3";
 
+enum Constants {
+  CONSTANT_UNSPECIFIED = 0;
+  // Initial temperature for all profiles
+  START_TEMPERATURE = 30;
+  // Static sizes for repeated/maps
+  MAX_REFLOW_PROFILES = 10;
+}
+
 enum DeviceState {
   DEVICE_STATE_UNSPECIFIED = 0;
   Idle = 1;
@@ -30,12 +38,6 @@ message ProfilesData {
   repeated Profile items = 1;
   // Currently selected profile id
   int32 selectedId = 2;
-}
-
-enum Constants {
-  CONSTANT_UNSPECIFIED = 0;
-  // Initial temperature for all profiles
-  START_TEMPERATURE = 30;
 }
 
 message Point {
