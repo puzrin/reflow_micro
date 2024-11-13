@@ -7,9 +7,8 @@ import { task_sensor_bake } from './tasks/task_sensor_bake'
 import { task_adrc_test, task_adrc_test_setpoint } from './tasks/task_adrc_test'
 import { task_reflow } from './tasks/task_reflow'
 import { task_step_response } from './tasks/task_step_response'
-import { ProfilesData, Point, AdrcParams, SensorParams, HistoryChunk, DeviceState, HeaterConfigs } from '@/proto/generated/types'
-import { DEFAULT_PROFILES_DATA_PB } from '@/proto/generated/profiles_data_pb'
-import { DEFAULT_ADRC_PARAMS_PB } from '@/proto/generated/adrc_params_pb'
+import { ProfilesData, Point, AdrcParams, SensorParams, HistoryChunk, DeviceState, HeaterConfig } from '@/proto/generated/types'
+import { DEFAULT_PROFILES_DATA_PB, DEFAULT_HEATER_CONFIG_PB } from '@/proto/generated/defaults'
 
 // Tick step in ms, 10Hz.
 // The real timer interval can be faster, to increase simulation speed.
@@ -32,8 +31,7 @@ export class VirtualBackend implements IBackend {
   remote_history_version: number = 0
   remote_history_id: number = 0
 
-  private readonly head_id = 0
-  private heater_configs: HeaterConfigs = HeaterConfigs.create()
+  private heater_config: HeaterConfig = HeaterConfig.create()
 
   constructor(device: Device) {
     this.device = device
@@ -91,10 +89,10 @@ export class VirtualBackend implements IBackend {
     // Load heater configs
     const virtualBackendStore = useVirtualBackendStore()
     try {
-      this.heater_configs = HeaterConfigs.fromJSON(virtualBackendStore.rawHeaterConfigs)
+      this.heater_config = HeaterConfig.fromJSON(virtualBackendStore.rawHeaterConfig)
     } catch {
-      console.error('Error loading heater configs, use empty one')
-      this.heater_configs = HeaterConfigs.create()
+      console.error('Error loading heater configs, use default one')
+      this.heater_config = HeaterConfig.decode(DEFAULT_HEATER_CONFIG_PB)
     }
 
     this.device.is_ready.value = true
@@ -234,40 +232,30 @@ export class VirtualBackend implements IBackend {
 }
 
   async set_sensor_calibration_point(point_id: (0 | 1), temperature: number) {
-    const hc = this.heater_configs
-    if (!hc.sensor[this.head_id]) hc.sensor[this.head_id] = SensorParams.create()
+    // This is not required since we always use pre-defined values. Left to pass types check.
+    if (!this.heater_config.sensor) this.heater_config.sensor = SensorParams.create()
 
-    // Write point with dummy sensor value
-    if (temperature === 0) {
-      delete hc.sensor[this.head_id].points[point_id]
-    } else {
-      hc.sensor[this.head_id].points[point_id] = { temperature, sensor_value: 0 }
-    }
+    if (point_id === 0) this.heater_config.sensor.p0_temperature = temperature
+    else this.heater_config.sensor.p1_temperature = temperature
 
     const virtualBackendStore = useVirtualBackendStore()
-    virtualBackendStore.rawHeaterConfigs = HeaterConfigs.toJSON(hc) as string
+    virtualBackendStore.rawHeaterConfig = HeaterConfig.toJSON(this.heater_config) as string
   }
 
   async get_sensor_params(): Promise<SensorParams> {
-    const hc = this.heater_configs
-
-    if (hc.sensor[this.head_id]) return structuredClone(hc.sensor[this.head_id])
-    return SensorParams.create()
+    return structuredClone(this.heater_config.sensor || SensorParams.create())
   }
 
   async set_adrc_params(config: AdrcParams): Promise<void> {
-    const hc = this.heater_configs
-    hc.adrc[this.head_id] = structuredClone(config)
+    this.heater_config.adrc = structuredClone(config)
 
     const virtualBackendStore = useVirtualBackendStore()
-    virtualBackendStore.rawHeaterConfigs = HeaterConfigs.toJSON(hc) as string
+    virtualBackendStore.rawHeaterConfig = HeaterConfig.toJSON(this.heater_config) as string
   }
 
   // Sync, for local use from tasks
   pick_adrc_params(): AdrcParams {
-    const hc = this.heater_configs
-    if (hc.adrc[this.head_id]) return structuredClone(hc.adrc[this.head_id])
-    return AdrcParams.decode(DEFAULT_ADRC_PARAMS_PB)
+    return structuredClone(this.heater_config.adrc || AdrcParams.create())
   }
 
   async get_adrc_params(): Promise<AdrcParams> {

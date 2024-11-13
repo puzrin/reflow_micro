@@ -9,6 +9,47 @@ import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 
 export const protobufPackage = "";
 
+export enum Constants {
+  CONSTANT_UNSPECIFIED = 0,
+  /** START_TEMPERATURE - Initial temperature for all profiles */
+  START_TEMPERATURE = 30,
+  /** MAX_REFLOW_PROFILES - Static sizes for repeated/maps */
+  MAX_REFLOW_PROFILES = 10,
+  UNRECOGNIZED = -1,
+}
+
+export function constantsFromJSON(object: any): Constants {
+  switch (object) {
+    case 0:
+    case "CONSTANT_UNSPECIFIED":
+      return Constants.CONSTANT_UNSPECIFIED;
+    case 30:
+    case "START_TEMPERATURE":
+      return Constants.START_TEMPERATURE;
+    case 10:
+    case "MAX_REFLOW_PROFILES":
+      return Constants.MAX_REFLOW_PROFILES;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return Constants.UNRECOGNIZED;
+  }
+}
+
+export function constantsToJSON(object: Constants): string {
+  switch (object) {
+    case Constants.CONSTANT_UNSPECIFIED:
+      return "CONSTANT_UNSPECIFIED";
+    case Constants.START_TEMPERATURE:
+      return "START_TEMPERATURE";
+    case Constants.MAX_REFLOW_PROFILES:
+      return "MAX_REFLOW_PROFILES";
+    case Constants.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export enum DeviceState {
   DEVICE_STATE_UNSPECIFIED = 0,
   Idle = 1,
@@ -66,40 +107,6 @@ export function deviceStateToJSON(object: DeviceState): string {
   }
 }
 
-export enum Constants {
-  CONSTANT_UNSPECIFIED = 0,
-  /** START_TEMPERATURE - Initial temperature for all profiles */
-  START_TEMPERATURE = 30,
-  UNRECOGNIZED = -1,
-}
-
-export function constantsFromJSON(object: any): Constants {
-  switch (object) {
-    case 0:
-    case "CONSTANT_UNSPECIFIED":
-      return Constants.CONSTANT_UNSPECIFIED;
-    case 30:
-    case "START_TEMPERATURE":
-      return Constants.START_TEMPERATURE;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return Constants.UNRECOGNIZED;
-  }
-}
-
-export function constantsToJSON(object: Constants): string {
-  switch (object) {
-    case Constants.CONSTANT_UNSPECIFIED:
-      return "CONSTANT_UNSPECIFIED";
-    case Constants.START_TEMPERATURE:
-      return "START_TEMPERATURE";
-    case Constants.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
-}
-
 export interface Segment {
   /** Target temperature in Celsius */
   target: number;
@@ -151,35 +158,16 @@ export interface AdrcParams {
   M: number;
 }
 
-export interface SensorCalibrationPoint {
-  /** Real temperature */
-  temperature: number;
-  /** Sensor voltage */
-  sensor_value: number;
-}
-
 export interface SensorParams {
-  points: { [key: number]: SensorCalibrationPoint };
+  p0_temperature: number;
+  p0_value: number;
+  p1_temperature: number;
+  p1_value: number;
 }
 
-export interface SensorParams_PointsEntry {
-  key: number;
-  value: SensorCalibrationPoint | undefined;
-}
-
-export interface HeaterConfigs {
-  adrc: { [key: number]: AdrcParams };
-  sensor: { [key: number]: SensorParams };
-}
-
-export interface HeaterConfigs_AdrcEntry {
-  key: number;
-  value: AdrcParams | undefined;
-}
-
-export interface HeaterConfigs_SensorEntry {
-  key: number;
-  value: SensorParams | undefined;
+export interface HeaterConfig {
+  adrc: AdrcParams | undefined;
+  sensor: SensorParams | undefined;
 }
 
 function createBaseSegment(): Segment {
@@ -702,91 +690,24 @@ export const AdrcParams: MessageFns<AdrcParams> = {
   },
 };
 
-function createBaseSensorCalibrationPoint(): SensorCalibrationPoint {
-  return { temperature: 0, sensor_value: 0 };
-}
-
-export const SensorCalibrationPoint: MessageFns<SensorCalibrationPoint> = {
-  encode(message: SensorCalibrationPoint, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.temperature !== 0) {
-      writer.uint32(13).float(message.temperature);
-    }
-    if (message.sensor_value !== 0) {
-      writer.uint32(21).float(message.sensor_value);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): SensorCalibrationPoint {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseSensorCalibrationPoint();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 13) {
-            break;
-          }
-
-          message.temperature = reader.float();
-          continue;
-        }
-        case 2: {
-          if (tag !== 21) {
-            break;
-          }
-
-          message.sensor_value = reader.float();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): SensorCalibrationPoint {
-    return {
-      temperature: isSet(object.temperature) ? globalThis.Number(object.temperature) : 0,
-      sensor_value: isSet(object.sensor_value) ? globalThis.Number(object.sensor_value) : 0,
-    };
-  },
-
-  toJSON(message: SensorCalibrationPoint): unknown {
-    const obj: any = {};
-    if (message.temperature !== 0) {
-      obj.temperature = message.temperature;
-    }
-    if (message.sensor_value !== 0) {
-      obj.sensor_value = message.sensor_value;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<SensorCalibrationPoint>, I>>(base?: I): SensorCalibrationPoint {
-    return SensorCalibrationPoint.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<SensorCalibrationPoint>, I>>(object: I): SensorCalibrationPoint {
-    const message = createBaseSensorCalibrationPoint();
-    message.temperature = object.temperature ?? 0;
-    message.sensor_value = object.sensor_value ?? 0;
-    return message;
-  },
-};
-
 function createBaseSensorParams(): SensorParams {
-  return { points: {} };
+  return { p0_temperature: 0, p0_value: 0, p1_temperature: 0, p1_value: 0 };
 }
 
 export const SensorParams: MessageFns<SensorParams> = {
   encode(message: SensorParams, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    Object.entries(message.points).forEach(([key, value]) => {
-      SensorParams_PointsEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).join();
-    });
+    if (message.p0_temperature !== 0) {
+      writer.uint32(13).float(message.p0_temperature);
+    }
+    if (message.p0_value !== 0) {
+      writer.uint32(21).float(message.p0_value);
+    }
+    if (message.p1_temperature !== 0) {
+      writer.uint32(29).float(message.p1_temperature);
+    }
+    if (message.p1_value !== 0) {
+      writer.uint32(37).float(message.p1_value);
+    }
     return writer;
   },
 
@@ -798,14 +719,35 @@ export const SensorParams: MessageFns<SensorParams> = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1: {
-          if (tag !== 10) {
+          if (tag !== 13) {
             break;
           }
 
-          const entry1 = SensorParams_PointsEntry.decode(reader, reader.uint32());
-          if (entry1.value !== undefined) {
-            message.points[entry1.key] = entry1.value;
+          message.p0_temperature = reader.float();
+          continue;
+        }
+        case 2: {
+          if (tag !== 21) {
+            break;
           }
+
+          message.p0_value = reader.float();
+          continue;
+        }
+        case 3: {
+          if (tag !== 29) {
+            break;
+          }
+
+          message.p1_temperature = reader.float();
+          continue;
+        }
+        case 4: {
+          if (tag !== 37) {
+            break;
+          }
+
+          message.p1_value = reader.float();
           continue;
         }
       }
@@ -819,25 +761,26 @@ export const SensorParams: MessageFns<SensorParams> = {
 
   fromJSON(object: any): SensorParams {
     return {
-      points: isObject(object.points)
-        ? Object.entries(object.points).reduce<{ [key: number]: SensorCalibrationPoint }>((acc, [key, value]) => {
-          acc[globalThis.Number(key)] = SensorCalibrationPoint.fromJSON(value);
-          return acc;
-        }, {})
-        : {},
+      p0_temperature: isSet(object.p0_temperature) ? globalThis.Number(object.p0_temperature) : 0,
+      p0_value: isSet(object.p0_value) ? globalThis.Number(object.p0_value) : 0,
+      p1_temperature: isSet(object.p1_temperature) ? globalThis.Number(object.p1_temperature) : 0,
+      p1_value: isSet(object.p1_value) ? globalThis.Number(object.p1_value) : 0,
     };
   },
 
   toJSON(message: SensorParams): unknown {
     const obj: any = {};
-    if (message.points) {
-      const entries = Object.entries(message.points);
-      if (entries.length > 0) {
-        obj.points = {};
-        entries.forEach(([k, v]) => {
-          obj.points[k] = SensorCalibrationPoint.toJSON(v);
-        });
-      }
+    if (message.p0_temperature !== 0) {
+      obj.p0_temperature = message.p0_temperature;
+    }
+    if (message.p0_value !== 0) {
+      obj.p0_value = message.p0_value;
+    }
+    if (message.p1_temperature !== 0) {
+      obj.p1_temperature = message.p1_temperature;
+    }
+    if (message.p1_value !== 0) {
+      obj.p1_value = message.p1_value;
     }
     return obj;
   },
@@ -847,116 +790,33 @@ export const SensorParams: MessageFns<SensorParams> = {
   },
   fromPartial<I extends Exact<DeepPartial<SensorParams>, I>>(object: I): SensorParams {
     const message = createBaseSensorParams();
-    message.points = Object.entries(object.points ?? {}).reduce<{ [key: number]: SensorCalibrationPoint }>(
-      (acc, [key, value]) => {
-        if (value !== undefined) {
-          acc[globalThis.Number(key)] = SensorCalibrationPoint.fromPartial(value);
-        }
-        return acc;
-      },
-      {},
-    );
+    message.p0_temperature = object.p0_temperature ?? 0;
+    message.p0_value = object.p0_value ?? 0;
+    message.p1_temperature = object.p1_temperature ?? 0;
+    message.p1_value = object.p1_value ?? 0;
     return message;
   },
 };
 
-function createBaseSensorParams_PointsEntry(): SensorParams_PointsEntry {
-  return { key: 0, value: undefined };
+function createBaseHeaterConfig(): HeaterConfig {
+  return { adrc: undefined, sensor: undefined };
 }
 
-export const SensorParams_PointsEntry: MessageFns<SensorParams_PointsEntry> = {
-  encode(message: SensorParams_PointsEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.key !== 0) {
-      writer.uint32(8).uint32(message.key);
+export const HeaterConfig: MessageFns<HeaterConfig> = {
+  encode(message: HeaterConfig, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.adrc !== undefined) {
+      AdrcParams.encode(message.adrc, writer.uint32(10).fork()).join();
     }
-    if (message.value !== undefined) {
-      SensorCalibrationPoint.encode(message.value, writer.uint32(18).fork()).join();
+    if (message.sensor !== undefined) {
+      SensorParams.encode(message.sensor, writer.uint32(18).fork()).join();
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): SensorParams_PointsEntry {
+  decode(input: BinaryReader | Uint8Array, length?: number): HeaterConfig {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseSensorParams_PointsEntry();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.key = reader.uint32();
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.value = SensorCalibrationPoint.decode(reader, reader.uint32());
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): SensorParams_PointsEntry {
-    return {
-      key: isSet(object.key) ? globalThis.Number(object.key) : 0,
-      value: isSet(object.value) ? SensorCalibrationPoint.fromJSON(object.value) : undefined,
-    };
-  },
-
-  toJSON(message: SensorParams_PointsEntry): unknown {
-    const obj: any = {};
-    if (message.key !== 0) {
-      obj.key = Math.round(message.key);
-    }
-    if (message.value !== undefined) {
-      obj.value = SensorCalibrationPoint.toJSON(message.value);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<SensorParams_PointsEntry>, I>>(base?: I): SensorParams_PointsEntry {
-    return SensorParams_PointsEntry.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<SensorParams_PointsEntry>, I>>(object: I): SensorParams_PointsEntry {
-    const message = createBaseSensorParams_PointsEntry();
-    message.key = object.key ?? 0;
-    message.value = (object.value !== undefined && object.value !== null)
-      ? SensorCalibrationPoint.fromPartial(object.value)
-      : undefined;
-    return message;
-  },
-};
-
-function createBaseHeaterConfigs(): HeaterConfigs {
-  return { adrc: {}, sensor: {} };
-}
-
-export const HeaterConfigs: MessageFns<HeaterConfigs> = {
-  encode(message: HeaterConfigs, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    Object.entries(message.adrc).forEach(([key, value]) => {
-      HeaterConfigs_AdrcEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).join();
-    });
-    Object.entries(message.sensor).forEach(([key, value]) => {
-      HeaterConfigs_SensorEntry.encode({ key: key as any, value }, writer.uint32(18).fork()).join();
-    });
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): HeaterConfigs {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseHeaterConfigs();
+    const message = createBaseHeaterConfig();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -965,10 +825,7 @@ export const HeaterConfigs: MessageFns<HeaterConfigs> = {
             break;
           }
 
-          const entry1 = HeaterConfigs_AdrcEntry.decode(reader, reader.uint32());
-          if (entry1.value !== undefined) {
-            message.adrc[entry1.key] = entry1.value;
-          }
+          message.adrc = AdrcParams.decode(reader, reader.uint32());
           continue;
         }
         case 2: {
@@ -976,10 +833,7 @@ export const HeaterConfigs: MessageFns<HeaterConfigs> = {
             break;
           }
 
-          const entry2 = HeaterConfigs_SensorEntry.decode(reader, reader.uint32());
-          if (entry2.value !== undefined) {
-            message.sensor[entry2.key] = entry2.value;
-          }
+          message.sensor = SensorParams.decode(reader, reader.uint32());
           continue;
         }
       }
@@ -991,221 +845,34 @@ export const HeaterConfigs: MessageFns<HeaterConfigs> = {
     return message;
   },
 
-  fromJSON(object: any): HeaterConfigs {
+  fromJSON(object: any): HeaterConfig {
     return {
-      adrc: isObject(object.adrc)
-        ? Object.entries(object.adrc).reduce<{ [key: number]: AdrcParams }>((acc, [key, value]) => {
-          acc[globalThis.Number(key)] = AdrcParams.fromJSON(value);
-          return acc;
-        }, {})
-        : {},
-      sensor: isObject(object.sensor)
-        ? Object.entries(object.sensor).reduce<{ [key: number]: SensorParams }>((acc, [key, value]) => {
-          acc[globalThis.Number(key)] = SensorParams.fromJSON(value);
-          return acc;
-        }, {})
-        : {},
+      adrc: isSet(object.adrc) ? AdrcParams.fromJSON(object.adrc) : undefined,
+      sensor: isSet(object.sensor) ? SensorParams.fromJSON(object.sensor) : undefined,
     };
   },
 
-  toJSON(message: HeaterConfigs): unknown {
+  toJSON(message: HeaterConfig): unknown {
     const obj: any = {};
-    if (message.adrc) {
-      const entries = Object.entries(message.adrc);
-      if (entries.length > 0) {
-        obj.adrc = {};
-        entries.forEach(([k, v]) => {
-          obj.adrc[k] = AdrcParams.toJSON(v);
-        });
-      }
+    if (message.adrc !== undefined) {
+      obj.adrc = AdrcParams.toJSON(message.adrc);
     }
-    if (message.sensor) {
-      const entries = Object.entries(message.sensor);
-      if (entries.length > 0) {
-        obj.sensor = {};
-        entries.forEach(([k, v]) => {
-          obj.sensor[k] = SensorParams.toJSON(v);
-        });
-      }
+    if (message.sensor !== undefined) {
+      obj.sensor = SensorParams.toJSON(message.sensor);
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<HeaterConfigs>, I>>(base?: I): HeaterConfigs {
-    return HeaterConfigs.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<HeaterConfig>, I>>(base?: I): HeaterConfig {
+    return HeaterConfig.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<HeaterConfigs>, I>>(object: I): HeaterConfigs {
-    const message = createBaseHeaterConfigs();
-    message.adrc = Object.entries(object.adrc ?? {}).reduce<{ [key: number]: AdrcParams }>((acc, [key, value]) => {
-      if (value !== undefined) {
-        acc[globalThis.Number(key)] = AdrcParams.fromPartial(value);
-      }
-      return acc;
-    }, {});
-    message.sensor = Object.entries(object.sensor ?? {}).reduce<{ [key: number]: SensorParams }>(
-      (acc, [key, value]) => {
-        if (value !== undefined) {
-          acc[globalThis.Number(key)] = SensorParams.fromPartial(value);
-        }
-        return acc;
-      },
-      {},
-    );
-    return message;
-  },
-};
-
-function createBaseHeaterConfigs_AdrcEntry(): HeaterConfigs_AdrcEntry {
-  return { key: 0, value: undefined };
-}
-
-export const HeaterConfigs_AdrcEntry: MessageFns<HeaterConfigs_AdrcEntry> = {
-  encode(message: HeaterConfigs_AdrcEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.key !== 0) {
-      writer.uint32(8).uint32(message.key);
-    }
-    if (message.value !== undefined) {
-      AdrcParams.encode(message.value, writer.uint32(18).fork()).join();
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): HeaterConfigs_AdrcEntry {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseHeaterConfigs_AdrcEntry();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.key = reader.uint32();
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.value = AdrcParams.decode(reader, reader.uint32());
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): HeaterConfigs_AdrcEntry {
-    return {
-      key: isSet(object.key) ? globalThis.Number(object.key) : 0,
-      value: isSet(object.value) ? AdrcParams.fromJSON(object.value) : undefined,
-    };
-  },
-
-  toJSON(message: HeaterConfigs_AdrcEntry): unknown {
-    const obj: any = {};
-    if (message.key !== 0) {
-      obj.key = Math.round(message.key);
-    }
-    if (message.value !== undefined) {
-      obj.value = AdrcParams.toJSON(message.value);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<HeaterConfigs_AdrcEntry>, I>>(base?: I): HeaterConfigs_AdrcEntry {
-    return HeaterConfigs_AdrcEntry.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<HeaterConfigs_AdrcEntry>, I>>(object: I): HeaterConfigs_AdrcEntry {
-    const message = createBaseHeaterConfigs_AdrcEntry();
-    message.key = object.key ?? 0;
-    message.value = (object.value !== undefined && object.value !== null)
-      ? AdrcParams.fromPartial(object.value)
+  fromPartial<I extends Exact<DeepPartial<HeaterConfig>, I>>(object: I): HeaterConfig {
+    const message = createBaseHeaterConfig();
+    message.adrc = (object.adrc !== undefined && object.adrc !== null)
+      ? AdrcParams.fromPartial(object.adrc)
       : undefined;
-    return message;
-  },
-};
-
-function createBaseHeaterConfigs_SensorEntry(): HeaterConfigs_SensorEntry {
-  return { key: 0, value: undefined };
-}
-
-export const HeaterConfigs_SensorEntry: MessageFns<HeaterConfigs_SensorEntry> = {
-  encode(message: HeaterConfigs_SensorEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.key !== 0) {
-      writer.uint32(8).uint32(message.key);
-    }
-    if (message.value !== undefined) {
-      SensorParams.encode(message.value, writer.uint32(18).fork()).join();
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): HeaterConfigs_SensorEntry {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseHeaterConfigs_SensorEntry();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.key = reader.uint32();
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.value = SensorParams.decode(reader, reader.uint32());
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): HeaterConfigs_SensorEntry {
-    return {
-      key: isSet(object.key) ? globalThis.Number(object.key) : 0,
-      value: isSet(object.value) ? SensorParams.fromJSON(object.value) : undefined,
-    };
-  },
-
-  toJSON(message: HeaterConfigs_SensorEntry): unknown {
-    const obj: any = {};
-    if (message.key !== 0) {
-      obj.key = Math.round(message.key);
-    }
-    if (message.value !== undefined) {
-      obj.value = SensorParams.toJSON(message.value);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<HeaterConfigs_SensorEntry>, I>>(base?: I): HeaterConfigs_SensorEntry {
-    return HeaterConfigs_SensorEntry.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<HeaterConfigs_SensorEntry>, I>>(object: I): HeaterConfigs_SensorEntry {
-    const message = createBaseHeaterConfigs_SensorEntry();
-    message.key = object.key ?? 0;
-    message.value = (object.value !== undefined && object.value !== null)
-      ? SensorParams.fromPartial(object.value)
+    message.sensor = (object.sensor !== undefined && object.sensor !== null)
+      ? SensorParams.fromPartial(object.sensor)
       : undefined;
     return message;
   },
@@ -1222,10 +889,6 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
-
-function isObject(value: any): boolean {
-  return typeof value === "object" && value !== null;
-}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

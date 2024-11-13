@@ -11,24 +11,27 @@ import { DeviceState } from '@/proto/generated/types'
 
 const device: Device = inject('device')!
 
+const saveP0Btn = ref()
 const saveP1Btn = ref()
-const saveP2Btn = ref()
 
 const is_idle = computed(() => device.state.value === DeviceState.Idle)
 const is_baking = computed(() => device.state.value === DeviceState.SensorBake)
 
+const p0 = ref('')
 const p1 = ref('')
-const p2 = ref('')
+const p0_orig = ref(0)
+const p1_orig = ref(0)
+
+const show_p0_error = ref(false)
 const show_p1_error = ref(false)
-const show_p2_error = ref(false)
-const is_p1_calibrated = ref(false)
-const is_p2_calibrated = ref(false)
+const is_p0_calibrated = computed(() => p0_orig.value > 0)
+const is_p1_calibrated = computed(() => p1_orig.value > 0)
 const power = ref(50)
 
 async function loadCalibrationStatus() {
   const sensor_params = await device.get_sensor_params()
-  is_p1_calibrated.value = !!sensor_params.points[0]
-  is_p2_calibrated.value = !!sensor_params.points[1]
+  p0_orig.value = sensor_params.p0_temperature
+  p1_orig.value = sensor_params.p1_temperature
 }
 
 onMounted(async () => { await loadCalibrationStatus() })
@@ -53,26 +56,26 @@ function toNumber(val: string | number) {
   return parseFloat(val.replace(',', '.')) || 0
 }
 
+async function save_p0() {
+  if (p0.value === '') return
+  if (!isNumberLike(p0.value)) { show_p0_error.value = true; return }
+
+  show_p0_error.value = false
+  await device.set_sensor_calibration_point(0, toNumber(p0.value))
+  saveP0Btn.value?.showSuccess()
+  await loadCalibrationStatus()
+  p0.value = ''
+}
+
 async function save_p1() {
   if (p1.value === '') return
   if (!isNumberLike(p1.value)) { show_p1_error.value = true; return }
 
   show_p1_error.value = false
-  await device.set_sensor_calibration_point(0, toNumber(p1.value))
+  await device.set_sensor_calibration_point(1, toNumber(p1.value))
   saveP1Btn.value?.showSuccess()
   await loadCalibrationStatus()
   p1.value = ''
-}
-
-async function save_p2() {
-  if (p2.value === '') return
-  if (!isNumberLike(p2.value)) { show_p2_error.value = true; return }
-
-  show_p2_error.value = false
-  await device.set_sensor_calibration_point(1, toNumber(p2.value))
-  saveP2Btn.value?.showSuccess()
-  await loadCalibrationStatus()
-  p2.value = ''
   await device.stop()
 }
 </script>
@@ -105,10 +108,10 @@ async function save_p2() {
 
 
       <h2 class="text-2xl mb-0.5 text-slate-800">Heat point 1 (room temperature)</h2>
-      <div v-if="is_p1_calibrated" class="mb-1 text-xs text-green-600">
-        <span>Calibrated</span>
+      <div v-if="is_p0_calibrated" class="mb-1 text-xs text-green-600">
+        <span>Calibrated at {{ Math.round(p0_orig) }}°C</span>
       </div>
-      <div v-if="!is_p1_calibrated" class="mb-1 text-xs text-orange-500">
+      <div v-if="!is_p0_calibrated" class="mb-1 text-xs text-orange-500">
         <span>Not calibrated</span>
       </div>
       <p class="text-sm text-slate-400 mb-4">
@@ -117,19 +120,19 @@ async function save_p2() {
 
       <div class="mb-8">
         <div class="flex gap-2 flex-nowrap w-full">
-          <input v-model="p1" type="number" inputmode="numeric" min="10" max="100" class="w-full" />
-          <ButtonNormal ref="saveP1Btn" @click="save_p1" :disabled="!is_idle">Save</ButtonNormal>
+          <input v-model="p0" type="number" inputmode="numeric" min="10" max="100" class="w-full" />
+          <ButtonNormal ref="saveP0Btn" @click="save_p0" :disabled="!is_idle">Save</ButtonNormal>
         </div>
-        <div v-if="show_p1_error" class="text-xs text-red-500 mt-0.5">Not a number</div>
+        <div v-if="show_p0_error" class="text-xs text-red-500 mt-0.5">Not a number</div>
         <div class="text-xs text-slate-400 mt-0.5">Temperature, °C</div>
       </div>
 
 
       <h2 class="text-2xl mb-0.5 text-slate-800">Heat point 2 (~ 200°C)</h2>
-      <div v-if="is_p2_calibrated" class="mb-1 text-xs text-green-600">
-        <span>Calibrated</span>
+      <div v-if="is_p1_calibrated" class="mb-1 text-xs text-green-600">
+        <span>Calibrated at {{ Math.round(p1_orig) }}°C</span>
       </div>
-      <div v-if="!is_p2_calibrated" class="mb-1 text-xs text-orange-500">
+      <div v-if="!is_p1_calibrated" class="mb-1 text-xs text-orange-500">
         <span>Not calibrated</span>
       </div>
       <p class="text-sm text-slate-400 mb-4">
@@ -148,10 +151,10 @@ async function save_p2() {
 
       <div class="mb-8">
         <div class="flex gap-2 flex-nowrap w-full">
-          <input v-model="p2" type="number" inputmode="numeric" min="150" max="300" class="w-full" />
-          <ButtonNormal ref="saveP2Btn" @click="save_p2" :disabled="!is_baking">Save</ButtonNormal>
+          <input v-model="p1" type="number" inputmode="numeric" min="150" max="300" class="w-full" />
+          <ButtonNormal ref="saveP1Btn" @click="save_p1" :disabled="!is_baking">Save</ButtonNormal>
         </div>
-        <div v-if="show_p2_error" class="text-xs text-red-500 mt-0.5">Not a number</div>
+        <div v-if="show_p1_error" class="text-xs text-red-500 mt-0.5">Not a number</div>
         <div class="text-xs text-slate-400 mt-0.5">Temperature, °C</div>
       </div>
 

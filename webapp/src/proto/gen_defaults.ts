@@ -1,7 +1,18 @@
 /// <reference types="node" />
 
-import { ProfilesData, AdrcParams } from './generated/types'
+import { ProfilesData, HeaterConfig } from './generated/types'
+import { profiles_default, heater_default } from './defaults_src';
 import { writeFileSync} from 'fs'
+
+const ts_header = '// Auto-generated file. DO NOT EDIT.'
+const hpp_header = `// Auto-generated file. DO NOT EDIT.
+#pragma once
+
+#include <cstdint>`
+
+function write_relative(filepath: string, data: string): void {
+  writeFileSync(new URL(filepath, import.meta.url), data)
+}
 
 function toHexBlock(bytes: Uint8Array, indent: number = 0): string {
   const hex = Buffer.from(bytes).toString('hex')
@@ -13,106 +24,27 @@ function toHexBlock(bytes: Uint8Array, indent: number = 0): string {
   return hex ?? ''
 }
 
-function to_ts(filepath: string, export_name: string, data: Uint8Array): void {
-  const ts_template = `// Auto-generated file. DO NOT EDIT.
-export const ${export_name} = new Uint8Array([
+
+function to_ts(export_name: string, data: Uint8Array): string {
+  return `export const ${export_name} = new Uint8Array([
 ${toHexBlock(data, 2)}
-])
-`
-  writeFileSync(new URL(filepath, import.meta.url), ts_template)
+])`
 }
 
-function to_hpp(filepath: string, export_name: string, data: Uint8Array): void {
-  const hpp_template = `// Auto-generated file. DO NOT EDIT.
-#pragma once
-
-#include <cstdint>
-
-inline uint8_t ${export_name}[] = {
+function to_hpp(export_name: string, data: Uint8Array): string {
+  return `inline const uint8_t ${export_name}[] = {
 ${toHexBlock(data, 4)}
-};
-`
-  writeFileSync(new URL(filepath, import.meta.url), hpp_template)
+};`
 }
 
-// https://www.compuphase.com/electronics/reflowsolderprofiles.htm
+write_relative('./generated/defaults.ts', [
+  ts_header,
+  to_ts('DEFAULT_PROFILES_DATA_PB', ProfilesData.encode(profiles_default).finish()),
+  to_ts('DEFAULT_HEATER_CONFIG_PB', HeaterConfig.encode(heater_default).finish())
+].join('\n\n') + `\n`)
 
-const defaultProfilesData: ProfilesData = {
-  selectedId: 1,
-  items: [
-    {
-      id: 1,
-      name: 'Reflow Leaded',
-      segments: [
-        { target: 150, duration: 60 },
-        { target: 165, duration: 90 },
-        { target: 235, duration: 30 },
-        { target: 235, duration: 20 },
-        { target: 40, duration: 50}
-      ]
-    },
-    {
-      id: 2,
-      name: 'Reflow Lead Free',
-      segments: [
-        { target: 150, duration: 60 },
-        { target: 180, duration: 120 },
-        { target: 255, duration: 30 },
-        { target: 255, duration: 15 },
-        { target: 40, duration: 50}
-      ]
-    },
-    {
-      id: 3,
-      name: 'Reflow LTS',
-      segments: [
-        { target: 100, duration: 40 },
-        { target: 120, duration: 120 },
-        { target: 190, duration: 30 },
-        { target: 190, duration: 20 },
-        { target: 40, duration: 40}
-      ]
-    },
-    {
-      id: 4,
-      name: 'Preheat Lead Free / Leaded',
-      segments: [
-        { target: 150, duration: 60 },
-        { target: 150, duration: 3600 }
-      ]
-    },
-    {
-      id: 5,
-      name: 'Preheat LTS',
-      segments: [
-        { target: 120, duration: 50 },
-        { target: 120, duration: 3600 }
-      ]
-    },
-    {
-      id: 6,
-      name: 'Paint bake',
-      segments: [
-        { target: 180, duration: 4500 }
-      ]
-    }
-  ]
-}
-
-let bin
-
-bin = ProfilesData.encode(defaultProfilesData).finish()
-to_ts('./generated/profiles_data_pb.ts', 'DEFAULT_PROFILES_DATA_PB', bin)
-to_hpp('../../../firmware/src/proto/generated/profiles_data_pb.hpp', 'DEFAULT_PROFILES_DATA_PB', bin)
-
-
-const defaultAdrcParams: AdrcParams = {
-  response: 132,
-  b0: 0.0202,
-  N: 50,
-  M: 3
-}
-
-bin = AdrcParams.encode(defaultAdrcParams).finish()
-to_ts('./generated/adrc_params_pb.ts', 'DEFAULT_ADRC_PARAMS_PB', bin)
-to_hpp('../../../firmware/src/proto/generated/adrc_params_pb.hpp', 'DEFAULT_ADRC_PARAMS_PB', bin)
+write_relative('../../../firmware/src/proto/generated/defaults.hpp', [
+  hpp_header,
+  to_hpp('DEFAULT_PROFILES_DATA_PB', ProfilesData.encode(profiles_default).finish()),
+  to_hpp('DEFAULT_HEATER_CONFIG_PB', HeaterConfig.encode(heater_default).finish())
+].join('\n\n') + `\n`)

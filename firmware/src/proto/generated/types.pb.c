@@ -24,22 +24,10 @@ PB_BIND(HistoryChunk, HistoryChunk, 2)
 PB_BIND(AdrcParams, AdrcParams, AUTO)
 
 
-PB_BIND(SensorCalibrationPoint, SensorCalibrationPoint, AUTO)
-
-
 PB_BIND(SensorParams, SensorParams, AUTO)
 
 
-PB_BIND(SensorParams_PointsEntry, SensorParams_PointsEntry, AUTO)
-
-
-PB_BIND(HeaterConfigs, HeaterConfigs, 2)
-
-
-PB_BIND(HeaterConfigs_AdrcEntry, HeaterConfigs_AdrcEntry, AUTO)
-
-
-PB_BIND(HeaterConfigs_SensorEntry, HeaterConfigs_SensorEntry, AUTO)
+PB_BIND(HeaterConfig, HeaterConfig, AUTO)
 
 
 

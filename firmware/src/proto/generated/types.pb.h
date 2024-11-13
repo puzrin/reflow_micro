@@ -78,42 +78,19 @@ typedef struct _AdrcParams {
     float M;
 } AdrcParams;
 
-typedef struct _SensorCalibrationPoint {
-    /* Real temperature */
-    float temperature;
-    /* Sensor voltage */
-    float sensor_value;
-} SensorCalibrationPoint;
-
-typedef struct _SensorParams_PointsEntry {
-    uint32_t key;
-    bool has_value;
-    SensorCalibrationPoint value;
-} SensorParams_PointsEntry;
-
 typedef struct _SensorParams {
-    pb_size_t points_count;
-    SensorParams_PointsEntry points[2];
+    float p0_temperature;
+    float p0_value;
+    float p1_temperature;
+    float p1_value;
 } SensorParams;
 
-typedef struct _HeaterConfigs_AdrcEntry {
-    uint32_t key;
-    bool has_value;
-    AdrcParams value;
-} HeaterConfigs_AdrcEntry;
-
-typedef struct _HeaterConfigs_SensorEntry {
-    uint32_t key;
-    bool has_value;
-    SensorParams value;
-} HeaterConfigs_SensorEntry;
-
-typedef struct _HeaterConfigs {
-    pb_size_t adrc_count;
-    HeaterConfigs_AdrcEntry adrc[4];
-    pb_size_t sensor_count;
-    HeaterConfigs_SensorEntry sensor[4];
-} HeaterConfigs;
+typedef struct _HeaterConfig {
+    bool has_adrc;
+    AdrcParams adrc;
+    bool has_sensor;
+    SensorParams sensor;
+} HeaterConfig;
 
 
 #ifdef __cplusplus
@@ -138,10 +115,6 @@ extern "C" {
 
 
 
-
-
-
-
 /* Initializer values for message structs */
 #define Segment_init_default                     {0, 0}
 #define Profile_init_default                     {0, "", 0, {Segment_init_default, Segment_init_default, Segment_init_default, Segment_init_default, Segment_init_default, Segment_init_default, Segment_init_default, Segment_init_default, Segment_init_default, Segment_init_default}}
@@ -149,24 +122,16 @@ extern "C" {
 #define Point_init_default                       {0, 0}
 #define HistoryChunk_init_default                {0, 0, 0, {Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default}}
 #define AdrcParams_init_default                  {0, 0, 0, 0}
-#define SensorCalibrationPoint_init_default      {0, 0}
-#define SensorParams_init_default                {0, {SensorParams_PointsEntry_init_default, SensorParams_PointsEntry_init_default}}
-#define SensorParams_PointsEntry_init_default    {0, false, SensorCalibrationPoint_init_default}
-#define HeaterConfigs_init_default               {0, {HeaterConfigs_AdrcEntry_init_default, HeaterConfigs_AdrcEntry_init_default, HeaterConfigs_AdrcEntry_init_default, HeaterConfigs_AdrcEntry_init_default}, 0, {HeaterConfigs_SensorEntry_init_default, HeaterConfigs_SensorEntry_init_default, HeaterConfigs_SensorEntry_init_default, HeaterConfigs_SensorEntry_init_default}}
-#define HeaterConfigs_AdrcEntry_init_default     {0, false, AdrcParams_init_default}
-#define HeaterConfigs_SensorEntry_init_default   {0, false, SensorParams_init_default}
+#define SensorParams_init_default                {0, 0, 0, 0}
+#define HeaterConfig_init_default                {false, AdrcParams_init_default, false, SensorParams_init_default}
 #define Segment_init_zero                        {0, 0}
 #define Profile_init_zero                        {0, "", 0, {Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero}}
 #define ProfilesData_init_zero                   {0, {Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero}, 0}
 #define Point_init_zero                          {0, 0}
 #define HistoryChunk_init_zero                   {0, 0, 0, {Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero}}
 #define AdrcParams_init_zero                     {0, 0, 0, 0}
-#define SensorCalibrationPoint_init_zero         {0, 0}
-#define SensorParams_init_zero                   {0, {SensorParams_PointsEntry_init_zero, SensorParams_PointsEntry_init_zero}}
-#define SensorParams_PointsEntry_init_zero       {0, false, SensorCalibrationPoint_init_zero}
-#define HeaterConfigs_init_zero                  {0, {HeaterConfigs_AdrcEntry_init_zero, HeaterConfigs_AdrcEntry_init_zero, HeaterConfigs_AdrcEntry_init_zero, HeaterConfigs_AdrcEntry_init_zero}, 0, {HeaterConfigs_SensorEntry_init_zero, HeaterConfigs_SensorEntry_init_zero, HeaterConfigs_SensorEntry_init_zero, HeaterConfigs_SensorEntry_init_zero}}
-#define HeaterConfigs_AdrcEntry_init_zero        {0, false, AdrcParams_init_zero}
-#define HeaterConfigs_SensorEntry_init_zero      {0, false, SensorParams_init_zero}
+#define SensorParams_init_zero                   {0, 0, 0, 0}
+#define HeaterConfig_init_zero                   {false, AdrcParams_init_zero, false, SensorParams_init_zero}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define Segment_target_tag                       1
@@ -185,17 +150,12 @@ extern "C" {
 #define AdrcParams_b0_tag                        2
 #define AdrcParams_N_tag                         3
 #define AdrcParams_M_tag                         4
-#define SensorCalibrationPoint_temperature_tag   1
-#define SensorCalibrationPoint_sensor_value_tag  2
-#define SensorParams_PointsEntry_key_tag         1
-#define SensorParams_PointsEntry_value_tag       2
-#define SensorParams_points_tag                  1
-#define HeaterConfigs_AdrcEntry_key_tag          1
-#define HeaterConfigs_AdrcEntry_value_tag        2
-#define HeaterConfigs_SensorEntry_key_tag        1
-#define HeaterConfigs_SensorEntry_value_tag      2
-#define HeaterConfigs_adrc_tag                   1
-#define HeaterConfigs_sensor_tag                 2
+#define SensorParams_p0_temperature_tag          1
+#define SensorParams_p0_value_tag                2
+#define SensorParams_p1_temperature_tag          3
+#define SensorParams_p1_value_tag                4
+#define HeaterConfig_adrc_tag                    1
+#define HeaterConfig_sensor_tag                  2
 
 /* Struct field encoding specification for nanopb */
 #define Segment_FIELDLIST(X, a) \
@@ -241,46 +201,21 @@ X(a, STATIC,   SINGULAR, FLOAT,    M,                 4)
 #define AdrcParams_CALLBACK NULL
 #define AdrcParams_DEFAULT NULL
 
-#define SensorCalibrationPoint_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, FLOAT,    temperature,       1) \
-X(a, STATIC,   SINGULAR, FLOAT,    sensor_value,      2)
-#define SensorCalibrationPoint_CALLBACK NULL
-#define SensorCalibrationPoint_DEFAULT NULL
-
 #define SensorParams_FIELDLIST(X, a) \
-X(a, STATIC,   REPEATED, MESSAGE,  points,            1)
+X(a, STATIC,   SINGULAR, FLOAT,    p0_temperature,    1) \
+X(a, STATIC,   SINGULAR, FLOAT,    p0_value,          2) \
+X(a, STATIC,   SINGULAR, FLOAT,    p1_temperature,    3) \
+X(a, STATIC,   SINGULAR, FLOAT,    p1_value,          4)
 #define SensorParams_CALLBACK NULL
 #define SensorParams_DEFAULT NULL
-#define SensorParams_points_MSGTYPE SensorParams_PointsEntry
 
-#define SensorParams_PointsEntry_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UINT32,   key,               1) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  value,             2)
-#define SensorParams_PointsEntry_CALLBACK NULL
-#define SensorParams_PointsEntry_DEFAULT NULL
-#define SensorParams_PointsEntry_value_MSGTYPE SensorCalibrationPoint
-
-#define HeaterConfigs_FIELDLIST(X, a) \
-X(a, STATIC,   REPEATED, MESSAGE,  adrc,              1) \
-X(a, STATIC,   REPEATED, MESSAGE,  sensor,            2)
-#define HeaterConfigs_CALLBACK NULL
-#define HeaterConfigs_DEFAULT NULL
-#define HeaterConfigs_adrc_MSGTYPE HeaterConfigs_AdrcEntry
-#define HeaterConfigs_sensor_MSGTYPE HeaterConfigs_SensorEntry
-
-#define HeaterConfigs_AdrcEntry_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UINT32,   key,               1) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  value,             2)
-#define HeaterConfigs_AdrcEntry_CALLBACK NULL
-#define HeaterConfigs_AdrcEntry_DEFAULT NULL
-#define HeaterConfigs_AdrcEntry_value_MSGTYPE AdrcParams
-
-#define HeaterConfigs_SensorEntry_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UINT32,   key,               1) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  value,             2)
-#define HeaterConfigs_SensorEntry_CALLBACK NULL
-#define HeaterConfigs_SensorEntry_DEFAULT NULL
-#define HeaterConfigs_SensorEntry_value_MSGTYPE SensorParams
+#define HeaterConfig_FIELDLIST(X, a) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  adrc,              1) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  sensor,            2)
+#define HeaterConfig_CALLBACK NULL
+#define HeaterConfig_DEFAULT NULL
+#define HeaterConfig_adrc_MSGTYPE AdrcParams
+#define HeaterConfig_sensor_MSGTYPE SensorParams
 
 extern const pb_msgdesc_t Segment_msg;
 extern const pb_msgdesc_t Profile_msg;
@@ -288,12 +223,8 @@ extern const pb_msgdesc_t ProfilesData_msg;
 extern const pb_msgdesc_t Point_msg;
 extern const pb_msgdesc_t HistoryChunk_msg;
 extern const pb_msgdesc_t AdrcParams_msg;
-extern const pb_msgdesc_t SensorCalibrationPoint_msg;
 extern const pb_msgdesc_t SensorParams_msg;
-extern const pb_msgdesc_t SensorParams_PointsEntry_msg;
-extern const pb_msgdesc_t HeaterConfigs_msg;
-extern const pb_msgdesc_t HeaterConfigs_AdrcEntry_msg;
-extern const pb_msgdesc_t HeaterConfigs_SensorEntry_msg;
+extern const pb_msgdesc_t HeaterConfig_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define Segment_fields &Segment_msg
@@ -302,26 +233,18 @@ extern const pb_msgdesc_t HeaterConfigs_SensorEntry_msg;
 #define Point_fields &Point_msg
 #define HistoryChunk_fields &HistoryChunk_msg
 #define AdrcParams_fields &AdrcParams_msg
-#define SensorCalibrationPoint_fields &SensorCalibrationPoint_msg
 #define SensorParams_fields &SensorParams_msg
-#define SensorParams_PointsEntry_fields &SensorParams_PointsEntry_msg
-#define HeaterConfigs_fields &HeaterConfigs_msg
-#define HeaterConfigs_AdrcEntry_fields &HeaterConfigs_AdrcEntry_msg
-#define HeaterConfigs_SensorEntry_fields &HeaterConfigs_SensorEntry_msg
+#define HeaterConfig_fields &HeaterConfig_msg
 
 /* Maximum encoded size of messages (where known) */
 #define AdrcParams_size                          20
-#define HeaterConfigs_AdrcEntry_size             28
-#define HeaterConfigs_SensorEntry_size           48
-#define HeaterConfigs_size                       320
+#define HeaterConfig_size                        44
 #define HistoryChunk_size                        2422
 #define Point_size                               22
 #define Profile_size                             303
 #define ProfilesData_size                        3071
 #define Segment_size                             22
-#define SensorCalibrationPoint_size              10
-#define SensorParams_PointsEntry_size            18
-#define SensorParams_size                        40
+#define SensorParams_size                        20
 #define TYPES_PB_H_MAX_SIZE                      ProfilesData_size
 
 #ifdef __cplusplus

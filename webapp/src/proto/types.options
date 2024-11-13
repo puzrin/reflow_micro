@@ -2,6 +2,3 @@ ProfilesData.items max_count:10
 Profile.segments max_count:10
 Profile.name max_length:50
 HistoryChunk.data max_count:100
-SensorParams.points max_count:2
-HeaterConfigs.adrc max_count:4
-HeaterConfigs.sensor max_count:4

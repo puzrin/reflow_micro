@@ -65,19 +65,14 @@ message AdrcParams {
   float M = 4;
 }
 
-message SensorCalibrationPoint {
-  // Real temperature
-  float temperature = 1;
-  // Sensor voltage
-  float sensor_value = 2;
-}
-
 message SensorParams {
-  map<uint32, SensorCalibrationPoint> points = 1;
+  float p0_temperature = 1;
+  float p0_value = 2;
+  float p1_temperature = 3;
+  float p1_value = 4;
 }
 
-
-message HeaterConfigs {
-  map<uint32, AdrcParams> adrc = 1;
-  map<uint32, SensorParams> sensor = 2;
+message HeaterConfig {
+  AdrcParams adrc = 1;
+  SensorParams sensor = 2;
 }
