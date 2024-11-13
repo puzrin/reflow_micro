@@ -31,16 +31,20 @@ const adrc_error_m = ref(false)
 const test_temperature = ref(200)
 const step_response_power = ref(50)
 
+function toPrecisionStr(num: number, valuableDigits: number = 2): string {
+  // `Number` required to remove scientific notation and trailing zeros
+  return Number(num.toPrecision(valuableDigits)).toString();
+}
+
 function configToRefs(config: AdrcParams) {
-  adrc_param_tau.value = config.response.toString()
-  adrc_param_b0.value = config.b0.toString()
-  adrc_param_n.value = config.N.toString()
-  adrc_param_m.value = config.M.toString()
+  adrc_param_tau.value = toPrecisionStr(config.response, 3)
+  adrc_param_b0.value = toPrecisionStr(config.b0, 3)
+  adrc_param_n.value = toPrecisionStr(config.N, 3)
+  adrc_param_m.value = toPrecisionStr(config.M, 3)
 }
 
 onMounted(async () => {
-  const adrc_config = await device.get_adrc_params()
-  configToRefs(adrc_config)
+  configToRefs(await device.get_adrc_params())
 })
 
 onBeforeRouteLeave(async () => {
@@ -59,8 +63,7 @@ watchDebounced(test_temperature, async () => {
 // Reload ADRC settings when finish any task
 watch(device.state, async (newState) => {
   if (newState === DeviceState.Idle) {
-    const adrc_config = await device.get_adrc_params()
-    configToRefs(adrc_config)
+    configToRefs(await device.get_adrc_params())
   }
 })
 
@@ -93,6 +96,7 @@ async function save_adrc_params() {
   }
   await device.set_adrc_params(adrc_config)
   saveBtn.value?.showSuccess();
+  configToRefs(await device.get_adrc_params())
 }
 
 async function default_adrc_params() {
