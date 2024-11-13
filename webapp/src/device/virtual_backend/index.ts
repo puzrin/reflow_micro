@@ -7,8 +7,8 @@ import { task_sensor_bake } from './tasks/task_sensor_bake'
 import { task_adrc_test, task_adrc_test_setpoint } from './tasks/task_adrc_test'
 import { task_reflow } from './tasks/task_reflow'
 import { task_step_response } from './tasks/task_step_response'
-import { ProfilesData, Point, AdrcParams, SensorParams, HistoryChunk, DeviceState, HeaterConfig } from '@/proto/generated/types'
-import { DEFAULT_PROFILES_DATA_PB, DEFAULT_HEATER_CONFIG_PB } from '@/proto/generated/defaults'
+import { ProfilesData, Point, AdrcParams, SensorParams, HistoryChunk, DeviceState, HeaterParams } from '@/proto/generated/types'
+import { DEFAULT_PROFILES_DATA_PB, DEFAULT_HEATER_PARAMS_PB } from '@/proto/generated/defaults'
 
 // Tick step in ms, 10Hz.
 // The real timer interval can be faster, to increase simulation speed.
@@ -31,7 +31,7 @@ export class VirtualBackend implements IBackend {
   remote_history_version: number = 0
   remote_history_id: number = 0
 
-  private heater_config: HeaterConfig = HeaterConfig.create()
+  private heater_params: HeaterParams = HeaterParams.create()
 
   constructor(device: Device) {
     this.device = device
@@ -89,10 +89,10 @@ export class VirtualBackend implements IBackend {
     // Load heater configs
     const virtualBackendStore = useVirtualBackendStore()
     try {
-      this.heater_config = HeaterConfig.fromJSON(virtualBackendStore.rawHeaterConfig)
+      this.heater_params = HeaterParams.fromJSON(virtualBackendStore.rawHeaterParams)
     } catch {
       console.error('Error loading heater configs, use default one')
-      this.heater_config = HeaterConfig.decode(DEFAULT_HEATER_CONFIG_PB)
+      this.heater_params = HeaterParams.decode(DEFAULT_HEATER_PARAMS_PB)
     }
 
     this.device.is_ready.value = true
@@ -233,29 +233,29 @@ export class VirtualBackend implements IBackend {
 
   async set_sensor_calibration_point(point_id: (0 | 1), temperature: number) {
     // This is not required since we always use pre-defined values. Left to pass types check.
-    if (!this.heater_config.sensor) this.heater_config.sensor = SensorParams.create()
+    if (!this.heater_params.sensor) this.heater_params.sensor = SensorParams.create()
 
-    if (point_id === 0) this.heater_config.sensor.p0_temperature = temperature
-    else this.heater_config.sensor.p1_temperature = temperature
+    if (point_id === 0) this.heater_params.sensor.p0_temperature = temperature
+    else this.heater_params.sensor.p1_temperature = temperature
 
     const virtualBackendStore = useVirtualBackendStore()
-    virtualBackendStore.rawHeaterConfig = HeaterConfig.toJSON(this.heater_config) as string
+    virtualBackendStore.rawHeaterParams = HeaterParams.toJSON(this.heater_params) as string
   }
 
   async get_sensor_params(): Promise<SensorParams> {
-    return structuredClone(this.heater_config.sensor || SensorParams.create())
+    return structuredClone(this.heater_params.sensor || SensorParams.create())
   }
 
   async set_adrc_params(config: AdrcParams): Promise<void> {
-    this.heater_config.adrc = structuredClone(config)
+    this.heater_params.adrc = structuredClone(config)
 
     const virtualBackendStore = useVirtualBackendStore()
-    virtualBackendStore.rawHeaterConfig = HeaterConfig.toJSON(this.heater_config) as string
+    virtualBackendStore.rawHeaterParams = HeaterParams.toJSON(this.heater_params) as string
   }
 
   // Sync, for local use from tasks
   pick_adrc_params(): AdrcParams {
-    return structuredClone(this.heater_config.adrc || AdrcParams.create())
+    return structuredClone(this.heater_params.adrc || AdrcParams.create())
   }
 
   async get_adrc_params(): Promise<AdrcParams> {

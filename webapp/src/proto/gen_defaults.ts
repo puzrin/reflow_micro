@@ -1,6 +1,6 @@
 /// <reference types="node" />
 
-import { ProfilesData, HeaterConfig } from './generated/types'
+import { ProfilesData, HeaterParams } from './generated/types'
 import { profiles_default, heater_default } from './defaults_src';
 import { writeFileSync} from 'fs'
 
@@ -40,11 +40,11 @@ ${toHexBlock(data, 4)}
 write_relative('./generated/defaults.ts', [
   ts_header,
   to_ts('DEFAULT_PROFILES_DATA_PB', ProfilesData.encode(profiles_default).finish()),
-  to_ts('DEFAULT_HEATER_CONFIG_PB', HeaterConfig.encode(heater_default).finish())
+  to_ts('DEFAULT_HEATER_PARAMS_PB', HeaterParams.encode(heater_default).finish())
 ].join('\n\n') + `\n`)
 
 write_relative('../../../firmware/src/proto/generated/defaults.hpp', [
   hpp_header,
   to_hpp('DEFAULT_PROFILES_DATA_PB', ProfilesData.encode(profiles_default).finish()),
-  to_hpp('DEFAULT_HEATER_CONFIG_PB', HeaterConfig.encode(heater_default).finish())
+  to_hpp('DEFAULT_HEATER_PARAMS_PB', HeaterParams.encode(heater_default).finish())
 ].join('\n\n') + `\n`)

@@ -1,6 +1,6 @@
 // Used to generate protobuf data binaries. Don't use directly.
 
-import { ProfilesData, HeaterConfig } from './generated/types'
+import { ProfilesData, HeaterParams } from './generated/types'
 
 // https://www.compuphase.com/electronics/reflowsolderprofiles.htm
 
@@ -66,7 +66,7 @@ export const profiles_default: ProfilesData = {
   ]
 }
 
-export const heater_default: HeaterConfig = {
+export const heater_default: HeaterParams = {
   adrc: {
     response: 132,
     b0: 0.0202,

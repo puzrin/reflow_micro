@@ -165,7 +165,7 @@ export interface SensorParams {
   p1_value: number;
 }
 
-export interface HeaterConfig {
+export interface HeaterParams {
   adrc: AdrcParams | undefined;
   sensor: SensorParams | undefined;
 }
@@ -798,12 +798,12 @@ export const SensorParams: MessageFns<SensorParams> = {
   },
 };
 
-function createBaseHeaterConfig(): HeaterConfig {
+function createBaseHeaterParams(): HeaterParams {
   return { adrc: undefined, sensor: undefined };
 }
 
-export const HeaterConfig: MessageFns<HeaterConfig> = {
-  encode(message: HeaterConfig, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const HeaterParams: MessageFns<HeaterParams> = {
+  encode(message: HeaterParams, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.adrc !== undefined) {
       AdrcParams.encode(message.adrc, writer.uint32(10).fork()).join();
     }
@@ -813,10 +813,10 @@ export const HeaterConfig: MessageFns<HeaterConfig> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): HeaterConfig {
+  decode(input: BinaryReader | Uint8Array, length?: number): HeaterParams {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseHeaterConfig();
+    const message = createBaseHeaterParams();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -845,14 +845,14 @@ export const HeaterConfig: MessageFns<HeaterConfig> = {
     return message;
   },
 
-  fromJSON(object: any): HeaterConfig {
+  fromJSON(object: any): HeaterParams {
     return {
       adrc: isSet(object.adrc) ? AdrcParams.fromJSON(object.adrc) : undefined,
       sensor: isSet(object.sensor) ? SensorParams.fromJSON(object.sensor) : undefined,
     };
   },
 
-  toJSON(message: HeaterConfig): unknown {
+  toJSON(message: HeaterParams): unknown {
     const obj: any = {};
     if (message.adrc !== undefined) {
       obj.adrc = AdrcParams.toJSON(message.adrc);
@@ -863,11 +863,11 @@ export const HeaterConfig: MessageFns<HeaterConfig> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<HeaterConfig>, I>>(base?: I): HeaterConfig {
-    return HeaterConfig.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<HeaterParams>, I>>(base?: I): HeaterParams {
+    return HeaterParams.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<HeaterConfig>, I>>(object: I): HeaterConfig {
-    const message = createBaseHeaterConfig();
+  fromPartial<I extends Exact<DeepPartial<HeaterParams>, I>>(object: I): HeaterParams {
+    const message = createBaseHeaterParams();
     message.adrc = (object.adrc !== undefined && object.adrc !== null)
       ? AdrcParams.fromPartial(object.adrc)
       : undefined;

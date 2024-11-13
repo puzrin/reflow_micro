@@ -72,7 +72,7 @@ message SensorParams {
   float p1_value = 4;
 }
 
-message HeaterConfig {
+message HeaterParams {
   AdrcParams adrc = 1;
   SensorParams sensor = 2;
 }

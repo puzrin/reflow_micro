@@ -7,8 +7,8 @@ import { Device, HISTORY_ID_ADRC_TEST_MODE, HISTORY_ID_STEP_RESPONSE } from '@/d
 import ReflowChart from '@/components/ReflowChart.vue'
 import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
 import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
-import { AdrcParams, DeviceState, HeaterConfig } from '@/proto/generated/types'
-import { DEFAULT_HEATER_CONFIG_PB } from '@/proto/generated/defaults'
+import { AdrcParams, DeviceState, HeaterParams } from '@/proto/generated/types'
+import { DEFAULT_HEATER_PARAMS_PB } from '@/proto/generated/defaults'
 
 const device: Device = inject('device')!
 
@@ -100,7 +100,7 @@ async function save_adrc_params() {
 }
 
 async function default_adrc_params() {
-  configToRefs(HeaterConfig.decode(DEFAULT_HEATER_CONFIG_PB).adrc ?? AdrcParams.create())
+  configToRefs(HeaterParams.decode(DEFAULT_HEATER_PARAMS_PB).adrc ?? AdrcParams.create())
   resetBtn.value?.showSuccess()
 }
 </script>
