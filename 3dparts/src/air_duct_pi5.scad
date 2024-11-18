@@ -14,12 +14,14 @@ back_inner_h = 6.2;
 r = 5;
 
 top_dia = 10;
-top_h = 10.1;
+top_h = 10;
 
 mnt_wall = 2;
 mnt_w = 5;
 mnt_hole = 1.8;
 mnt_y = 13.5;
+
+conic=1;
 
 module bottom () {
     difference () {
@@ -63,7 +65,12 @@ module top () {
             // body
             hull () {
                 dupe_y() tr_xy(-x/2+r, y/2-r) cylinder(e, r + wall);
-                tr_z(top_h) mirror_z() cylinder(e, r = top_dia/2 + wall);
+
+                if (conic) {
+                    tr_z(top_h) mirror_z() cylinder(e, r = top_dia/2 + wall);
+                } else {
+                    tr_z(top_h) dupe_y() tr_xy(-x/2+r, y/2-r) cylinder(e, r + wall);
+                }
             }
 
             // mounting
@@ -73,7 +80,12 @@ module top () {
         // inner    
         tr_z(-e) hull () {
             dupe_y() tr_xy(-x/2+r, y/2-r) cylinder(e, r);
-            tr_z(top_h) cylinder(h = 2*e, r = top_dia/2);
+
+            if (conic) {
+                tr_z(top_h) cylinder(h = 2*e, r = top_dia/2);
+            } else {
+                tr_z(top_h+2e) dupe_y() tr_xy(-x/2+r, y/2-r) cylinder(e, r);
+            }
         }
 
         // mount holes
