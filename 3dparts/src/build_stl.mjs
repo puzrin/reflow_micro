@@ -25,8 +25,7 @@ const p = (name) => new URL(name, import.meta.url).pathname
 const builds = {
   tray: ['case.scad', '-D DRAW_TRAY=1'],
   cap: ['case.scad', '-D DRAW_CAP=1'],
-  button_02: ['case.scad', '-D DRAW_BTN=1'],
-  button_03: ['case.scad', '-D DRAW_BTN=1 -D btn_h=3.2 -D btn_w=9.7 -D btn_marks=2'],
+  button: ['case.scad', '-D DRAW_BTN=1'],
   air_duct_pi5_top: ['air_duct_pi5.scad', '-D draw_top=1'],
   air_duct_pi5_bottom: ['air_duct_pi5.scad', '-D draw_bottom=1'],
   pcb_aligner: ['pcb_aligner.scad', '-D latch=0.3'],
