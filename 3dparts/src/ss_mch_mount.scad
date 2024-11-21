@@ -1,80 +1,119 @@
 include <utils.scad>;
 
-h = 1.5;
-w = 2.5;
-dist = 48;
+h = 1.1;
+w = 2.5; // bridge between holes
+dist = 48; // space between edge holes
 screw_d = 1.8;
+screw_support_d = 4.5;
 
-clones = 6;
-margin = 5;
+frame_space = 3;
+bridge_w = 1.5;
+bridge_h = 0.5;
+clamp_space = 1.5;
+clones = 10;
+washer_clones = clones/2;
+
+frame_height = 3;
+frame_wall = 2;
+
+washer_wx = 4.5;
+washer_wy = 7.5;
+washer_h = 0.7;
+washer_pin_wx = 2.1;
+washer_pin_h = 1.1;
 
 $fn = 64;
 
-module clamp(h=10, is_last = false) {
+// Intermadiate vars
+clamp_wy = dist + screw_support_d;
+clamp_wx = screw_support_d;
+
+frame_clamps_wx = clones*clamp_wx + (clones+1)*clamp_space;
+frame_wy = clamp_wy + frame_space*2;
+
+frame_washer_wx = washer_wx + frame_space*2;
+
+frame_all_wx = frame_clamps_wx + frame_wall + frame_washer_wx;
+
+
+module clamp() {
     difference() {
         union() {
-            cylinder(h=h, d=4.5);
-            dupe_y() translate([0, dist/2, 0]) cylinder(h=h, d=4.5);
+            // Screw supports
+            cylinder(h=h, d=screw_support_d);
+            dupe_y() translate([0, dist/2, 0]) cylinder(h=h, d=screw_support_d);
 
+            // Body
             linear_extrude(h) square([w, dist], center = true);
 
-            /*if (!is_last) {
-                // clone's connectors
-                //tr_y(-0.5) linear_extrude(0.5) square([margin-1.5, 1]);
-                tr_y(6) linear_extrude(0.5) square([margin, 1]);
-            } else {
-                // Hack to increas minimal size to order's limit (2mm)
-                //tr_y(15) cylinder(h=2, d=1);
-            }*/
-            
-            linear_extrude(0.7) square([1, dist+14], center=true);
-            linear_extrude(0.7) square([7, 1], center=true);
-
+            // Top/bottom bridges
+            linear_extrude(bridge_h) square([bridge_w, frame_wy+2*e], center=true);
+            //linear_extrude(bridge_h) square([7, 1], center=true);
         }
+        // Holes
         translate([0, 0, -e]) cylinder(h=h+e*2, d=screw_d);
         dupe_y() translate([0, dist/2, -e]) cylinder(h=h+e*2, d=screw_d);
-    }    
-    
+    }
+
 }
+
+module washer() {
+    difference() {
+        union() {
+            // Central part
+            //rcube([washer_wx, washer_wy, washer_h], r=0.5);
+            cylinder(h=washer_h, d=washer_wx);
+            rcube([2.5, washer_wy, washer_h], r=0.3);
+            // Pin
+            translate([-washer_pin_wx/2, -washer_wy/2, washer_h - e])
+            rcube([washer_pin_wx, 1, washer_pin_h], r=0.2, center=false);
+
+            // Side bridges
+            rcube([washer_wx + 2*frame_space + 2*e, 1.5, 0.5], r=0);
+        }
+        // Holes
+        tr_z(-e) cylinder(h=h+e*2, d=screw_d);
+    }
+}
+
+
+// Frame
+
+difference() {
+    translate([-frame_wall, -frame_wall, 0])
+    rcube([
+        frame_all_wx + frame_wall*2,
+        frame_wy + frame_wall*2,
+        frame_height
+    ], center=false, r=2);
+
+    // Clamps inner
+    tr_z(-e)
+    rcube([frame_clamps_wx, frame_wy, frame_height+2*e], center=false);
+
+    // Washers inner
+    translate([frame_clamps_wx + frame_wall, 0, -e])
+    rcube([frame_washer_wx, frame_wy, frame_height+2*e], center=false);
+
+}
+
+// Clamps
 
 for(i = [1:clones]) {
-    translate([margin*(i-1), 0, 0]) clamp(1.3);
+    translate([(clamp_wx + clamp_space)*(i-1), 0, 0])
+    translate([clamp_wx/2 + clamp_space, frame_wy/2, 0]) clamp();
 }
 
-// frame
-hx = 39; hy=64; 
-tr_x(hx/2 -7)
-difference() {
-    rcube([hx, hy, 4]);
-    tr_z(-e) rcube([hx-8, hy-8, 6]);
+// Washers
+step = frame_wy / (washer_clones + 1);
+for(i = [1:washer_clones]) {
+    translate([frame_clamps_wx + frame_wall + frame_washer_wx/2, step * i, 0])
+    washer();
 }
 
-/*
-tr_x(margin*clones*1) for(i = [1:clones]) {
-    translate([margin*(i-1), 0, 0]) clamp(1.6);
-}
-
-tr_x(margin*clones*2) for(i = [1:clones]) {
-    translate([margin*(i-1), 0, 0]) clamp(2.0, i == clones ? true : false);
-}
-
-module washer(h=0.5, d=6) {
-    difference() {
-        cylinder(h=h, d=6);
-        tr_z(-e) cylinder(h=h+2*e, d=1.8);
-    }
-}
-
-tr_x(-6) {
-    for (i = [0:3]) tr_y(i*8) washer(0.7, 6);
-
-    for (i = [-3:-1]) tr_y(i*8) washer(1, 6);
-    
-    // connectors
-    for (i = [-3:2]) {
-        tr_y(i*8+2) tr_x(-0.5) linear_extrude(0.4) square([1, 4]);
-    }
-    
-    tr_y(7.5) tr_x(2) cube([4, 1, 0.4]);
-}
-*/
+/*translate([frame_clamps_wx + frame_wall + frame_washer_wx/2, frame_wy/2, 0]) {
+    tr_y(frame_wy/10) washer();
+    tr_y(frame_wy/10*3) washer();
+    tr_y(-frame_wy/10) washer();
+    tr_y(-frame_wy/10*3) washer();
+}*/
