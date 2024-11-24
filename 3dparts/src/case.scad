@@ -76,7 +76,7 @@ module usb_hole() {
 
     w = usb_w + 0.5;
     h = usb_h + 0.5;
-    r = 1.4;
+    r = 1.6;
 
     tr_z(tray_h-pcb_h-usb_h/2 + 0.05)
     tr_y(pcb_wy/2 - pcb_support_w -e)
