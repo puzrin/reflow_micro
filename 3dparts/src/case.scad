@@ -107,7 +107,7 @@ module magnet_support(h = 20) {
     reserve_w = 1;
     mh = magnet_h + magnet_margin_h;
     assert(mh <= tray_inner_h, "Tray inner too small for desired magnet height");
-    
+
     pin_h = 0.5;
     pin_w = 1.25;
 
@@ -139,7 +139,7 @@ module _tray_base() {
             [case_wx-2*wall_side+2*pcb_side_margin, case_wy-2*wall_side+2*pcb_side_margin, pcb_h+e],
             r = pcb_r+pcb_side_margin
         );
-        
+
         // Ensure space for magnets
         dupe_xy () {
             translate([pcb_wx/2 - magnet_axis_offset, pcb_wy/2 - magnet_axis_offset, wall_hor])
@@ -161,7 +161,7 @@ module tray() {
             dupe_xy()
             tr_y(insert_pcb_y_offset)
             tr_x(-pcb_wx/2 + insert_pcb_x_offset) tray_pcb_holder();
-            
+
             // PCB supports
             dupe_xy()
             tr_xy(7, -pcb_wy/2) tr_z(wall_hor--e) cube([1.5, 1.5, tray_inner_h]);
@@ -187,13 +187,13 @@ module tray() {
         case_front(wall_side+pcb_support_w+e) tr_z(tray_h/2)
         rotate_x(90)
         rcube(
-            [btn_w + 2*btn_margin, btn_h + 2*btn_margin, wall_side+pcb_support_w+2e],
+            [btn_w + 2*btn_margin, btn_h + 2*btn_margin, wall_side+pcb_support_w+2*e],
             r=btn_h/2+btn_margin
         );
 
         // USB connector
         usb_hole();
-        
+
         // Bottom heels
         dupe_xy() tr_xy(case_wx/2 - 7.5, case_wy/2 - 7.5) tr_z(-e) cylinder(h=1, d=6.2);
 
@@ -205,13 +205,13 @@ module tray() {
             translate(i)
             tr_z(wall_hor+e) mirror_z() {
                 cylinder(h=1, d=4.5);
-                cylinder(h=1.3, d=2.5);
+                //cylinder(h=1.3, d=2.5);
             }
         }
-        
+
         // Partially remove stifffeners for pi5 fan connector
         tr_xy(-pcb_wx/2 + 68.5, -pcb_wy/2 + 21) tr_z(wall_hor) cylinder(h=3, r=7);
-        
+
     }
 }
 
@@ -221,7 +221,7 @@ module cap_stiffener_x() {
     tr_y(-pcb_wy/2-cap_pcb_margin-e)
     tr_z(wall_hor-e) tr_x(1)
     rotate_y(-90)
-    linear_extrude(2) 
+    linear_extrude(2)
     polygon([[0,0], [h,0], [h-4,4], [0,4]]);
 }
 
@@ -232,7 +232,7 @@ module cap_stiffener_y() {
     rotate_z(90)
     tr_z(wall_hor-e) tr_x(1)
     rotate_y(-90)
-    linear_extrude(2) 
+    linear_extrude(2)
     polygon([[0,0], [h,0], [h-4,4], [0,4]]);
 }
 
@@ -275,7 +275,7 @@ module cap() {
             cap_stiffener_x();
             dupe_x() tr_x(22) cap_stiffener_x();
         }
-        
+
         dupe_xy() tr_y(12) cap_stiffener_y();
     }
 }
