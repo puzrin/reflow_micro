@@ -1,6 +1,5 @@
 import { VirtualBackend, TICK_PERIOD_MS } from '../';
 import { sparsedPush } from '../utils';
-import { createADRC } from '../utils';
 import { Profile, Constants, Point } from '@/proto/generated/types'
 
 class Timeline {
@@ -42,24 +41,14 @@ export function* task_reflow(backend: VirtualBackend, profile: Profile) {
   backend.history_mock.length = 0
   timeline.load(profile)
 
-  const adrc = createADRC(backend.pick_adrc_params())
-  adrc.reset_to(backend.heater.temperature)
-
+  backend.heat_control_on()
 
   while (true) {
     const time = msTime / 1000
     const probe = backend.heater.temperature
 
     sparsedPush(backend.history_mock, { x: time, y: probe }, 1.0)
-
-    const watts = adrc.iterate(
-      probe,
-      timeline.getTarget(time),
-      backend.heater.get_max_power(),
-      TICK_PERIOD_MS / 1000
-    )
-
-    backend.heater.set_power(watts)
+    backend.heater.set_temperature(timeline.getTarget(time))
     msTime += TICK_PERIOD_MS
 
     if (time >= timeline.maxTime) {

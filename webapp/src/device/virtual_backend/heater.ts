@@ -1,3 +1,5 @@
+import { ADRC } from './adrc'
+
 function interpolate(x: number, points: [number, number][]): number {
     if (points.length < 2) {
         throw new Error("At least two points are required for interpolation.")
@@ -100,15 +102,21 @@ export class Heater {
     size: { x: number; y: number; z: number }
     calibration_points: { T: number; R: number; W: number }[]
     temperature: number
-    power_setpoint: number
     profiles: ChargerProfiles
+
+    power_setpoint: number;
+    temperature_setpoint: number;
+
+    adrc: ADRC = new ADRC()
+    private temperature_control_flag: boolean = false
 
     constructor(x = 0.08, y = 0.07, z = 0.0038) {
         this.size = { x, y, z } // Plate dimensions in meters
         this.calibration_points = [] // Calibration points for resistance and heat dissipation
         this.temperature = this.get_room_temp() // Current temperature
-        this.power_setpoint = 0
         this.profiles = charger_140w_with_pps
+        this.power_setpoint = 0
+        this.temperature_setpoint = this.temperature
     }
 
     clone(): Heater {
@@ -179,6 +187,19 @@ export class Heater {
         return this
     }
 
+    temperature_control_on() {
+        this.adrc.reset_to(this.temperature)
+        this.temperature_control_flag = true
+        return this
+    }
+
+    temperature_control_off() {
+        this.temperature_control_flag = false
+        this.set_power(0)
+        this.set_temperature(this.get_room_temp())
+        return this
+    }
+
     iterate(dt: number): void {
         const clamped_power = this.get_power()
 
@@ -187,6 +208,11 @@ export class Heater {
         const temperature_change = ((clamped_power - heat_transfer_coefficient * (this.temperature - this.get_room_temp())) * dt) / heat_capacity
 
         this.temperature += temperature_change
+
+        if (this.temperature_control_flag) {
+            const power = this.adrc.iterate(this.temperature, this.temperature_setpoint, this.get_max_power(), dt)
+            this.set_power(power)
+        }
     }
 
     calculate_resistance(temperature: number): number {
@@ -229,6 +255,8 @@ export class Heater {
     }
 
     set_power(power: number) { this.power_setpoint = power < 0 ? 0 : power; return this }
+
+    set_temperature(temperature: number) { this.temperature_setpoint = temperature; return this }
 
     get_room_temp() {
         const room_temp_point = this.calibration_points.find((p) => p.W === 0)

@@ -1,6 +1,4 @@
 import { Point } from '@/proto/generated/types'
-import { ADRC } from './adrc'
-import { AdrcParams } from '@/proto/generated/types'
 
 function near(p1: Point, p2: Point, precision: number): boolean {
   return Math.abs(p1.x - p2.x) < precision && Math.abs(p1.y - p2.y) < precision;
@@ -21,15 +19,4 @@ export function sparsedPush(arr: Point[], newPoint: Point, precision: number = 1
   }
 
   arr.push(newPoint);
-}
-
-export function createADRC(config: AdrcParams): ADRC {
-  const τ = config.response
-  const b0 = config.b0
-
-  const ω_o = config.N / τ
-  const ω_c = ω_o / config.M
-  const Kp = ω_c / b0
-
-  return  new ADRC(b0, ω_o, Kp)
 }

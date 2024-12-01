@@ -4,7 +4,7 @@ import { useVirtualBackendStore } from './virtualBackendStore'
 import { Device, type IBackend,
   HISTORY_ID_SENSOR_BAKE_MODE, HISTORY_ID_ADRC_TEST_MODE, HISTORY_ID_STEP_RESPONSE } from '@/device'
 import { task_sensor_bake } from './tasks/task_sensor_bake'
-import { task_adrc_test, task_adrc_test_setpoint } from './tasks/task_adrc_test'
+import { task_adrc_test } from './tasks/task_adrc_test'
 import { task_reflow } from './tasks/task_reflow'
 import { task_step_response } from './tasks/task_step_response'
 import { ProfilesData, Point, AdrcParams, SensorParams, HistoryChunk, DeviceState, HeaterParams } from '@/proto/generated/types'
@@ -151,7 +151,7 @@ export class VirtualBackend implements IBackend {
   async stop() {
     this.state = DeviceState.Idle
     this.task_iterator = null
-    this.heater.set_power(0)
+    this.heat_control_off()
   }
 
   private reset_remote_history(new_id: number) {
@@ -220,7 +220,7 @@ export class VirtualBackend implements IBackend {
       this.task_iterator = task_adrc_test(this)
     }
 
-    task_adrc_test_setpoint(temperature)
+    this.heater.set_temperature(temperature)
   }
 
   async run_step_response(watts: number) {
@@ -260,5 +260,16 @@ export class VirtualBackend implements IBackend {
 
   async get_adrc_params(): Promise<AdrcParams> {
     return this.pick_adrc_params()
+  }
+
+  heat_control_on() {
+    const adrc_params = this.pick_adrc_params()
+    this.heater.adrc.set_params(adrc_params.b0, adrc_params.response, adrc_params.N, adrc_params.M)
+    this.heater.temperature_control_on()
+  }
+
+  heat_control_off() {
+    this.heater.temperature_control_off()
+    this.heater.set_temperature(this.heater.get_room_temp())
   }
 }
