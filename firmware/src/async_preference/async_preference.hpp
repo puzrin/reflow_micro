@@ -112,6 +112,9 @@ public:
     }
 
     void set(const T& value) {
+        // Don't write the same data
+        if (is_preloaded && databox.value == value) return;
+
         valueUpdateBegin();
         databox.value = value;
         valueUpdateEnd();
