@@ -2,7 +2,7 @@
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import { RouterLink } from 'vue-router'
 import { useProfilesStore } from '@/stores/profiles'
-import { inject } from 'vue'
+import { inject, computed } from 'vue'
 import { DeviceState } from '@/proto/generated/types'
 import { Device } from '@/device'
 import MenuIcon from '@heroicons/vue/24/outline/Bars4Icon'
@@ -10,6 +10,7 @@ import CheckIcon from '@heroicons/vue/24/outline/CheckIcon'
 
 const profilesStore = useProfilesStore()
 const device: Device = inject('device')!
+const status = computed(() => device.status.value)
 
 const repoUrl = __REPO_URL__
 
@@ -39,7 +40,7 @@ const repoUrl = __REPO_URL__
                 class="flex w-full items-center rounded-md px-3 py-2 whitespace-nowrap text-ellipsis overflow-hidden disabled:opacity-50 disabled:pointer-events-none"
                 :class="[
                   active ? 'bg-violet-500 text-white' : 'text-gray-900',
-                  { 'disabled':  device.state.value === DeviceState.Reflow }
+                  { 'disabled':  status.state === DeviceState.Reflow }
                 ]"
                 @click="() => profilesStore.select(profile.id)"
               >
@@ -59,7 +60,7 @@ const repoUrl = __REPO_URL__
               class="flex w-full items-center rounded-md px-3 py-2 whitespace-nowrap text-ellipsis overflow-hidden"
               :class="[
                 active ? 'bg-violet-500 text-white' : 'text-gray-900',
-                { 'disabled':  device.state.value === DeviceState.Reflow }
+                { 'disabled':  status.state === DeviceState.Reflow }
               ]"
             >
               Settings...

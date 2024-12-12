@@ -14,8 +14,9 @@ const device: Device = inject('device')!
 const saveP0Btn = ref()
 const saveP1Btn = ref()
 
-const is_idle = computed(() => device.state.value === DeviceState.Idle)
-const is_baking = computed(() => device.state.value === DeviceState.SensorBake)
+const status = computed(() => device.status.value)
+const is_idle = computed(() => status.value.state === DeviceState.Idle)
+const is_baking = computed(() => status.value.state === DeviceState.SensorBake)
 
 const p0 = ref('')
 const p1 = ref('')
@@ -37,13 +38,13 @@ async function loadCalibrationStatus() {
 onMounted(async () => { await loadCalibrationStatus() })
 
 onBeforeRouteLeave(async () => {
-  if (device.state.value === DeviceState.SensorBake) await device.stop()
+  if (status.value.state === DeviceState.SensorBake) await device.stop()
   return true
 })
 
 // Update power "on the fly" (only when baking on progress)
 watchDebounced(power, async () => {
-  if (device.state.value === DeviceState.SensorBake) await device.run_sensor_bake(power.value)
+  if (status.value.state === DeviceState.SensorBake) await device.run_sensor_bake(power.value)
 }, { debounce: 500 })
 
 function isNumberLike(val: string | number): boolean {
@@ -92,13 +93,13 @@ async function save_p1() {
       <div>
         <span
           class="mr-1"
-          :class="device.temperature.value > 50 ? 'text-red-500' : 'text-green-500'"
+          :class="status.temperature > 50 ? 'text-red-500' : 'text-green-500'"
         >•</span>
-        <span class="font-mono">{{ device.temperature.value.toFixed(0) }}</span>°C
+        <span class="font-mono">{{ status.temperature.toFixed(0) }}</span>°C
       </div>
     </template>
 
-    <div v-if="!device.is_hotplate_ok.value" class="text-red-800 mb-4">
+    <div v-if="!status.hotplate_connected" class="text-red-800 mb-4">
       <p class="text-red-500">Hotplate not connected</p>
     </div>
     <template v-else>

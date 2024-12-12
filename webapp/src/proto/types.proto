@@ -17,6 +17,20 @@ enum DeviceState {
   StepResponse = 5;
 }
 
+message DeviceStatus {
+  // Main
+  DeviceState state = 1;
+  bool hotplate_connected = 2;
+  uint32 hotplate_id = 3;
+  float temperature = 4;
+  // Debug info
+  float watts = 5;
+  float volts = 6;
+  float amperes = 7;
+  float max_watts = 8;
+  float duty_cycle = 9; // 0..1
+}
+
 message Segment {
   // Target temperature in Celsius
   int32 target = 1;

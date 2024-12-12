@@ -43,15 +43,20 @@ export class VirtualBackend implements IBackend {
       //.set_size(0.07, 0.06, 0.0028)
   }
 
-  async fetch_state(): Promise<void> {
+  async fetch_status(): Promise<void> {
     if (!this.device.is_ready.value) return
 
-    this.device.state.value = this.state;
-    this.device.temperature.value = this.heater.temperature;
-    this.device.watts.value = this.heater.get_power();
-    this.device.volts.value = this.heater.get_volts();
-    this.device.amperes.value = this.heater.get_amperes();
-    this.device.maxWatts.value = this.heater.get_max_power();
+    this.device.status.value = {
+      state: this.state,
+      hotplate_connected: true,
+      hotplate_id: 0,
+      temperature: this.heater.temperature,
+      watts: this.heater.get_power(),
+      volts: this.heater.get_volts(),
+      amperes: this.heater.get_amperes(),
+      max_watts: this.heater.get_max_power(),
+      duty_cycle: 1
+    }
   }
 
   async fetch_history(): Promise<void> {
@@ -81,8 +86,10 @@ export class VirtualBackend implements IBackend {
     this.device.is_connected.value = true
     this.device.need_pairing.value = false
     this.device.is_authenticated.value = true
-    this.device.is_hotplate_ok.value = true
     this.client_history_version = -1
+
+    this.device.status.value.hotplate_connected = true
+    this.device.status.value.hotplate_id = 0
 
     await this.device.loadProfilesData()
 
@@ -109,7 +116,8 @@ export class VirtualBackend implements IBackend {
     this.device.is_connected.value = false
     this.device.is_authenticated.value = false
     this.device.is_ready.value = false
-    this.device.is_hotplate_ok.value = false
+
+    this.device.status.value.hotplate_connected = false
   }
 
   async connect() {}

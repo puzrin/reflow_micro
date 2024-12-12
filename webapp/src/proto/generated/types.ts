@@ -107,6 +107,21 @@ export function deviceStateToJSON(object: DeviceState): string {
   }
 }
 
+export interface DeviceStatus {
+  /** Main */
+  state: DeviceState;
+  hotplate_connected: boolean;
+  hotplate_id: number;
+  temperature: number;
+  /** Debug info */
+  watts: number;
+  volts: number;
+  amperes: number;
+  max_watts: number;
+  /** 0..1 */
+  duty_cycle: number;
+}
+
 export interface Segment {
   /** Target temperature in Celsius */
   target: number;
@@ -169,6 +184,204 @@ export interface HeaterParams {
   adrc: AdrcParams | undefined;
   sensor: SensorParams | undefined;
 }
+
+function createBaseDeviceStatus(): DeviceStatus {
+  return {
+    state: 0,
+    hotplate_connected: false,
+    hotplate_id: 0,
+    temperature: 0,
+    watts: 0,
+    volts: 0,
+    amperes: 0,
+    max_watts: 0,
+    duty_cycle: 0,
+  };
+}
+
+export const DeviceStatus: MessageFns<DeviceStatus> = {
+  encode(message: DeviceStatus, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.state !== 0) {
+      writer.uint32(8).int32(message.state);
+    }
+    if (message.hotplate_connected !== false) {
+      writer.uint32(16).bool(message.hotplate_connected);
+    }
+    if (message.hotplate_id !== 0) {
+      writer.uint32(24).uint32(message.hotplate_id);
+    }
+    if (message.temperature !== 0) {
+      writer.uint32(37).float(message.temperature);
+    }
+    if (message.watts !== 0) {
+      writer.uint32(45).float(message.watts);
+    }
+    if (message.volts !== 0) {
+      writer.uint32(53).float(message.volts);
+    }
+    if (message.amperes !== 0) {
+      writer.uint32(61).float(message.amperes);
+    }
+    if (message.max_watts !== 0) {
+      writer.uint32(69).float(message.max_watts);
+    }
+    if (message.duty_cycle !== 0) {
+      writer.uint32(77).float(message.duty_cycle);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DeviceStatus {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDeviceStatus();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.state = reader.int32() as any;
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.hotplate_connected = reader.bool();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.hotplate_id = reader.uint32();
+          continue;
+        }
+        case 4: {
+          if (tag !== 37) {
+            break;
+          }
+
+          message.temperature = reader.float();
+          continue;
+        }
+        case 5: {
+          if (tag !== 45) {
+            break;
+          }
+
+          message.watts = reader.float();
+          continue;
+        }
+        case 6: {
+          if (tag !== 53) {
+            break;
+          }
+
+          message.volts = reader.float();
+          continue;
+        }
+        case 7: {
+          if (tag !== 61) {
+            break;
+          }
+
+          message.amperes = reader.float();
+          continue;
+        }
+        case 8: {
+          if (tag !== 69) {
+            break;
+          }
+
+          message.max_watts = reader.float();
+          continue;
+        }
+        case 9: {
+          if (tag !== 77) {
+            break;
+          }
+
+          message.duty_cycle = reader.float();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DeviceStatus {
+    return {
+      state: isSet(object.state) ? deviceStateFromJSON(object.state) : 0,
+      hotplate_connected: isSet(object.hotplate_connected) ? globalThis.Boolean(object.hotplate_connected) : false,
+      hotplate_id: isSet(object.hotplate_id) ? globalThis.Number(object.hotplate_id) : 0,
+      temperature: isSet(object.temperature) ? globalThis.Number(object.temperature) : 0,
+      watts: isSet(object.watts) ? globalThis.Number(object.watts) : 0,
+      volts: isSet(object.volts) ? globalThis.Number(object.volts) : 0,
+      amperes: isSet(object.amperes) ? globalThis.Number(object.amperes) : 0,
+      max_watts: isSet(object.max_watts) ? globalThis.Number(object.max_watts) : 0,
+      duty_cycle: isSet(object.duty_cycle) ? globalThis.Number(object.duty_cycle) : 0,
+    };
+  },
+
+  toJSON(message: DeviceStatus): unknown {
+    const obj: any = {};
+    if (message.state !== 0) {
+      obj.state = deviceStateToJSON(message.state);
+    }
+    if (message.hotplate_connected !== false) {
+      obj.hotplate_connected = message.hotplate_connected;
+    }
+    if (message.hotplate_id !== 0) {
+      obj.hotplate_id = Math.round(message.hotplate_id);
+    }
+    if (message.temperature !== 0) {
+      obj.temperature = message.temperature;
+    }
+    if (message.watts !== 0) {
+      obj.watts = message.watts;
+    }
+    if (message.volts !== 0) {
+      obj.volts = message.volts;
+    }
+    if (message.amperes !== 0) {
+      obj.amperes = message.amperes;
+    }
+    if (message.max_watts !== 0) {
+      obj.max_watts = message.max_watts;
+    }
+    if (message.duty_cycle !== 0) {
+      obj.duty_cycle = message.duty_cycle;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DeviceStatus>, I>>(base?: I): DeviceStatus {
+    return DeviceStatus.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DeviceStatus>, I>>(object: I): DeviceStatus {
+    const message = createBaseDeviceStatus();
+    message.state = object.state ?? 0;
+    message.hotplate_connected = object.hotplate_connected ?? false;
+    message.hotplate_id = object.hotplate_id ?? 0;
+    message.temperature = object.temperature ?? 0;
+    message.watts = object.watts ?? 0;
+    message.volts = object.volts ?? 0;
+    message.amperes = object.amperes ?? 0;
+    message.max_watts = object.max_watts ?? 0;
+    message.duty_cycle = object.duty_cycle ?? 0;
+    return message;
+  },
+};
 
 function createBaseSegment(): Segment {
   return { target: 0, duration: 0 };

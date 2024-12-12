@@ -28,6 +28,20 @@ typedef enum _DeviceState {
 } DeviceState;
 
 /* Struct definitions */
+typedef struct _DeviceStatus {
+    /* Main */
+    DeviceState state;
+    bool hotplate_connected;
+    uint32_t hotplate_id;
+    float temperature;
+    /* Debug info */
+    float watts;
+    float volts;
+    float amperes;
+    float max_watts;
+    float duty_cycle; /* 0..1 */
+} DeviceStatus;
+
 typedef struct _Segment {
     /* Target temperature in Celsius */
     int32_t target;
@@ -106,6 +120,8 @@ extern "C" {
 #define _DeviceState_MAX DeviceState_StepResponse
 #define _DeviceState_ARRAYSIZE ((DeviceState)(DeviceState_StepResponse+1))
 
+#define DeviceStatus_state_ENUMTYPE DeviceState
+
 
 
 
@@ -116,6 +132,7 @@ extern "C" {
 
 
 /* Initializer values for message structs */
+#define DeviceStatus_init_default                {_DeviceState_MIN, 0, 0, 0, 0, 0, 0, 0, 0}
 #define Segment_init_default                     {0, 0}
 #define Profile_init_default                     {0, "", 0, {Segment_init_default, Segment_init_default, Segment_init_default, Segment_init_default, Segment_init_default, Segment_init_default, Segment_init_default, Segment_init_default, Segment_init_default, Segment_init_default}}
 #define ProfilesData_init_default                {0, {Profile_init_default, Profile_init_default, Profile_init_default, Profile_init_default, Profile_init_default, Profile_init_default, Profile_init_default, Profile_init_default, Profile_init_default, Profile_init_default}, 0}
@@ -124,6 +141,7 @@ extern "C" {
 #define AdrcParams_init_default                  {0, 0, 0, 0}
 #define SensorParams_init_default                {0, 0, 0, 0}
 #define HeaterParams_init_default                {false, AdrcParams_init_default, false, SensorParams_init_default}
+#define DeviceStatus_init_zero                   {_DeviceState_MIN, 0, 0, 0, 0, 0, 0, 0, 0}
 #define Segment_init_zero                        {0, 0}
 #define Profile_init_zero                        {0, "", 0, {Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero}}
 #define ProfilesData_init_zero                   {0, {Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero}, 0}
@@ -134,6 +152,15 @@ extern "C" {
 #define HeaterParams_init_zero                   {false, AdrcParams_init_zero, false, SensorParams_init_zero}
 
 /* Field tags (for use in manual encoding/decoding) */
+#define DeviceStatus_state_tag                   1
+#define DeviceStatus_hotplate_connected_tag      2
+#define DeviceStatus_hotplate_id_tag             3
+#define DeviceStatus_temperature_tag             4
+#define DeviceStatus_watts_tag                   5
+#define DeviceStatus_volts_tag                   6
+#define DeviceStatus_amperes_tag                 7
+#define DeviceStatus_max_watts_tag               8
+#define DeviceStatus_duty_cycle_tag              9
 #define Segment_target_tag                       1
 #define Segment_duration_tag                     2
 #define Profile_id_tag                           1
@@ -158,6 +185,19 @@ extern "C" {
 #define HeaterParams_sensor_tag                  2
 
 /* Struct field encoding specification for nanopb */
+#define DeviceStatus_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, UENUM,    state,             1) \
+X(a, STATIC,   SINGULAR, BOOL,     hotplate_connected,   2) \
+X(a, STATIC,   SINGULAR, UINT32,   hotplate_id,       3) \
+X(a, STATIC,   SINGULAR, FLOAT,    temperature,       4) \
+X(a, STATIC,   SINGULAR, FLOAT,    watts,             5) \
+X(a, STATIC,   SINGULAR, FLOAT,    volts,             6) \
+X(a, STATIC,   SINGULAR, FLOAT,    amperes,           7) \
+X(a, STATIC,   SINGULAR, FLOAT,    max_watts,         8) \
+X(a, STATIC,   SINGULAR, FLOAT,    duty_cycle,        9)
+#define DeviceStatus_CALLBACK NULL
+#define DeviceStatus_DEFAULT NULL
+
 #define Segment_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, INT32,    target,            1) \
 X(a, STATIC,   SINGULAR, INT32,    duration,          2)
@@ -217,6 +257,7 @@ X(a, STATIC,   OPTIONAL, MESSAGE,  sensor,            2)
 #define HeaterParams_adrc_MSGTYPE AdrcParams
 #define HeaterParams_sensor_MSGTYPE SensorParams
 
+extern const pb_msgdesc_t DeviceStatus_msg;
 extern const pb_msgdesc_t Segment_msg;
 extern const pb_msgdesc_t Profile_msg;
 extern const pb_msgdesc_t ProfilesData_msg;
@@ -227,6 +268,7 @@ extern const pb_msgdesc_t SensorParams_msg;
 extern const pb_msgdesc_t HeaterParams_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
+#define DeviceStatus_fields &DeviceStatus_msg
 #define Segment_fields &Segment_msg
 #define Profile_fields &Profile_msg
 #define ProfilesData_fields &ProfilesData_msg
@@ -238,6 +280,7 @@ extern const pb_msgdesc_t HeaterParams_msg;
 
 /* Maximum encoded size of messages (where known) */
 #define AdrcParams_size                          20
+#define DeviceStatus_size                        40
 #define HeaterParams_size                        44
 #define HistoryChunk_size                        2422
 #define Point_size                               22

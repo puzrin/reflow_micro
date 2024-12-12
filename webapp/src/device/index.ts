@@ -1,7 +1,7 @@
 import { ref, type App, type Ref, toValue } from "vue"
 import { VirtualBackend } from "./virtual_backend"
 import { useProfilesStore } from '@/stores/profiles'
-import { ProfilesData, Point, AdrcParams, SensorParams, DeviceState } from '@/proto/generated/types'
+import { ProfilesData, Point, AdrcParams, SensorParams, DeviceStatus } from '@/proto/generated/types'
 
 export const HISTORY_ID_SENSOR_BAKE_MODE = -1
 export const HISTORY_ID_ADRC_TEST_MODE = -2
@@ -22,7 +22,7 @@ export interface IBackend {
 
   load_profiles_data(reset: boolean): Promise<ProfilesData>
   save_profiles_data(data: ProfilesData): Promise<void>
-  fetch_state(): Promise<void>
+  fetch_status(): Promise<void>
   fetch_history(): Promise<void>
 
   set_sensor_calibration_point(point_id: (0 | 1), value: number): Promise<void>
@@ -39,16 +39,7 @@ export class Device {
   need_pairing: Ref<boolean> = ref(false)
   is_ready: Ref<boolean> = ref(false) // connected + authenticated + configs fetched
 
-  // Essential properties
-  state: Ref<DeviceState> = ref(DeviceState.Idle)
-  is_hotplate_ok: Ref<boolean> = ref(false)
-  temperature: Ref<number> = ref(0)
-
-  // Debug info properties
-  watts: Ref<number> = ref(0)
-  volts: Ref<number> = ref(0)
-  amperes: Ref<number> = ref(0)
-  maxWatts: Ref<number> = ref(0)
+  status: Ref<DeviceStatus> = ref(DeviceStatus.create({ hotplate_connected: false }))
 
   history: Ref<Point[]> = ref<Point[]>([])
   history_id: Ref<number> = ref(0)
@@ -61,7 +52,7 @@ export class Device {
   constructor() {
     setInterval(async () => {
       try {
-        await this.backend?.fetch_state()
+        await this.backend?.fetch_status()
         await this.backend?.fetch_history()
       } catch {}
     }, 1000)

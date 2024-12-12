@@ -12,9 +12,10 @@ import { DEFAULT_HEATER_PARAMS_PB } from '@/proto/generated/defaults'
 
 const device: Device = inject('device')!
 
-const is_idle = computed(() => device.state.value === DeviceState.Idle)
-const is_testing = computed(() => device.state.value === DeviceState.AdrcTest)
-const is_step_response = computed(() => device.state.value === DeviceState.StepResponse)
+const status = computed(() => device.status.value)
+const is_idle = computed(() => status.value.state === DeviceState.Idle)
+const is_testing = computed(() => status.value.state === DeviceState.AdrcTest)
+const is_step_response = computed(() => status.value.state === DeviceState.StepResponse)
 
 const saveBtn = ref()
 const resetBtn = ref()
@@ -48,8 +49,8 @@ onMounted(async () => {
 })
 
 onBeforeRouteLeave(async () => {
-  if ((device.state.value === DeviceState.AdrcTest) ||
-      (device.state.value === DeviceState.StepResponse)) {
+  if ((status.value.state === DeviceState.AdrcTest) ||
+      (status.value.state === DeviceState.StepResponse)) {
     await device.stop()
   }
   return true
@@ -57,12 +58,12 @@ onBeforeRouteLeave(async () => {
 
 // Update temperature "on the fly" (only when testing active)
 watchDebounced(test_temperature, async () => {
-  if (device.state.value === DeviceState.AdrcTest) await device.run_adrc_test(test_temperature.value)
+  if (status.value.state === DeviceState.AdrcTest) await device.run_adrc_test(test_temperature.value)
 }, { debounce: 500 })
 
 // Reload ADRC settings when finish any task
-watch(device.state, async (newState) => {
-  if (newState === DeviceState.Idle) {
+watch(device.status, async (newStatus) => {
+  if (newStatus.state === DeviceState.Idle) {
     configToRefs(await device.get_adrc_params())
   }
 })
@@ -117,13 +118,13 @@ async function default_adrc_params() {
       <div>
         <span
           class="mr-1"
-          :class="device.temperature.value > 50 ? 'text-red-500' : 'text-green-500'"
+          :class="status.temperature > 50 ? 'text-red-500' : 'text-green-500'"
         >•</span>
-        <span class="font-mono">{{ device.temperature.value.toFixed(0) }}</span>°C
+        <span class="font-mono">{{ status.temperature.toFixed(0) }}</span>°C
       </div>
     </template>
 
-    <div v-if="!device.is_hotplate_ok.value" class="text-red-800 mb-4">
+    <div v-if="!status.hotplate_connected" class="text-red-800 mb-4">
       <p class="text-red-500">Hotplate not connected</p>
     </div>
     <template v-else>

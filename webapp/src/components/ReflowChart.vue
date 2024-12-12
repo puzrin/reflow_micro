@@ -90,7 +90,7 @@ function buildChart() {
   let verticalGuide: Point[] = []
   let horizontalGuide: Point[] = []
 
-  if (device.state.value === DeviceState.Reflow) {
+  if (device.status.value.state === DeviceState.Reflow) {
     if (historyPoints.length > 1) {
       const lastProbe = historyPoints[historyPoints.length - 1]
       verticalGuide = [{ x: lastProbe.x, y: 0 }, { x: lastProbe.x, y: yRangeMax }]
@@ -110,7 +110,7 @@ onMounted(() => {
   if (!svgRef.value || !svgRef.value.parentElement) return
 
   watch(() => props.profile, buildChart, { immediate: true, deep: true })
-  watch([props.history || ref([]), device.state, () => props.show_history], buildChart)
+  watch([props.history || ref([]), () => device.status.value.state, () => props.show_history], buildChart)
   window.addEventListener('resize', buildChart)
 })
 
