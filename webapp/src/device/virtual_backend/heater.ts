@@ -274,7 +274,10 @@ export class Heater {
 
     get_volts() { return Math.sqrt(this.get_power() * this.get_resistance()) }
 
-    get_amperes() { return this.get_power() / this.get_volts() }
+    get_amperes() {
+        const r = this.get_resistance()
+        return r > 0 ? Math.sqrt(this.get_power() / r) : 0;
+    }
 }
 
 export const configured_heater: Heater[] = [
