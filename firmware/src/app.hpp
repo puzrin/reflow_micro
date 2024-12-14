@@ -2,6 +2,7 @@
 
 #include "etl/fsm.h"
 #include "button/button.hpp"
+#include "heater_mock.hpp"
 
 struct AppEventId {
     enum Enum {
@@ -28,6 +29,8 @@ public:
 class App : public etl::fsm {
 public:
     App();
+
+    HeaterMock heater;
 
     void LogUnknownEvent(const etl::imessage& msg);
 };
