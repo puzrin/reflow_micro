@@ -68,16 +68,20 @@ export class VirtualBackend implements IBackend {
 
     if (!history_slice) return
 
-    // Merge update
     if (history_slice.version === this.client_history_version) {
-      this.device.history.value.push(...history_slice.data)
-      return
+      // Merge update
+      History.merge(this.device.history.value, history_slice.data, this.remote_history.precision)
+    } else {
+      // Full replace
+      this.client_history_version = history_slice.version
+      this.device.history.value.splice(0, this.device.history.value.length, ...history_slice.data)
+      this.device.history_id.value = history_slice.type
     }
 
-    // Full replace
-    this.client_history_version = history_slice.version
-    this.device.history.value.splice(0, this.device.history.value.length, ...history_slice.data)
-    this.device.history_id.value = history_slice.type
+    // If data size is max allowed => it could be shrinked => repeat request
+    if (history_slice.data.length >= Constants.MAX_HISTORY_CHUNK) {
+      await this.fetch_history()
+    }
   }
 
   async attach() {
@@ -167,20 +171,20 @@ export class VirtualBackend implements IBackend {
     this.remote_history.reset()
   }
 
-  private async get_history_slice(version: number, after: number): Promise<HistoryChunk | null> {
+  private async get_history_slice(version: number, after: number): Promise<HistoryChunk> {
     // History outdated => return full new one
     if (this.remote_history_version != version) {
       return {
         type: this.remote_history_id,
         version: this.remote_history_version,
-        data: this.remote_history.data
+        data: this.remote_history.data.slice(0, Constants.MAX_HISTORY_CHUNK)
       }
     }
 
     return {
       type: this.remote_history_id,
       version: this.remote_history_version,
-      data: this.remote_history.get_data_after(after)
+      data: this.remote_history.get_data_after(after).slice(0, Constants.MAX_HISTORY_CHUNK)
     }
 }
 

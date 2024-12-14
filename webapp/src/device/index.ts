@@ -26,6 +26,12 @@ export class History {
     }
     return []
   }
+
+  static merge(to: Point[], from: Point[], precision: number) {
+    const history = new History(precision)
+    history.data = to
+    from.forEach(p => history.add(p))
+  }
 }
 
 export interface IBackend {
