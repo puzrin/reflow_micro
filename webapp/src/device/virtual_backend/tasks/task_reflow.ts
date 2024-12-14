@@ -34,10 +34,10 @@ class Timeline {
     return 0
   }
 }
+
 export function* task_reflow(backend: VirtualBackend, profile: Profile) {
   const timeline = new Timeline()
   let msTime = 0
-  backend.remote_history.reset()
   timeline.load(profile)
 
   backend.heat_control_on()

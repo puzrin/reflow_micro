@@ -2,7 +2,6 @@ import { VirtualBackend, TICK_PERIOD_MS } from '../';
 
 export function* task_step_response(backend: VirtualBackend, watts: number) {
   let msTime = 0
-  backend.remote_history.reset()
 
   // ts of next log storage
   let next_record_ts = 0

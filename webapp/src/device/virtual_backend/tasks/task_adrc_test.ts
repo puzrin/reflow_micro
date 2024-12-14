@@ -2,7 +2,6 @@ import { VirtualBackend, TICK_PERIOD_MS } from '../';
 
 export function* task_adrc_test(backend: VirtualBackend) {
   let msTime = 0
-  backend.remote_history.reset()
 
   backend.heat_control_on()
 
