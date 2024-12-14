@@ -3,11 +3,11 @@ import PageLayout from '@/components/PageLayout.vue'
 import { RouterLink, onBeforeRouteLeave } from 'vue-router'
 import { watchDebounced } from '@vueuse/core'
 import { inject, onMounted, ref, computed, watch } from 'vue'
-import { Device, HISTORY_ID_ADRC_TEST_MODE, HISTORY_ID_STEP_RESPONSE } from '@/device'
+import { Device } from '@/device'
 import ReflowChart from '@/components/ReflowChart.vue'
 import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
 import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
-import { AdrcParams, DeviceState, HeaterParams } from '@/proto/generated/types'
+import { AdrcParams, DeviceState, HeaterParams, Constants } from '@/proto/generated/types'
 import { DEFAULT_HEATER_PARAMS_PB } from '@/proto/generated/defaults'
 
 const device: Device = inject('device')!
@@ -213,7 +213,7 @@ async function default_adrc_params() {
           <ReflowChart id="calibrate-adrc-test"
             :profile="null"
             :history="device.history.value"
-            :show_history="device.history_id.value === HISTORY_ID_ADRC_TEST_MODE || device.history_id.value === HISTORY_ID_STEP_RESPONSE" />
+            :show_history="[Constants.HISTORY_ID_ADRC_TEST_MODE, Constants.HISTORY_ID_STEP_RESPONSE].includes(device.history_id.value)" />
         </div>
       </div>
     </template>

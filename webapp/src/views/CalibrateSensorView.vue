@@ -3,11 +3,11 @@ import PageLayout from '@/components/PageLayout.vue'
 import { RouterLink, onBeforeRouteLeave } from 'vue-router'
 import { watchDebounced } from '@vueuse/core'
 import { inject, onMounted, ref, computed } from 'vue'
-import { Device, HISTORY_ID_SENSOR_BAKE_MODE } from '@/device'
+import { Device } from '@/device'
 import ReflowChart from '@/components/ReflowChart.vue'
 import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
 import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
-import { DeviceState } from '@/proto/generated/types'
+import { DeviceState, Constants } from '@/proto/generated/types'
 
 const device: Device = inject('device')!
 
@@ -165,7 +165,7 @@ async function save_p1() {
           <ReflowChart id="calibrate-sensor-bake"
             :profile="null"
             :history="device.history.value"
-            :show_history="device.history_id.value === HISTORY_ID_SENSOR_BAKE_MODE" />
+            :show_history="device.history_id.value === Constants.HISTORY_ID_SENSOR_BAKE_MODE" />
         </div>
       </div>
     </template>

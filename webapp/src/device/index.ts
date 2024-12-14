@@ -3,11 +3,6 @@ import { VirtualBackend } from "./virtual_backend"
 import { useProfilesStore } from '@/stores/profiles'
 import { ProfilesData, Point, AdrcParams, SensorParams, DeviceStatus } from '@/proto/generated/types'
 
-// Special values, not intersecting with profile ids
-export const HISTORY_ID_SENSOR_BAKE_MODE = -1
-export const HISTORY_ID_ADRC_TEST_MODE = -2
-export const HISTORY_ID_STEP_RESPONSE = -3
-
 export class History {
   data: Point[] = [];
   precision: number;

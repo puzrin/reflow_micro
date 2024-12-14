@@ -1,13 +1,12 @@
 import { Heater, configured_heater } from './heater'
 import { useProfilesStore } from '@/stores/profiles'
 import { useVirtualBackendStore } from './virtualBackendStore'
-import { Device, History, type IBackend,
-  HISTORY_ID_SENSOR_BAKE_MODE, HISTORY_ID_ADRC_TEST_MODE, HISTORY_ID_STEP_RESPONSE } from '@/device'
+import { Device, History, type IBackend } from '@/device'
 import { task_sensor_bake } from './tasks/task_sensor_bake'
 import { task_adrc_test } from './tasks/task_adrc_test'
 import { task_reflow } from './tasks/task_reflow'
 import { task_step_response } from './tasks/task_step_response'
-import { ProfilesData, AdrcParams, SensorParams, HistoryChunk, DeviceState, HeaterParams } from '@/proto/generated/types'
+import { ProfilesData, AdrcParams, SensorParams, HistoryChunk, DeviceState, HeaterParams, Constants } from '@/proto/generated/types'
 import { DEFAULT_PROFILES_DATA_PB, DEFAULT_HEATER_PARAMS_PB } from '@/proto/generated/defaults'
 
 // Tick step in ms, 10Hz.
@@ -204,7 +203,7 @@ export class VirtualBackend implements IBackend {
     }
 
     if (this.state === DeviceState.Idle) {
-      this.reset_remote_history(HISTORY_ID_SENSOR_BAKE_MODE)
+      this.reset_remote_history(Constants.HISTORY_ID_SENSOR_BAKE_MODE)
       this.state = DeviceState.SensorBake
       this.task_iterator = task_sensor_bake(this)
     }
@@ -218,7 +217,7 @@ export class VirtualBackend implements IBackend {
     }
 
     if (this.state === DeviceState.Idle) {
-      this.reset_remote_history(HISTORY_ID_ADRC_TEST_MODE)
+      this.reset_remote_history(Constants.HISTORY_ID_ADRC_TEST_MODE)
       this.state = DeviceState.AdrcTest
       this.task_iterator = task_adrc_test(this)
     }
@@ -229,7 +228,7 @@ export class VirtualBackend implements IBackend {
   async run_step_response(watts: number) {
     if (this.state !== DeviceState.Idle) throw new Error('Cannot run test, device busy')
 
-    this.reset_remote_history(HISTORY_ID_STEP_RESPONSE)
+    this.reset_remote_history(Constants.HISTORY_ID_STEP_RESPONSE)
     this.state = DeviceState.StepResponse
     this.task_iterator = task_step_response(this, watts)
 }

@@ -15,7 +15,12 @@ typedef enum _Constants {
     /* Initial temperature for all profiles */
     Constants_START_TEMPERATURE = 30,
     /* Static sizes for repeated/maps */
-    Constants_MAX_REFLOW_PROFILES = 10
+    Constants_MAX_REFLOW_PROFILES = 10,
+    Constants_MAX_HISTORY_CHUNK = 100,
+    /* History IDs for tasks (selected to not conflict with profile IDs) */
+    Constants_HISTORY_ID_SENSOR_BAKE_MODE = 4000,
+    Constants_HISTORY_ID_ADRC_TEST_MODE = 4001,
+    Constants_HISTORY_ID_STEP_RESPONSE = 4002
 } Constants;
 
 typedef enum _DeviceState {
@@ -113,8 +118,8 @@ extern "C" {
 
 /* Helper constants for enums */
 #define _Constants_MIN Constants_CONSTANT_UNSPECIFIED
-#define _Constants_MAX Constants_START_TEMPERATURE
-#define _Constants_ARRAYSIZE ((Constants)(Constants_START_TEMPERATURE+1))
+#define _Constants_MAX Constants_HISTORY_ID_STEP_RESPONSE
+#define _Constants_ARRAYSIZE ((Constants)(Constants_HISTORY_ID_STEP_RESPONSE+1))
 
 #define _DeviceState_MIN DeviceState_DEVICE_STATE_UNSPECIFIED
 #define _DeviceState_MAX DeviceState_StepResponse

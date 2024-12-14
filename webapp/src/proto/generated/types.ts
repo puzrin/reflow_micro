@@ -15,6 +15,11 @@ export enum Constants {
   START_TEMPERATURE = 30,
   /** MAX_REFLOW_PROFILES - Static sizes for repeated/maps */
   MAX_REFLOW_PROFILES = 10,
+  MAX_HISTORY_CHUNK = 100,
+  /** HISTORY_ID_SENSOR_BAKE_MODE - History IDs for tasks (selected to not conflict with profile IDs) */
+  HISTORY_ID_SENSOR_BAKE_MODE = 4000,
+  HISTORY_ID_ADRC_TEST_MODE = 4001,
+  HISTORY_ID_STEP_RESPONSE = 4002,
   UNRECOGNIZED = -1,
 }
 
@@ -29,6 +34,18 @@ export function constantsFromJSON(object: any): Constants {
     case 10:
     case "MAX_REFLOW_PROFILES":
       return Constants.MAX_REFLOW_PROFILES;
+    case 100:
+    case "MAX_HISTORY_CHUNK":
+      return Constants.MAX_HISTORY_CHUNK;
+    case 4000:
+    case "HISTORY_ID_SENSOR_BAKE_MODE":
+      return Constants.HISTORY_ID_SENSOR_BAKE_MODE;
+    case 4001:
+    case "HISTORY_ID_ADRC_TEST_MODE":
+      return Constants.HISTORY_ID_ADRC_TEST_MODE;
+    case 4002:
+    case "HISTORY_ID_STEP_RESPONSE":
+      return Constants.HISTORY_ID_STEP_RESPONSE;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -44,6 +61,14 @@ export function constantsToJSON(object: Constants): string {
       return "START_TEMPERATURE";
     case Constants.MAX_REFLOW_PROFILES:
       return "MAX_REFLOW_PROFILES";
+    case Constants.MAX_HISTORY_CHUNK:
+      return "MAX_HISTORY_CHUNK";
+    case Constants.HISTORY_ID_SENSOR_BAKE_MODE:
+      return "HISTORY_ID_SENSOR_BAKE_MODE";
+    case Constants.HISTORY_ID_ADRC_TEST_MODE:
+      return "HISTORY_ID_ADRC_TEST_MODE";
+    case Constants.HISTORY_ID_STEP_RESPONSE:
+      return "HISTORY_ID_STEP_RESPONSE";
     case Constants.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
