@@ -1,13 +1,13 @@
 import { Heater, configured_heater } from './heater'
 import { useProfilesStore } from '@/stores/profiles'
 import { useVirtualBackendStore } from './virtualBackendStore'
-import { Device, type IBackend,
+import { Device, History, type IBackend,
   HISTORY_ID_SENSOR_BAKE_MODE, HISTORY_ID_ADRC_TEST_MODE, HISTORY_ID_STEP_RESPONSE } from '@/device'
 import { task_sensor_bake } from './tasks/task_sensor_bake'
 import { task_adrc_test } from './tasks/task_adrc_test'
 import { task_reflow } from './tasks/task_reflow'
 import { task_step_response } from './tasks/task_step_response'
-import { ProfilesData, Point, AdrcParams, SensorParams, HistoryChunk, DeviceState, HeaterParams } from '@/proto/generated/types'
+import { ProfilesData, AdrcParams, SensorParams, HistoryChunk, DeviceState, HeaterParams } from '@/proto/generated/types'
 import { DEFAULT_PROFILES_DATA_PB, DEFAULT_HEATER_PARAMS_PB } from '@/proto/generated/defaults'
 
 // Tick step in ms, 10Hz.
@@ -19,7 +19,6 @@ export class VirtualBackend implements IBackend {
   heater: Heater
 
   private state = DeviceState.Idle
-  history_mock: Point[] = [] // public, to update from tasks
 
   private ticker_id: ReturnType<typeof setInterval> | null = null
 
@@ -30,6 +29,7 @@ export class VirtualBackend implements IBackend {
   client_history_version: number = -1
   remote_history_version: number = 0
   remote_history_id: number = 0
+  remote_history: History = new History() // public, to update from tasks
 
   private heater_params: HeaterParams = HeaterParams.create()
 
@@ -111,7 +111,7 @@ export class VirtualBackend implements IBackend {
   async detach() {
     if (this.ticker_id !== null) clearInterval(this.ticker_id)
     if (this.state !== DeviceState.Idle) await this.stop()
-    this.history_mock.length = 0
+    this.remote_history.reset()
     this.device.is_connecting.value = false
     this.device.is_connected.value = false
     this.device.is_authenticated.value = false
@@ -165,7 +165,7 @@ export class VirtualBackend implements IBackend {
   private reset_remote_history(new_id: number) {
     this.remote_history_id = new_id
     this.remote_history_version++
-    this.history_mock.length = 0
+    this.remote_history.reset()
   }
 
   private async get_history_slice(version: number, after: number): Promise<HistoryChunk | null> {
@@ -174,19 +174,14 @@ export class VirtualBackend implements IBackend {
       return {
         type: this.remote_history_id,
         version: this.remote_history_version,
-        data: this.history_mock
+        data: this.remote_history.data
       }
     }
-
-    // Calculate diff len, return null if no data to update.
-    const diff =  this.history_mock.filter(point => point.x > after)
-
-    if (!diff.length) return null
 
     return {
       type: this.remote_history_id,
       version: this.remote_history_version,
-      data: diff
+      data: this.remote_history.get_data_after(after)
     }
 }
 

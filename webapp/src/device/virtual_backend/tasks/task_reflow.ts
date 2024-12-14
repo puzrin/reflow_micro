@@ -1,5 +1,4 @@
 import { VirtualBackend, TICK_PERIOD_MS } from '../';
-import { sparsedPush } from '../utils';
 import { Profile, Constants, Point } from '@/proto/generated/types'
 
 class Timeline {
@@ -38,7 +37,7 @@ class Timeline {
 export function* task_reflow(backend: VirtualBackend, profile: Profile) {
   const timeline = new Timeline()
   let msTime = 0
-  backend.history_mock.length = 0
+  backend.remote_history.reset()
   timeline.load(profile)
 
   backend.heat_control_on()
@@ -47,7 +46,7 @@ export function* task_reflow(backend: VirtualBackend, profile: Profile) {
     const time = msTime / 1000
     const probe = backend.heater.temperature
 
-    sparsedPush(backend.history_mock, { x: time, y: probe }, 1.0)
+    backend.remote_history.add({ x: time, y: probe })
     backend.heater.set_temperature(timeline.getTarget(time))
     msTime += TICK_PERIOD_MS
 

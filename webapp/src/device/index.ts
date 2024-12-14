@@ -3,9 +3,35 @@ import { VirtualBackend } from "./virtual_backend"
 import { useProfilesStore } from '@/stores/profiles'
 import { ProfilesData, Point, AdrcParams, SensorParams, DeviceStatus } from '@/proto/generated/types'
 
+// Special values, not intersecting with profile ids
 export const HISTORY_ID_SENSOR_BAKE_MODE = -1
 export const HISTORY_ID_ADRC_TEST_MODE = -2
 export const HISTORY_ID_STEP_RESPONSE = -3
+
+export class History {
+  data: Point[] = [];
+  precision: number;
+
+  constructor(precision = 0.5) { this.precision = precision }
+
+  reset() { this.data.length = 0 }
+
+  add(p: Point) {
+    if ((this.data.length > 2) &&
+        (Math.abs(this.data.at(-1)!.y - p.y) <= this.precision) &&
+        (Math.abs(this.data.at(-2)!.y - p.y) <= this.precision)) {
+      this.data.pop()
+    }
+    this.data.push(p)
+  }
+
+  get_data_after(x: number): Point[] {
+    for (let i = 0; i < this.data.length; i++) {
+      if (this.data[i].x > x) return this.data.slice(i)
+    }
+    return []
+  }
+}
 
 export interface IBackend {
   // init

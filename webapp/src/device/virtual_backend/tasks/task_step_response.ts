@@ -1,9 +1,8 @@
 import { VirtualBackend, TICK_PERIOD_MS } from '../';
-import { sparsedPush } from '../utils';
 
 export function* task_step_response(backend: VirtualBackend, watts: number) {
   let msTime = 0
-  backend.history_mock.length = 0
+  backend.remote_history.reset()
 
   // ts of next log storage
   let next_record_ts = 0
@@ -17,7 +16,7 @@ export function* task_step_response(backend: VirtualBackend, watts: number) {
     const time = msTime / 1000
     const probe = backend.heater.temperature
 
-    sparsedPush(backend.history_mock, { x: time, y: probe }, 1.0)
+    backend.remote_history.add({ x: time, y: probe })
 
     // Every second
     if (msTime >= next_record_ts) {
