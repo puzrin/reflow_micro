@@ -70,7 +70,7 @@ export class VirtualBackend implements IBackend {
 
     if (history_slice.version === this.client_history_version) {
       // Merge update
-      History.merge(this.device.history.value, history_slice.data, this.remote_history.precision)
+      History.merge(this.device.history.value, history_slice.data)
     } else {
       // Full replace
       this.client_history_version = history_slice.version

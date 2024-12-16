@@ -4,20 +4,30 @@ import { useProfilesStore } from '@/stores/profiles'
 import { ProfilesData, Point, AdrcParams, SensorParams, DeviceStatus } from '@/proto/generated/types'
 
 export class History {
-  data: Point[] = [];
-  precision: number;
+  // TODO: Consider switch to M4 Aggregates for data packing
 
-  constructor(precision = 0.5) { this.precision = precision }
+  // Thresholds for data packing
+  static DELTA_Y = 1.0
+  static X_CHART_LENGTH = 400
+
+  data: Point[] = [];
 
   reset() { this.data.length = 0 }
 
   add(p: Point) {
-    if ((this.data.length > 2) &&
-        (Math.abs(this.data.at(-1)!.y - p.y) <= this.precision) &&
-        (Math.abs(this.data.at(-2)!.y - p.y) <= this.precision)) {
-      this.data.pop()
-    }
-    this.data.push(p)
+    if (this.is_last_point_landed()) this.data.push(p)
+    else this.data[this.data.length-1] = p
+  }
+
+  is_last_point_landed(): boolean {
+    if (this.data.length < 2) return true
+
+    if (Math.abs(this.data.at(-1)!.y - this.data.at(-2)!.y) >= History.DELTA_Y) return true
+
+    const delta_x = Math.max(this.data.at(-1)!.x / History.X_CHART_LENGTH, 1)
+    if (Math.abs(this.data.at(-1)!.x - this.data.at(-2)!.x) >= delta_x) return true
+
+    return false
   }
 
   get_data_after(x: number): Point[] {
@@ -27,8 +37,8 @@ export class History {
     return []
   }
 
-  static merge(to: Point[], from: Point[], precision: number) {
-    const history = new History(precision)
+  static merge(to: Point[], from: Point[]) {
+    const history = new History()
     history.data = to
     from.forEach(p => history.add(p))
   }
