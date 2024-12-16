@@ -2,47 +2,7 @@ import { ref, type App, type Ref, toValue } from "vue"
 import { VirtualBackend } from "./virtual_backend"
 import { useProfilesStore } from '@/stores/profiles'
 import { ProfilesData, Point, AdrcParams, SensorParams, DeviceStatus } from '@/proto/generated/types'
-
-export class History {
-  // TODO: Consider switch to M4 Aggregates for data packing
-
-  // Thresholds for data packing
-  static DELTA_Y = 1.0
-  static X_CHART_LENGTH = 400
-
-  data: Point[] = [];
-
-  reset() { this.data.length = 0 }
-
-  add(p: Point) {
-    if (this.is_last_point_landed()) this.data.push(p)
-    else this.data[this.data.length-1] = p
-  }
-
-  is_last_point_landed(): boolean {
-    if (this.data.length < 2) return true
-
-    if (Math.abs(this.data.at(-1)!.y - this.data.at(-2)!.y) >= History.DELTA_Y) return true
-
-    const delta_x = Math.max(this.data.at(-1)!.x / History.X_CHART_LENGTH, 1)
-    if (Math.abs(this.data.at(-1)!.x - this.data.at(-2)!.x) >= delta_x) return true
-
-    return false
-  }
-
-  get_data_after(x: number): Point[] {
-    for (let i = 0; i < this.data.length; i++) {
-      if (this.data[i].x > x) return this.data.slice(i)
-    }
-    return []
-  }
-
-  static merge(to: Point[], from: Point[]) {
-    const history = new History()
-    history.data = to
-    from.forEach(p => history.add(p))
-  }
-}
+import { SparseHistory } from './sparse_history'
 
 export interface IBackend {
   // init
@@ -80,6 +40,8 @@ export class Device {
 
   history: Ref<Point[]> = ref<Point[]>([])
   history_id: Ref<number> = ref(0)
+  // wrapper to aggregate this.history data
+  sparseHistory: SparseHistory = SparseHistory.from(this.history.value)
 
   is_virtual: Ref<boolean> = ref(true)
   private backend: IBackend | null = null

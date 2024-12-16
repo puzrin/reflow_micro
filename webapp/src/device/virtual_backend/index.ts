@@ -1,7 +1,8 @@
 import { Heater, configured_heater } from './heater'
 import { useProfilesStore } from '@/stores/profiles'
 import { useVirtualBackendStore } from './virtualBackendStore'
-import { Device, History, type IBackend } from '@/device'
+import { Device, type IBackend } from '@/device'
+import { SparseHistory } from '@/device/sparse_history'
 import { task_sensor_bake } from './tasks/task_sensor_bake'
 import { task_adrc_test } from './tasks/task_adrc_test'
 import { task_reflow } from './tasks/task_reflow'
@@ -28,7 +29,7 @@ export class VirtualBackend implements IBackend {
   client_history_version: number = -1
   remote_history_version: number = 0
   remote_history_id: number = 0
-  remote_history: History = new History() // public, to update from tasks
+  remote_history: SparseHistory = new SparseHistory() // public, to update from tasks
 
   private heater_params: HeaterParams = HeaterParams.create()
 
@@ -70,7 +71,7 @@ export class VirtualBackend implements IBackend {
 
     if (history_slice.version === this.client_history_version) {
       // Merge update
-      History.merge(this.device.history.value, history_slice.data)
+      this.device.sparseHistory.add(...history_slice.data)
     } else {
       // Full replace
       this.client_history_version = history_slice.version
