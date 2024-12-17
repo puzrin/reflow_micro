@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <atomic>
-#include "lib/adrc.h"
+#include "lib/adrc.hpp"
 
 class ChargerMock {
 public:

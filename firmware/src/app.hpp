@@ -3,6 +3,7 @@
 #include "etl/fsm.h"
 #include "button/button.hpp"
 #include "heater_mock.hpp"
+#include "lib/sparse_history.hpp"
 
 struct AppEventId {
     enum Enum {
@@ -31,6 +32,7 @@ public:
     App();
 
     HeaterMock heater;
+    SparseHistory history;
 
     void LogUnknownEvent(const etl::imessage& msg);
 };
