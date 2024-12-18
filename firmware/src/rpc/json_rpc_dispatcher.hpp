@@ -15,13 +15,15 @@ int main() {
     dispatcher.addMethod("concat", concat);
 
     // Example usage
-    std::string input = R"({"method": "add", "args": [1, 2]})";
+    std::vector<uint8_t> input;
+
+    input = encode_to_msgp(R"({"method": "add", "args": [1, 2]})");
     std::cout << dispatcher.dispatch(input) << std::endl;
 
-    input = R"({"method": "concat", "args": ["hello ", "world"]})";
+    input = encode_to_msgp(R"({"method": "concat", "args": ["hello ", "world"]})");
     std::cout << dispatcher.dispatch(input) << std::endl;
 
-    input = R"({"method": "unknown", "args": []})";
+    input = encode_to_msgp(R"({"method": "unknown", "args": []})");
     std::cout << dispatcher.dispatch(input) << std::endl;
 
     return 0;
@@ -130,27 +132,15 @@ constexpr bool check_all_types_supported() {
     return check_all_types_supported_impl<Tuple>(make_index_sequence<std::tuple_size<Tuple>::value>{});
 }
 
-// Convert JSON to tuple
-/*
-template<typename... Args, std::size_t... Is>
-std::tuple<Args...> from_json(const JsonArray& j, index_sequence<Is...>) {
-    return { j[Is].as<typename std::decay<Args>::type>()... };
-}
-
-template<typename... Args>
-std::tuple<Args...> from_json(const JsonArray& j) {
-    return from_json<Args...>(j, make_index_sequence<sizeof...(Args)>{});
-}
-*/
 
 template<typename ArgsTuple, std::size_t... Is>
-ArgsTuple from_json_impl(const JsonArray& j, index_sequence<Is...>) {
+ArgsTuple from_msgp_impl(const JsonArray& j, index_sequence<Is...>) {
     return std::make_tuple(j[Is].template as<typename std::tuple_element<Is, ArgsTuple>::type>()...);
 }
 
 template<typename ArgsTuple>
-ArgsTuple from_json(const JsonArray& j) {
-    return from_json_impl<ArgsTuple>(j, make_index_sequence<std::tuple_size<ArgsTuple>::value>{});
+ArgsTuple from_msgp(const JsonArray& j) {
+    return from_msgp_impl<ArgsTuple>(j, make_index_sequence<std::tuple_size<ArgsTuple>::value>{});
 }
 
 // Extract argument types from function
@@ -190,22 +180,21 @@ const JsonDocument create_response(bool status, const T& result) {
 }
 
 inline void serialize_to(const JsonDocument& doc, std::string& output) {
-    serializeJson(doc, output);
+    serializeMsgPack(doc, output);
 }
 
 inline void serialize_to(const JsonDocument& doc, std::vector<uint8_t>& output) {
-    size_t size = measureJson(doc);
+    size_t size = measureMsgPack(doc);
     output.resize(size);
-    serializeJson(doc, output.data(), size);
-    //serializeJson(doc, output);
+    serializeMsgPack(doc, output.data(), size);
 }
 
 inline DeserializationError deserialize_from(const std::string& input, JsonDocument& doc) {
-    return deserializeJson(doc, input);
+    return deserializeMsgPack(doc, input);
 }
 
 inline DeserializationError deserialize_from(const std::vector<uint8_t>& input, JsonDocument& doc) {
-    return deserializeJson(doc, input.data(), input.size());
+    return deserializeMsgPack(doc, input.data(), input.size());
 }
 
 // Helper struct to check argument types
@@ -251,23 +240,24 @@ public:
                     throw std::runtime_error("Argument type mismatch");
                 }
 
-                auto tpl_args = jrcpd::from_json<ArgsTuple>(args);
+                auto tpl_args = jrcpd::from_msgp<ArgsTuple>(args);
                 Ret result = jrcpd::apply(func, tpl_args);
                 return jrcpd::create_response(true, result);
             } catch (const std::exception& e) {
-                return jrcpd::create_response(false, e.what());
+                return jrcpd::create_response(false, std::string(e.what()));
             }
         };
     }
 
-    std::string dispatch(const std::string& input) {
-        std::string output;
+    template<typename T>
+    T dispatch(const T& input) {
+        T output;
         dispatch(input, output);
         return output;
     }
 
-    template<typename T_IN, typename T_OUT>
-    void dispatch(const T_IN& input, T_OUT& output) {
+    template<typename T>
+    void dispatch(const T& input, T& output) {
         using namespace jrcpd;
 
         JsonDocument doc;

@@ -1,4 +1,5 @@
 import { type BinaryTransport } from './BleClientChunker';
+import { encode, decode } from '@msgpack/msgpack';
 
 type RpcArgument = boolean | number | string;
 type RpcResult = boolean | number | string;
@@ -16,13 +17,12 @@ export class RpcCaller {
      */
     async invoke(method: string, ...args: RpcArgument[]): Promise<RpcResult> {
         const request = { method, args };
-        const requestData = new TextEncoder().encode(JSON.stringify(request));
+        const requestData = encode(request);
 
         // Chain the requests to ensure sequential processing
         const resultPromise = this.queue.then(async () => {
             const responseData = await this.transport.send(requestData);
-            const responseText = new TextDecoder().decode(responseData);
-            const response = JSON.parse(responseText);
+            const response = decode(responseData) as { ok: boolean, result: RpcResult }
 
             if (response.ok !== true) {
                 throw new Error(`RPC Error: ${response.result}`);

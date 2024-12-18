@@ -49,9 +49,12 @@ public:
                 rpc.dispatch(message, response);
                 return response;
             }
-            
+
             const std::string error_json = R"({"ok": false, "result": "Not authenticated"})";
-            const std::vector<uint8_t> error(error_json.begin(), error_json.end());
+
+            const auto doc = jrcpd::create_response(false, "Not authenticated");
+            std::vector<uint8_t> error;
+            jrcpd::serialize_to(doc, error);
             return error;
         };
 
@@ -191,7 +194,7 @@ void ble_init() {
         RPC_CHARACTERISTIC_UUID,
         // This hangs comm if enabled. Seems Web BT not supports encryption
         //NIMBLE_PROPERTY::READ_ENC | NIMBLE_PROPERTY::WRITE_ENC |
-        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE            
+        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE
     );
     rpc_characteristic->setCallbacks(new RpcCharacteristicCallbacks());
 
@@ -199,7 +202,7 @@ void ble_init() {
         AUTH_CHARACTERISTIC_UUID,
         // This hangs comm if enabled. Seems Web BT not supports encryption
         //NIMBLE_PROPERTY::READ_ENC | NIMBLE_PROPERTY::WRITE_ENC |
-        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE            
+        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE
     );
     auth_characteristic->setCallbacks(new AuthCharacteristicCallbacks());
 
@@ -217,7 +220,7 @@ void ble_init() {
 
 std::string auth_info() {
     auto session = get_context();
-    
+
     session->random = create_secret(); // renew hmac msg every time!
 
     JsonDocument doc;
@@ -247,7 +250,7 @@ bool authenticate(const std::string str_client_id, const std::string str_hmac, u
 
     BleAuthSecret secret;
     bleAuthStore.get_secret(client_id, secret);
- 
+
     auto hmac_expected = hmac_sha256(random, secret);
     if (hmac_response != hmac_expected) return false;
 
