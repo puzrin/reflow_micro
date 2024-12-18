@@ -1,6 +1,6 @@
 #pragma once
 
-#include "json_rpc_dispatcher.hpp"
+#include "lib/msgpack_rpc_dispatcher.hpp"
 
 extern JsonRpcDispatcher rpc;
 

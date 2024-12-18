@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "rpc/ble_chunker.hpp"
+#include "lib/ble_chunker.hpp"
 
 class BleChunkerTest : public ::testing::Test {
 protected:

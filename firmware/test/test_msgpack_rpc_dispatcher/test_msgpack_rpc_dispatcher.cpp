@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "rpc/json_rpc_dispatcher.hpp"
+#include "lib/msgpack_rpc_dispatcher.hpp"
 
 // Helpers
 std::vector<uint8_t> s2v(const std::string& str) {

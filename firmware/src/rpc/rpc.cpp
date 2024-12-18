@@ -3,7 +3,7 @@
 #include <map>
 #include "logger.hpp"
 #include "rpc.hpp"
-#include "ble_chunker.hpp"
+#include "lib/ble_chunker.hpp"
 #include "async_preference/prefs.hpp"
 #include "ble_auth_store.hpp"
 #include "auth_utils.hpp"
