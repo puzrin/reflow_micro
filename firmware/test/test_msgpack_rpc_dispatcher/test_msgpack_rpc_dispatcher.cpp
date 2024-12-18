@@ -30,7 +30,8 @@ TEST(MsgpackRpcDispatcherTest, Test8BitsData) {
 
     auto input = s2msgp(R"({"method": "add_8bits", "args": [1, 2]})");
     std::string expected = R"({"ok":true,"result":3})";
-    auto result = dispatcher.dispatch(input);
+    std::vector<uint8_t> result;
+    dispatcher.dispatch(input, result);
 
     EXPECT_EQ(expected, msgp2s(result));
 }
@@ -40,17 +41,6 @@ TEST(MsgpackRpcDispatcherTest, TestStringData) {
     dispatcher.addMethod("concat", concat);
 
     auto input = s2msgp(R"({"method": "concat", "args": ["hello ", "world"]})");
-    std::string expected = R"({"ok":true,"result":"hello world"})";
-    auto result = dispatcher.dispatch(input);
-
-    EXPECT_EQ(expected, msgp2s(result));
-}
-
-TEST(MsgpackRpcDispatcherTest, TestVectorsInOut) {
-    MsgpackRpcDispatcher dispatcher;
-    dispatcher.addMethod("concat", concat);
-
-    auto input =s2msgp(R"({"method": "concat", "args": ["hello ", "world"]})");
     std::string expected = R"({"ok":true,"result":"hello world"})";
     std::vector<uint8_t> result;
     dispatcher.dispatch(input, result);
@@ -63,7 +53,8 @@ TEST(MsgpackRpcDispatcherTest, TestUnknownMethod) {
 
     auto input = s2msgp(R"({"method": "unknown", "args": []})");
     std::string expected = R"({"ok":false,"result":"Method not found"})";
-    auto result = dispatcher.dispatch(input);
+    std::vector<uint8_t> result;
+    dispatcher.dispatch(input, result);
 
     EXPECT_EQ(expected, msgp2s(result));
 }
@@ -73,7 +64,8 @@ TEST(MsgpackRpcDispatcherTest, TestNoMethodProp) {
 
     auto input = s2msgp(R"({"args": []})");
     std::string expected = R"({"ok":false,"result":"Method not found"})";
-    auto result = dispatcher.dispatch(input);
+    std::vector<uint8_t> result;
+    dispatcher.dispatch(input, result);
 
     EXPECT_EQ(expected, msgp2s(result));
 }
@@ -83,7 +75,8 @@ TEST(MsgpackRpcDispatcherTest, TestMethodPropWrongType) {
 
     auto input = s2msgp(R"({"method": [], "args": []})");
     std::string expected = R"({"ok":false,"result":"Method not found"})";
-    auto result = dispatcher.dispatch(input);
+    std::vector<uint8_t> result;
+    dispatcher.dispatch(input, result);
 
     EXPECT_EQ(expected, msgp2s(result));
 }
@@ -94,7 +87,8 @@ TEST(MsgpackRpcDispatcherTest, TestNoArgsProp) {
 
     auto input = s2msgp(R"({"method": "add_8bits"})");
     std::string expected = R"({"ok":false,"result":"Number of arguments mismatch"})";
-    auto result = dispatcher.dispatch(input);
+    std::vector<uint8_t> result;
+    dispatcher.dispatch(input, result);
 
     EXPECT_EQ(expected, msgp2s(result));
 }
@@ -105,7 +99,8 @@ TEST(MsgpackRpcDispatcherTest, TestArgsPropWrongType) {
 
     auto input = s2msgp(R"({"method": "add_8bits", "args": 5})");
     std::string expected = R"({"ok":false,"result":"Number of arguments mismatch"})";
-    auto result = dispatcher.dispatch(input);
+    std::vector<uint8_t> result;
+    dispatcher.dispatch(input, result);
 
     EXPECT_EQ(expected, msgp2s(result));
 }
@@ -118,7 +113,8 @@ TEST(MsgpackRpcDispatcherTest, TestArgsOverflow) {
     auto input = s2msgp(R"({"method": "add_8bits", "args": [512, 512]})");
     // Current implementation consider that as wrong data type for simplicity.
     std::string expected = R"({"ok":false,"result":"Argument type mismatch"})";
-    auto result = dispatcher.dispatch(input);
+    std::vector<uint8_t> result;
+    dispatcher.dispatch(input, result);
 
     EXPECT_EQ(expected, msgp2s(result));
 }
@@ -130,7 +126,8 @@ TEST(MsgpackRpcDispatcherTest, TestWrongArgTypeFloat) {
     auto input = s2msgp(R"({"method": "add_8bits", "args": [1, 2.5]})");
     // Current implementation consider that as wrong data type for simplicity.
     std::string expected = R"({"ok":false,"result":"Argument type mismatch"})";
-    auto result = dispatcher.dispatch(input);
+    std::vector<uint8_t> result;
+    dispatcher.dispatch(input, result);
 
     EXPECT_EQ(expected, msgp2s(result));
 }
@@ -141,7 +138,8 @@ TEST(MsgpackRpcDispatcherTest, TestWrongArgTypeString) {
 
     auto input = s2msgp(R"({"method": "add_8bits", "args": [1, "string"]})");
     std::string expected = R"({"ok":false,"result":"Argument type mismatch"})";
-    auto result = dispatcher.dispatch(input);
+    std::vector<uint8_t> result;
+    dispatcher.dispatch(input, result);
 
     EXPECT_EQ(expected, msgp2s(result));
 }
@@ -152,7 +150,8 @@ TEST(MsgpackRpcDispatcherTest, TestWrongArgTypeNull) {
 
     auto input = s2msgp(R"({"method": "add_8bits", "args": [1, null]})");
     std::string expected = R"({"ok":false,"result":"Argument type mismatch"})";
-    auto result = dispatcher.dispatch(input);
+    std::vector<uint8_t> result;
+    dispatcher.dispatch(input, result);
 
     EXPECT_EQ(expected, msgp2s(result));
 }
@@ -163,7 +162,8 @@ TEST(MsgpackRpcDispatcherTest, TestWrongArgTypeInt) {
 
     auto input = s2msgp(R"({"method": "concat", "args": ["hello ", 1]})");
     std::string expected = R"({"ok":false,"result":"Argument type mismatch"})";
-    auto result = dispatcher.dispatch(input);
+    std::vector<uint8_t> result;
+    dispatcher.dispatch(input, result);
 
     EXPECT_EQ(expected, msgp2s(result));
 }
@@ -174,7 +174,8 @@ TEST(MsgpackRpcDispatcherTest, TestStringWrongArgTypeNull) {
 
     auto input = s2msgp(R"({"method": "concat", "args": ["hello ", null]})");
     std::string expected = R"({"ok":false,"result":"Argument type mismatch"})";
-    auto result = dispatcher.dispatch(input);
+    std::vector<uint8_t> result;
+    dispatcher.dispatch(input, result);
 
     EXPECT_EQ(expected, msgp2s(result));
 }
@@ -185,7 +186,8 @@ TEST(MsgpackRpcDispatcherTest, TestNoArgs) {
 
     auto input = s2msgp(R"({"method": "noparams", "args": []})");
     std::string expected = R"({"ok":true,"result":5})";
-    auto result = dispatcher.dispatch(input);
+    std::vector<uint8_t> result;
+    dispatcher.dispatch(input, result);
 
     EXPECT_EQ(expected, msgp2s(result));
 }
@@ -196,7 +198,8 @@ TEST(MsgpackRpcDispatcherTest, TestMethodThrows) {
 
     auto input = s2msgp(R"({"method": "throw_exception", "args": []})");
     std::string expected = R"({"ok":false,"result":"Test exception"})";
-    auto result = dispatcher.dispatch(input);
+    std::vector<uint8_t> result;
+    dispatcher.dispatch(input, result);
 
     EXPECT_EQ(expected, msgp2s(result));
 }
@@ -207,7 +210,8 @@ TEST(MsgpackRpcDispatcherTest, TestOneArgument) {
 
     auto input = s2msgp(R"({"method": "one_argument", "args": [2]})");
     std::string expected = R"({"ok":true,"result":4})";
-    auto result = dispatcher.dispatch(input);
+    std::vector<uint8_t> result;
+    dispatcher.dispatch(input, result);
 
     EXPECT_EQ(expected, msgp2s(result));
 }
@@ -218,7 +222,8 @@ TEST(MsgpackRpcDispatcherTest, TestThreeArguments) {
 
     auto input = s2msgp(R"({"method": "three_arguments", "args": [1, 2, 3]})");
     std::string expected = R"({"ok":true,"result":6})";
-    auto result = dispatcher.dispatch(input);
+    std::vector<uint8_t> result;
+    dispatcher.dispatch(input, result);
 
     EXPECT_EQ(expected, msgp2s(result));
 }
@@ -231,7 +236,8 @@ TEST(MsgpackRpcDispatcherTest, TestBrokenMsgPackInput) {
     std::vector<uint8_t> input({0x92, 0x01});
 
     std::string expected = R"({"ok":false,"result":"IncompleteInput"})";
-    auto result = dispatcher.dispatch(input);
+    std::vector<uint8_t> result;
+    dispatcher.dispatch(input, result);
 
     EXPECT_EQ(expected, msgp2s(result));
 }
