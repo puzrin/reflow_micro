@@ -9,8 +9,8 @@
 #include "auth_utils.hpp"
 #include "app.hpp"
 
-JsonRpcDispatcher rpc;
-JsonRpcDispatcher auth_rpc;
+MsgpackRpcDispatcher rpc;
+MsgpackRpcDispatcher auth_rpc;
 
 namespace {
 
@@ -50,11 +50,9 @@ public:
                 return response;
             }
 
-            const std::string error_json = R"({"ok": false, "result": "Not authenticated"})";
-
-            const auto doc = jrcpd::create_response(false, "Not authenticated");
+            const auto doc = msgpack_rpc_dispatcher::create_response(false, "Not authenticated");
             std::vector<uint8_t> error;
-            jrcpd::serialize_to(doc, error);
+            msgpack_rpc_dispatcher::serialize_to(doc, error);
             return error;
         };
 

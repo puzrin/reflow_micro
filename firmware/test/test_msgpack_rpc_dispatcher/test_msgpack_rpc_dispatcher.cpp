@@ -2,14 +2,6 @@
 #include "lib/msgpack_rpc_dispatcher.hpp"
 
 // Helpers
-std::vector<uint8_t> s2v(const std::string& str) {
-    return std::vector<uint8_t>(str.begin(), str.end());
-}
-
-std::string v2s(const std::vector<uint8_t>& vec) {
-    return std::string(vec.begin(), vec.end());
-}
-
 std::vector<uint8_t> s2msgp(const std::string& str) {
     JsonDocument doc;
     deserializeJson(doc, str);
@@ -32,8 +24,8 @@ std::string msgp2s(const std::vector<uint8_t>& vec) {
 int8_t add_8bits(int8_t a, int8_t b) { return a + b; }
 std::string concat(std::string a, std::string b) { return a + b; }
 
-TEST(JsonRpcDispatcherTest, Test8BitsData) {
-    JsonRpcDispatcher dispatcher;
+TEST(MsgpackRpcDispatcherTest, Test8BitsData) {
+    MsgpackRpcDispatcher dispatcher;
     dispatcher.addMethod("add_8bits", add_8bits);
 
     auto input = s2msgp(R"({"method": "add_8bits", "args": [1, 2]})");
@@ -43,8 +35,8 @@ TEST(JsonRpcDispatcherTest, Test8BitsData) {
     EXPECT_EQ(expected, msgp2s(result));
 }
 
-TEST(JsonRpcDispatcherTest, TestStringData) {
-    JsonRpcDispatcher dispatcher;
+TEST(MsgpackRpcDispatcherTest, TestStringData) {
+    MsgpackRpcDispatcher dispatcher;
     dispatcher.addMethod("concat", concat);
 
     auto input = s2msgp(R"({"method": "concat", "args": ["hello ", "world"]})");
@@ -54,8 +46,8 @@ TEST(JsonRpcDispatcherTest, TestStringData) {
     EXPECT_EQ(expected, msgp2s(result));
 }
 
-TEST(JsonRpcDispatcherTest, TestVectorsInOut) {
-    JsonRpcDispatcher dispatcher;
+TEST(MsgpackRpcDispatcherTest, TestVectorsInOut) {
+    MsgpackRpcDispatcher dispatcher;
     dispatcher.addMethod("concat", concat);
 
     auto input =s2msgp(R"({"method": "concat", "args": ["hello ", "world"]})");
@@ -66,8 +58,8 @@ TEST(JsonRpcDispatcherTest, TestVectorsInOut) {
     EXPECT_EQ(expected, msgp2s(result));
 }
 
-TEST(JsonRpcDispatcherTest, TestUnknownMethod) {
-    JsonRpcDispatcher dispatcher;
+TEST(MsgpackRpcDispatcherTest, TestUnknownMethod) {
+    MsgpackRpcDispatcher dispatcher;
 
     auto input = s2msgp(R"({"method": "unknown", "args": []})");
     std::string expected = R"({"ok":false,"result":"Method not found"})";
@@ -76,8 +68,8 @@ TEST(JsonRpcDispatcherTest, TestUnknownMethod) {
     EXPECT_EQ(expected, msgp2s(result));
 }
 
-TEST(JsonRpcDispatcherTest, TestNoMethodProp) {
-    JsonRpcDispatcher dispatcher;
+TEST(MsgpackRpcDispatcherTest, TestNoMethodProp) {
+    MsgpackRpcDispatcher dispatcher;
 
     auto input = s2msgp(R"({"args": []})");
     std::string expected = R"({"ok":false,"result":"Method not found"})";
@@ -86,8 +78,8 @@ TEST(JsonRpcDispatcherTest, TestNoMethodProp) {
     EXPECT_EQ(expected, msgp2s(result));
 }
 
-TEST(JsonRpcDispatcherTest, TestMethodPropWrongType) {
-    JsonRpcDispatcher dispatcher;
+TEST(MsgpackRpcDispatcherTest, TestMethodPropWrongType) {
+    MsgpackRpcDispatcher dispatcher;
 
     auto input = s2msgp(R"({"method": [], "args": []})");
     std::string expected = R"({"ok":false,"result":"Method not found"})";
@@ -96,8 +88,8 @@ TEST(JsonRpcDispatcherTest, TestMethodPropWrongType) {
     EXPECT_EQ(expected, msgp2s(result));
 }
 
-TEST(JsonRpcDispatcherTest, TestNoArgsProp) {
-    JsonRpcDispatcher dispatcher;
+TEST(MsgpackRpcDispatcherTest, TestNoArgsProp) {
+    MsgpackRpcDispatcher dispatcher;
     dispatcher.addMethod("add_8bits", add_8bits);
 
     auto input = s2msgp(R"({"method": "add_8bits"})");
@@ -107,8 +99,8 @@ TEST(JsonRpcDispatcherTest, TestNoArgsProp) {
     EXPECT_EQ(expected, msgp2s(result));
 }
 
-TEST(JsonRpcDispatcherTest, TestArgsPropWrongType) {
-    JsonRpcDispatcher dispatcher;
+TEST(MsgpackRpcDispatcherTest, TestArgsPropWrongType) {
+    MsgpackRpcDispatcher dispatcher;
     dispatcher.addMethod("add_8bits", add_8bits);
 
     auto input = s2msgp(R"({"method": "add_8bits", "args": 5})");
@@ -118,8 +110,8 @@ TEST(JsonRpcDispatcherTest, TestArgsPropWrongType) {
     EXPECT_EQ(expected, msgp2s(result));
 }
 
-TEST(JsonRpcDispatcherTest, TestArgsOverflow) {
-    JsonRpcDispatcher dispatcher;
+TEST(MsgpackRpcDispatcherTest, TestArgsOverflow) {
+    MsgpackRpcDispatcher dispatcher;
     dispatcher.addMethod("add_8bits", add_8bits);
 
     // JSON input with arguments 512 and 512, which are beyond the range of int8_t (-128 to 127).
@@ -131,8 +123,8 @@ TEST(JsonRpcDispatcherTest, TestArgsOverflow) {
     EXPECT_EQ(expected, msgp2s(result));
 }
 
-TEST(JsonRpcDispatcherTest, TestWrongArgTypeFloat) {
-    JsonRpcDispatcher dispatcher;
+TEST(MsgpackRpcDispatcherTest, TestWrongArgTypeFloat) {
+    MsgpackRpcDispatcher dispatcher;
     dispatcher.addMethod("add_8bits", add_8bits);
 
     auto input = s2msgp(R"({"method": "add_8bits", "args": [1, 2.5]})");
@@ -143,8 +135,8 @@ TEST(JsonRpcDispatcherTest, TestWrongArgTypeFloat) {
     EXPECT_EQ(expected, msgp2s(result));
 }
 
-TEST(JsonRpcDispatcherTest, TestWrongArgTypeString) {
-    JsonRpcDispatcher dispatcher;
+TEST(MsgpackRpcDispatcherTest, TestWrongArgTypeString) {
+    MsgpackRpcDispatcher dispatcher;
     dispatcher.addMethod("add_8bits", add_8bits);
 
     auto input = s2msgp(R"({"method": "add_8bits", "args": [1, "string"]})");
@@ -154,8 +146,8 @@ TEST(JsonRpcDispatcherTest, TestWrongArgTypeString) {
     EXPECT_EQ(expected, msgp2s(result));
 }
 
-TEST(JsonRpcDispatcherTest, TestWrongArgTypeNull) {
-    JsonRpcDispatcher dispatcher;
+TEST(MsgpackRpcDispatcherTest, TestWrongArgTypeNull) {
+    MsgpackRpcDispatcher dispatcher;
     dispatcher.addMethod("add_8bits", add_8bits);
 
     auto input = s2msgp(R"({"method": "add_8bits", "args": [1, null]})");
@@ -165,8 +157,8 @@ TEST(JsonRpcDispatcherTest, TestWrongArgTypeNull) {
     EXPECT_EQ(expected, msgp2s(result));
 }
 
-TEST(JsonRpcDispatcherTest, TestWrongArgTypeInt) {
-    JsonRpcDispatcher dispatcher;
+TEST(MsgpackRpcDispatcherTest, TestWrongArgTypeInt) {
+    MsgpackRpcDispatcher dispatcher;
     dispatcher.addMethod("concat", concat);
 
     auto input = s2msgp(R"({"method": "concat", "args": ["hello ", 1]})");
@@ -176,8 +168,8 @@ TEST(JsonRpcDispatcherTest, TestWrongArgTypeInt) {
     EXPECT_EQ(expected, msgp2s(result));
 }
 
-TEST(JsonRpcDispatcherTest, TestStringWrongArgTypeNull) {
-    JsonRpcDispatcher dispatcher;
+TEST(MsgpackRpcDispatcherTest, TestStringWrongArgTypeNull) {
+    MsgpackRpcDispatcher dispatcher;
     dispatcher.addMethod("concat", concat);
 
     auto input = s2msgp(R"({"method": "concat", "args": ["hello ", null]})");
@@ -187,8 +179,8 @@ TEST(JsonRpcDispatcherTest, TestStringWrongArgTypeNull) {
     EXPECT_EQ(expected, msgp2s(result));
 }
 
-TEST(JsonRpcDispatcherTest, TestNoArgs) {
-    JsonRpcDispatcher dispatcher;
+TEST(MsgpackRpcDispatcherTest, TestNoArgs) {
+    MsgpackRpcDispatcher dispatcher;
     dispatcher.addMethod("noparams", [](){ return 5; });
 
     auto input = s2msgp(R"({"method": "noparams", "args": []})");
@@ -198,8 +190,8 @@ TEST(JsonRpcDispatcherTest, TestNoArgs) {
     EXPECT_EQ(expected, msgp2s(result));
 }
 
-TEST(JsonRpcDispatcherTest, TestMethodThrows) {
-    JsonRpcDispatcher dispatcher;
+TEST(MsgpackRpcDispatcherTest, TestMethodThrows) {
+    MsgpackRpcDispatcher dispatcher;
     dispatcher.addMethod("throw_exception", []() -> int { throw std::runtime_error("Test exception"); });
 
     auto input = s2msgp(R"({"method": "throw_exception", "args": []})");
@@ -209,8 +201,8 @@ TEST(JsonRpcDispatcherTest, TestMethodThrows) {
     EXPECT_EQ(expected, msgp2s(result));
 }
 
-TEST(JsonRpcDispatcherTest, TestOneArgument) {
-    JsonRpcDispatcher dispatcher;
+TEST(MsgpackRpcDispatcherTest, TestOneArgument) {
+    MsgpackRpcDispatcher dispatcher;
     dispatcher.addMethod("one_argument", [](int a) { return a * 2; });
 
     auto input = s2msgp(R"({"method": "one_argument", "args": [2]})");
@@ -220,8 +212,8 @@ TEST(JsonRpcDispatcherTest, TestOneArgument) {
     EXPECT_EQ(expected, msgp2s(result));
 }
 
-TEST(JsonRpcDispatcherTest, TestThreeArguments) {
-    JsonRpcDispatcher dispatcher;
+TEST(MsgpackRpcDispatcherTest, TestThreeArguments) {
+    MsgpackRpcDispatcher dispatcher;
     dispatcher.addMethod("three_arguments", [](int a, int b, int c) { return a + b + c; });
 
     auto input = s2msgp(R"({"method": "three_arguments", "args": [1, 2, 3]})");
@@ -231,8 +223,8 @@ TEST(JsonRpcDispatcherTest, TestThreeArguments) {
     EXPECT_EQ(expected, msgp2s(result));
 }
 
-TEST(JsonRpcDispatcherTest, TestBrokenMsgPackInput) {
-    JsonRpcDispatcher dispatcher;
+TEST(MsgpackRpcDispatcherTest, TestBrokenMsgPackInput) {
+    MsgpackRpcDispatcher dispatcher;
     dispatcher.addMethod("add_8bits", add_8bits);
 
     // Invalid MsgPack data (array of size 2 with only 1 element)

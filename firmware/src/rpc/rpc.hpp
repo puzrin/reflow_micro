@@ -2,7 +2,7 @@
 
 #include "lib/msgpack_rpc_dispatcher.hpp"
 
-extern JsonRpcDispatcher rpc;
+extern MsgpackRpcDispatcher rpc;
 
 void rpc_init();
 

@@ -3,12 +3,12 @@
 Usage example:
 
 #include <string>
-#include "json_rpc_dispatcher.hpp"
+#include "msgpack_rpc_dispatcher.hpp"
 
 std::string concat(std::string a, std::string b) { return a + b; }
 
 int main() {
-    JsonRpcDispatcher dispatcher;
+    MsgpackRpcDispatcher dispatcher;
 
     // Add methods
     dispatcher.addMethod("add", [](int a, int b) { return a + b; });
@@ -42,7 +42,7 @@ int main() {
 #include <cstdint>
 #include <vector>
 
-namespace jrcpd {
+namespace msgpack_rpc_dispatcher {
 
 //
 // Local implementation of some `std` features, for c++11 support and
@@ -213,21 +213,23 @@ struct TypeChecker<ArgsTuple, N, N> {
 
 } // namespace jrcpd
 
-class JsonRpcDispatcher {
+class MsgpackRpcDispatcher {
 public:
-    JsonRpcDispatcher() = default;
+    MsgpackRpcDispatcher() = default;
 
     // For functions with arguments
     template<typename Func>
     void addMethod(const std::string& name, Func func) {
-        using traits = jrcpd::function_traits<decltype(func)>;
+        namespace rpc_ns = msgpack_rpc_dispatcher;
+
+        using traits = rpc_ns::function_traits<decltype(func)>;
         using Ret = typename traits::return_type;
         using ArgsTuple = typename traits::argument_types;
 
         static_assert(!std::is_same<Ret, void>::value, "void functions not supported");
 
-        static_assert(jrcpd::is_supported_type<Ret>::value, "Return type is not allowed");
-        static_assert(jrcpd::check_all_types_supported<ArgsTuple>(), "Argument type is not allowed");
+        static_assert(rpc_ns::is_supported_type<Ret>::value, "Return type is not allowed");
+        static_assert(rpc_ns::check_all_types_supported<ArgsTuple>(), "Argument type is not allowed");
 
         functions[name] = [func](const JsonArray& args) -> JsonDocument {
             try {
@@ -236,15 +238,15 @@ public:
                 }
 
                 // Check if each argument in JsonArray can hold the appropriate type from ArgsTuple
-                if (!jrcpd::TypeChecker<ArgsTuple>::check(args)) {
+                if (!rpc_ns::TypeChecker<ArgsTuple>::check(args)) {
                     throw std::runtime_error("Argument type mismatch");
                 }
 
-                auto tpl_args = jrcpd::from_msgp<ArgsTuple>(args);
-                Ret result = jrcpd::apply(func, tpl_args);
-                return jrcpd::create_response(true, result);
+                auto tpl_args = rpc_ns::from_msgp<ArgsTuple>(args);
+                Ret result = rpc_ns::apply(func, tpl_args);
+                return rpc_ns::create_response(true, result);
             } catch (const std::exception& e) {
-                return jrcpd::create_response(false, std::string(e.what()));
+                return rpc_ns::create_response(false, std::string(e.what()));
             }
         };
     }
@@ -258,12 +260,12 @@ public:
 
     template<typename T>
     void dispatch(const T& input, T& output) {
-        using namespace jrcpd;
+        namespace rpc_ns = msgpack_rpc_dispatcher;
 
         JsonDocument doc;
-        auto error = deserialize_from(input, doc);
+        auto error = rpc_ns::deserialize_from(input, doc);
         if (error) {
-            serialize_to(create_response(false, error.c_str()), output);
+            rpc_ns::serialize_to(rpc_ns::create_response(false, error.c_str()), output);
             return;
         }
 
@@ -272,10 +274,10 @@ public:
 
         auto it = functions.find(method);
         if (it != functions.end()) {
-            serialize_to(it->second(args), output);
+            rpc_ns::serialize_to(it->second(args), output);
             return;
         } else {
-            serialize_to(create_response(false, "Method not found"), output);
+            rpc_ns::serialize_to(rpc_ns::create_response(false, "Method not found"), output);
             return;
         }
     }
