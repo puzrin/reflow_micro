@@ -1,6 +1,7 @@
 import { BleClientChunker, isLastChunk, type IO } from './BleClientChunker'
 import { RpcCaller, type RpcArgument, type RpcResult } from './RpcCaller'
 import { AuthStorage } from './AuthStorage'
+import { decode as msgpack_decode } from '@msgpack/msgpack'
 
 interface AuthInfo {
     id: string;
@@ -164,7 +165,7 @@ export class BleRpcClient {
         try {
             const client_id = this.authStorage.getClientId();
 
-            let auth_info : AuthInfo = JSON.parse(await this.authCaller.invoke('auth_info') as string);
+            let auth_info : AuthInfo = msgpack_decode(await this.authCaller.invoke('auth_info') as Uint8Array) as AuthInfo
             const device_id = auth_info.id;
             let secret = this.authStorage.getSecret(device_id);
 
@@ -177,7 +178,7 @@ export class BleRpcClient {
                 this.authStorage.setSecret(device_id, new_secret);
                 secret = new_secret;
                 // Re-fetch new hmac message value
-                auth_info = JSON.parse(await this.authCaller.invoke('auth_info') as string);
+                auth_info = msgpack_decode(await this.authCaller.invoke('auth_info') as Uint8Array) as AuthInfo;
 
                 this.log('Paired!');
             }

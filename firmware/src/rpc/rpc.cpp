@@ -216,7 +216,7 @@ void ble_init() {
     DEBUG("BLE initialized");
 }
 
-std::string auth_info() {
+std::vector<uint8_t> auth_info() {
     auto session = get_context();
 
     session->random = create_secret(); // renew hmac msg every time!
@@ -227,8 +227,9 @@ std::string auth_info() {
     doc["hmac_msg"] = bin2hex(session->random.data(), session->random.size());
     doc["pairable"] = is_pairing_enabled();
 
-    std::string output;
-    serializeJson(doc, output);
+    size_t size = measureMsgPack(doc);
+    std::vector<uint8_t> output(size);
+    serializeMsgPack(doc, output.data(), size);
     return output;
 }
 
