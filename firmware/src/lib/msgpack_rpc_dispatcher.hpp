@@ -70,9 +70,22 @@ constexpr bool check_tuple_types = []<std::size_t... Is>(std::index_sequence<Is.
 }(std::make_index_sequence<std::tuple_size_v<Tuple>>{});
 
 
+template<typename T>
+T convert_from_msgp(const JsonVariant& value) {
+    if constexpr (std::is_same_v<T, std::vector<uint8_t>>) {
+        auto binary = value.as<MsgPackBinary>();
+        return std::vector<uint8_t>(
+            static_cast<const uint8_t*>(binary.data()),
+            static_cast<const uint8_t*>(binary.data()) + binary.size()
+        );
+    } else {
+        return value.as<T>();
+    }
+}
+
 template<typename ArgsTuple, std::size_t... Is>
 ArgsTuple from_msgp_impl(const JsonArray& j, std::index_sequence<Is...>) {
-    return std::make_tuple(j[Is].template as<std::tuple_element_t<Is, ArgsTuple>>()...);
+    return std::make_tuple(convert_from_msgp<std::tuple_element_t<Is, ArgsTuple>>(j[Is])...);
 }
 
 template<typename ArgsTuple>
@@ -123,10 +136,19 @@ inline DeserializationError deserialize_from(const std::vector<uint8_t>& input, 
     return deserializeMsgPack(doc, input.data(), input.size());
 }
 
+template<typename T>
+bool check_type(const JsonVariant& value) {
+    if constexpr (std::is_same_v<T, std::vector<uint8_t>>) {
+        return value.is<MsgPackBinary>();
+    } else {
+        return value.is<T>();
+    }
+}
+
 template<typename ArgsTuple>
 bool runtime_type_check(const JsonArray& args) {
     return [&]<std::size_t... Is>(std::index_sequence<Is...>) {
-        return ((args[Is].template is<std::tuple_element_t<Is, ArgsTuple>>()) && ...);
+        return ((check_type<std::tuple_element_t<Is, ArgsTuple>>(args[Is])) && ...);
     }(std::make_index_sequence<std::tuple_size_v<ArgsTuple>>{});
 }
 

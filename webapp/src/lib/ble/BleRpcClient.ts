@@ -1,9 +1,6 @@
-import { BleClientChunker, isLastChunk, type IO } from './BleClientChunker';
-import { RpcCaller } from './RpcCaller';
-import { AuthStorage } from './AuthStorage';
-
-type RpcArgument = boolean | number | string;
-type RpcResult = boolean | number | string;
+import { BleClientChunker, isLastChunk, type IO } from './BleClientChunker'
+import { RpcCaller, type RpcArgument, type RpcResult } from './RpcCaller'
+import { AuthStorage } from './AuthStorage'
 
 interface AuthInfo {
     id: string;

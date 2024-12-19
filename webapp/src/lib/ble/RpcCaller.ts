@@ -1,8 +1,8 @@
 import { type BinaryTransport } from './BleClientChunker';
 import { encode, decode } from '@msgpack/msgpack';
 
-type RpcArgument = boolean | number | string;
-type RpcResult = boolean | number | string;
+export type RpcArgument = boolean | number | string | Uint8Array;
+export type RpcResult = boolean | number | string | Uint8Array;
 
 export class RpcCaller {
     private transport: BinaryTransport;

@@ -268,6 +268,39 @@ TEST(MsgpackRpcDispatcherTest, TestBinaryReturn) {
     EXPECT_EQ(actual_data, test_data);
 }
 
+TEST(MsgpackRpcDispatcherTest, TestBinaryArgument) {
+    MsgpackRpcDispatcher dispatcher;
+
+    dispatcher.addMethod("sum_binary", [](std::vector<uint8_t> data) {
+        int sum = 0;
+        for(uint8_t byte : data) sum += byte;
+        return sum;
+    });
+
+    std::vector<uint8_t> test_data{0x01, 0x02, 0x03, 0x04};
+
+    JsonDocument input_doc;
+    input_doc["method"] = "sum_binary";
+    JsonArray args = input_doc["args"].to<JsonArray>();
+    args.add(MsgPackBinary(test_data.data(), test_data.size()));
+
+    std::vector<uint8_t> input;
+    size_t size = measureMsgPack(input_doc);
+    input.resize(size);
+    serializeMsgPack(input_doc, input.data(), size);
+
+    // Call the method
+    std::vector<uint8_t> result;
+    dispatcher.dispatch(input, result);
+
+    // Check the result
+    JsonDocument doc;
+    deserializeMsgPack(doc, result.data(), result.size());
+
+    EXPECT_TRUE(doc["ok"].as<bool>());
+    EXPECT_EQ(doc["result"].as<int>(), 10); // 1 + 2 + 3 + 4 = 10
+}
+
 // Main function to run the tests
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
