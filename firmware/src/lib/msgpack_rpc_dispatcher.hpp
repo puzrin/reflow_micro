@@ -57,7 +57,8 @@ using SupportedTypes = std::variant<
     int64_t, uint64_t,
     float, double,
     std::string,
-    bool
+    bool,
+    std::vector<uint8_t>
 >;
 
 template<typename T>
@@ -102,7 +103,13 @@ template<typename T>
 const JsonDocument create_response(bool status, const T& result) {
     JsonDocument doc;
     doc["ok"] = status;
-    doc["result"] = result;
+
+    if constexpr (std::is_same_v<T, std::vector<uint8_t>>) {
+        doc["result"] = MsgPackBinary(result.data(), result.size());
+    } else {
+        doc["result"] = result;
+    }
+
     return doc;
 }
 

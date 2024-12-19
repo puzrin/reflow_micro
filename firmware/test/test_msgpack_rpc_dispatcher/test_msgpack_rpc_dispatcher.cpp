@@ -242,6 +242,32 @@ TEST(MsgpackRpcDispatcherTest, TestBrokenMsgPackInput) {
     EXPECT_EQ(expected, msgp2s(result));
 }
 
+TEST(MsgpackRpcDispatcherTest, TestBinaryReturn) {
+    MsgpackRpcDispatcher dispatcher;
+
+    std::vector<uint8_t> test_data{0x01, 0x02, 0x03, 0x04};
+    dispatcher.addMethod("get_binary", [test_data]() {
+        return test_data;
+    });
+
+    auto input = s2msgp(R"({"method": "get_binary", "args": []})");
+    std::vector<uint8_t> result;
+    dispatcher.dispatch(input, result);
+
+    JsonDocument doc;
+    deserializeMsgPack(doc, result.data(), result.size());
+
+    EXPECT_TRUE(doc["ok"].as<bool>());
+
+    auto binary = doc["result"].as<MsgPackBinary>();
+    std::vector<uint8_t> actual_data(
+        static_cast<const uint8_t*>(binary.data()),
+        static_cast<const uint8_t*>(binary.data()) + binary.size()
+    );
+
+    EXPECT_EQ(actual_data, test_data);
+}
+
 // Main function to run the tests
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
