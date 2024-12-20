@@ -1,10 +1,10 @@
 #pragma once
 
-#include "blinker/blinker.h"
-#include "button/button.hpp"
+#include "components/blinker.hpp"
+#include "lib/button_engine.hpp"
 
-#define BLINK_IDLE_BACKGROUND { 10 }
+#define BLINK_SET_IDLE_BACKGROUND(blnkr) (blnkr).background({ 10 })
 
-#define BLINK_LONG_PRESS_START { {10, 0}, blinker.flowTo(255, Button::LONG_PRESS_THRESHOLD - Button::SHORT_PRESS_THRESHOLD) }
+#define BLINK_LONG_PRESS_START(blnkr) (blnkr).once({ {10, 0}, (blnkr).flowTo(255, ButtonConstants::LONG_PRESS_THRESHOLD - ButtonConstants::SHORT_PRESS_THRESHOLD) })
 
-#define BLINK_BONDING_LOOP { {255, 150}, {0, 250} }
+#define BLINK_BONDING_LOOP(blnkr) (blnkr).loop({ {255, 150}, {0, 250} })

@@ -1,6 +1,13 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
+
+namespace ButtonConstants {
+    static constexpr uint32_t JITTER_THRESHOLD = 50;
+    static constexpr uint32_t SHORT_PRESS_THRESHOLD = 500;
+    static constexpr uint32_t LONG_PRESS_THRESHOLD = 2000;
+}
 
 class IButtonDriver {
     virtual bool get() = 0;
@@ -25,13 +32,14 @@ public:
     ButtonEngine() : driver(), state(START), unfilteredBtn(false), btnPressed(false),
         unfilteredBtnTimestamp(0), btnToggleTimestamp(0), prevPeriod(0), currentPeriod(0) {}
 
-    void setEventHandler(void (*handler)(ButtonEventId)) { eventHandler = handler; }
-
-    static constexpr uint32_t JITTER_THRESHOLD = 50;
-    static constexpr uint32_t SHORT_PRESS_THRESHOLD = 500;
-    static constexpr uint32_t LONG_PRESS_THRESHOLD = 2000;
+    template <typename Handler>
+    void setEventHandler(Handler&& handler) {
+        eventHandler = std::forward<Handler>(handler);
+    }
 
     void tick(uint32_t ms_timestamp) {
+        using namespace ButtonConstants;
+
         // Sync initial timestamps
         if (unfilteredBtnTimestamp == 0 || btnToggleTimestamp == 0) {
             unfilteredBtnTimestamp = ms_timestamp;
@@ -126,7 +134,7 @@ public:
                 //handleEvent(ButtonEventId::BUTTON_SEQUENCE_END);
                 return;
             }
-        
+
             // If button released fast enouth => go to pause measurement
             if (!btnPressed) {
                 shortPressesCounter++;
@@ -148,7 +156,7 @@ private:
     };
 
     Driver driver;
-    void (*eventHandler)(ButtonEventId);
+    std::function<void(ButtonEventId)> eventHandler;
 
     State state;
     bool unfilteredBtn;

@@ -20,17 +20,14 @@ class Init : public etl::fsm_state<App, Init, AppStateId::INIT> {
 public:
     etl::fsm_state_id_t on_enter_state() {
         DEBUG("Init entered");
-        //const LedDriver::DataType bg = BLINK_IDLE_BACKGROUND;
-        //blinker.background(bg);
-        blinker.background(BLINK_IDLE_BACKGROUND);
-        DEBUG("Init background set");
+        BLINK_SET_IDLE_BACKGROUND(get_fsm_context().blinker);
         return AppStateId::IDLE;
     }
 
     etl::fsm_state_id_t on_event_unknown(const etl::imessage& event) {
         get_fsm_context().LogUnknownEvent(event);
         return STATE_ID;
-    } 
+    }
 };
 
 
@@ -52,14 +49,14 @@ public:
             // Animate long press start
             case ButtonEventId::BUTTON_LONG_PRESS_START:
                 DEBUG("Long press start");
-                blinker.once(BLINK_LONG_PRESS_START);
+                BLINK_LONG_PRESS_START(get_fsm_context().blinker);
                 break;
             // Stops animation if long press not reached
             case ButtonEventId::BUTTON_LONG_PRESS_FAIL:
                 DEBUG("Long press fail");
-                blinker.off();
+                get_fsm_context().blinker.off();
                 break;
-            
+
             case ButtonEventId::BUTTON_LONG_PRESS:
                 DEBUG("Long press succeeded");
                 return AppStateId::WORKING;
@@ -73,7 +70,7 @@ public:
     etl::fsm_state_id_t on_event_unknown(const etl::imessage& event) {
         get_fsm_context().LogUnknownEvent(event);
         return STATE_ID;
-    } 
+    }
 };
 
 
@@ -82,7 +79,7 @@ public:
     etl::fsm_state_id_t on_enter_state() {
         // Temporary stub
         DEBUG("Working entered");
-        blinker.once({ {0, 200}, {255, 300}, {0, 200} });
+        get_fsm_context().blinker.once({ {0, 200}, {255, 300}, {0, 200} });
         return AppStateId::IDLE;
     }
 
@@ -91,7 +88,7 @@ public:
     etl::fsm_state_id_t on_event_unknown(const etl::imessage& event) {
         get_fsm_context().LogUnknownEvent(event);
         return STATE_ID;
-    } 
+    }
 };
 
 
@@ -100,7 +97,7 @@ public:
     static constexpr uint32_t BONDING_PERIOD_MS = 15*1000;
 
     etl::fsm_state_id_t on_enter_state() {
-        blinker.loop(BLINK_BONDING_LOOP);
+        BLINK_BONDING_LOOP(get_fsm_context().blinker);
 
         // Enable bonding for 30 seconds
         xTimeoutTimer = xTimerCreate("BondingTimeout", pdMS_TO_TICKS(BONDING_PERIOD_MS), pdFALSE, (void *)0,
@@ -120,7 +117,7 @@ public:
             xTimeoutTimer = nullptr;
         }
         pairing_disable();
-        blinker.off();
+        get_fsm_context().blinker.off();
     }
 
     etl::fsm_state_id_t on_event(const BondOff& event) { return AppStateId::IDLE; }
@@ -149,6 +146,6 @@ etl::ifsm_state* stateList[AppStateId::NUMBER_OF_STATES] = {
 
 }
 
-void app_states_init(App& app) {
+void app_setup_states(App& app) {
     app.set_states(stateList, AppStateId::NUMBER_OF_STATES);
 }

@@ -1,9 +1,10 @@
 #pragma once
 
 #include "etl/fsm.h"
-#include "button/button.hpp"
 #include "heater_mock.hpp"
 #include "lib/sparse_history.hpp"
+#include "components/button.hpp"
+#include "components/blinker.hpp"
 
 struct AppEventId {
     enum Enum {
@@ -33,12 +34,24 @@ public:
 
     HeaterMock heater;
     SparseHistory history;
+    Blinker<LedDriver> blinker;
 
     void LogUnknownEvent(const etl::imessage& msg);
+    void setup();
+
+    void safe_receive(const etl::imessage& message) {
+        if (!mutex) mutex = xSemaphoreCreateMutex();
+        xSemaphoreTake(mutex, portMAX_DELAY);
+        receive(message);
+        xSemaphoreGive(mutex);
+    }
+
+private:
+    SemaphoreHandle_t mutex = nullptr;
+    Button<ButtonDriver> button;
+    void handleButton(ButtonEventId event) { safe_receive(ButtonAction(event)); }
 };
 
 extern App app;
 
-void app_init();
-void app_states_init(App& app);
-
+void app_setup_states(App& app);

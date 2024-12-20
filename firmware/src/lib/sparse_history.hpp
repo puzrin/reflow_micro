@@ -3,6 +3,7 @@
 #include <vector>
 #include <cmath>
 #include <cstdint>
+#include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 
 // TODO: Consider use M4 Aggregate for packing
