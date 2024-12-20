@@ -27,6 +27,18 @@ class AsyncPreferenceKV : public IAsyncPreferenceKV {
     }
 };
 
-extern AsyncPreferenceKV prefsKV;
-extern AsyncPreferenceWriter prefsWriter;
-void prefs_init();
+class PrefsWriter : public AsyncPreferenceWriter {
+public:
+    void start() {
+        xTaskCreate([](void* arg) {
+            auto* self = static_cast<PrefsWriter*>(arg);
+            while(true) {
+                self->tick();
+                vTaskDelay(pdMS_TO_TICKS(200));
+            }
+        }, "prefs", 1024*4, this, 0, NULL);
+    }
+};
+
+inline AsyncPreferenceKV prefsKV;
+inline PrefsWriter prefsWriter;

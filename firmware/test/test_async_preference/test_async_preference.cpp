@@ -26,8 +26,9 @@ public:
 // Trivially copyable type (int32_t)
 TEST(AsyncPreferenceTest, TriviallyCopyable_Int32) {
     MockAsyncPreferenceKV kv;
+    AsyncPreferenceWriter pWriter;
 
-    AsyncPreference<int32_t> pref(kv, "ns", "key", -567);
+    AsyncPreference<int32_t> pref(&pWriter, kv, "ns", "key", -567);
 
     // Should use default when key not exists
     EXPECT_EQ(kv.length("ns", "key"), size_t(0));
@@ -35,14 +36,14 @@ TEST(AsyncPreferenceTest, TriviallyCopyable_Int32) {
 
     // Should load from store when key available
     pref.set(123);
-    pref.tick(); // Should save the snapshot
+    pWriter.tick(); // Should save the snapshot
     EXPECT_EQ(kv.length("ns", "key"), sizeof(int32_t));
 
-    AsyncPreference<int32_t> pref2(kv, "ns", "key", -567);
+    AsyncPreference<int32_t> pref2(nullptr, kv, "ns", "key", -567);
     EXPECT_EQ(pref2.get(), 123);
 
     // Edge case, write before read
-    AsyncPreference<int32_t> pref3(kv, "ns", "key");
+    AsyncPreference<int32_t> pref3(nullptr, kv, "ns", "key");
 
     pref3.valueUpdateBegin(); // Emulate write start
     EXPECT_EQ(pref3.get(), 0); // Should not read from storage
@@ -62,8 +63,9 @@ using TestArray = std::array<TestStruct, 2>;
 // Trivially copyable fixed array
 TEST(AsyncPreferenceTest, TriviallyCopyable_ArrayOfStructs) {
     MockAsyncPreferenceKV kv;
+    AsyncPreferenceWriter pWriter;
 
-    AsyncPreference<TestArray> pref(kv, "ns", "key");
+    AsyncPreference<TestArray> pref(&pWriter, kv, "ns", "key");
 
     // Elements should be initialized with defaults on create
     EXPECT_EQ(pref.get()[1].bar[2], 3);
@@ -72,11 +74,11 @@ TEST(AsyncPreferenceTest, TriviallyCopyable_ArrayOfStructs) {
     TestArray data = { { { 123, { 4, 5, 6 } }, { 456, { 7, 8, 9 } } } };
 
     pref.set(data);
-    pref.tick(); // Trigger snapshot save
+    pWriter.tick(); // Trigger snapshot save
     EXPECT_EQ(kv.length("ns", "key"), sizeof(TestArray));
 
     // Should load from store
-    AsyncPreference<TestArray> pref2(kv, "ns", "key");
+    AsyncPreference<TestArray> pref2(&pWriter, kv, "ns", "key");
 
     EXPECT_EQ(pref2.get()[0].foo, 123);
     EXPECT_EQ(pref2.get()[1].bar[2], 9);
@@ -91,55 +93,57 @@ TEST(AsyncPreferenceTest, TriviallyCopyable_ArrayOfStructs) {
     ref[1].bar = { 3, 3, 3 };
 
     pref2.valueUpdateEnd();
-    pref2.tick(); // Trigger snapshot save
+    pWriter.tick(); // Trigger snapshot save
 
     TestArray modified_data = { { { 111, { 4, 222, 6 } }, { 456, { 3, 3, 3 } } } };
 
-    AsyncPreference<TestArray> pref3(kv, "ns", "key");
+    AsyncPreference<TestArray> pref3(nullptr, kv, "ns", "key");
     EXPECT_EQ(pref3.get(), modified_data);
 }
 
 // Buffer-like copyable string
 TEST(AsyncPreferenceTest, BufferLikeCopyable_String) {
     MockAsyncPreferenceKV kv;
+    AsyncPreferenceWriter pWriter;
 
     // Should init with default constructor
-    AsyncPreference<std::string> pref(kv, "ns", "key");
+    AsyncPreference<std::string> pref(&pWriter, kv, "ns", "key");
     EXPECT_EQ(pref.get(), "");
 
     // Should use default when key not exists
-    AsyncPreference<std::string> pref2(kv, "ns", "key", "default");
+    AsyncPreference<std::string> pref2(&pWriter, kv, "ns", "key", "default");
     EXPECT_EQ(kv.length("ns", "key"), size_t(0));
     EXPECT_EQ(pref2.get(), "default");
 
     // Should load from store when key available
     pref2.set("hello");
-    pref2.tick(); // Should save the snapshot
+    pWriter.tick(); // Should save the snapshot
 
-    AsyncPreference<std::string> pref3(kv, "ns", "key");
+    AsyncPreference<std::string> pref3(nullptr, kv, "ns", "key");
     EXPECT_EQ(pref3.get(), "hello");
 }
 
 // Buffer-like copyable vector
 TEST(AsyncPreferenceTest, BufferLikeCopyable_Vector) {
     MockAsyncPreferenceKV kv;
+    AsyncPreferenceWriter pWriter;
 
     // Should init with default constructor
-    AsyncPreference<std::vector<uint32_t>> pref(kv, "ns", "key");
+    AsyncPreference<std::vector<uint32_t>> pref(&pWriter, kv, "ns", "key");
     EXPECT_EQ(pref.get(), std::vector<uint32_t>());
 
     // Should use default when key not exists
     std::vector<uint32_t> default_data = { 1001, 1002, 1003 };
-    AsyncPreference<std::vector<uint32_t>> pref2(kv, "ns", "key", default_data);
+    AsyncPreference<std::vector<uint32_t>> pref2(&pWriter, kv, "ns", "key", default_data);
     EXPECT_EQ(kv.length("ns", "key"), size_t(0));
     EXPECT_EQ(pref2.get(), default_data);
 
     // Should load from store when key available
     std::vector<uint32_t> data = { 4, 5, 6, 2000 }; // new content & size
     pref2.set(data);
-    pref2.tick(); // Should save the snapshot
+    pWriter.tick(); // Should save the snapshot
 
-    AsyncPreference<std::vector<uint32_t>> pref3(kv, "ns", "key");
+    AsyncPreference<std::vector<uint32_t>> pref3(nullptr, kv, "ns", "key");
     EXPECT_EQ(pref3.get(), data);
 }
 

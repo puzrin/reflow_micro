@@ -23,8 +23,8 @@ const char* SERVICE_UUID = "5f524546-4c4f-575f-5250-435f5356435f"; // _REFLOW_RP
 const char* RPC_CHARACTERISTIC_UUID = "5f524546-4c4f-575f-5250-435f494f5f5f"; // _REFLOW_RPC_IO__
 const char* AUTH_CHARACTERISTIC_UUID = "5f524546-4c4f-575f-5250-435f41555448"; // _REFLOW_RPC_AUTH
 
-auto bleAuthStore = BleAuthStore<4>(prefsKV);
-auto bleNameStore = AsyncPreference<std::string>(prefsKV, "settings", "ble_name", "Reflow Table");
+auto bleAuthStore = BleAuthStore<4>(&prefsWriter, prefsKV);
+auto bleNameStore = AsyncPreference<std::string>(&prefsWriter, prefsKV, "settings", "ble_name", "Reflow Table");
 
 class Session;
 Session* context;
@@ -155,9 +155,6 @@ public:
 
 
 void ble_init() {
-    prefsWriter.add(bleAuthStore);
-    prefsWriter.add(bleNameStore);
-
     const std::string name = bleNameStore.get().substr(0, 20); // Limit name length
     NimBLEDevice::init(name);
     NimBLEDevice::setPower(ESP_PWR_LVL_P9); // Set the power level to maximum

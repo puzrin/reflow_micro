@@ -6,10 +6,11 @@ using BleAuthId = std::array<uint8_t, 16>;
 using BleAuthSecret = std::array<uint8_t, 32>;
 
 template<size_t MaxRecords = 4>
-class BleAuthStore : public AsyncPreferenceTickable {
+class BleAuthStore {
 public:
-    BleAuthStore(IAsyncPreferenceKV& kv) :
-        clientsPref(kv, "ble_auth", "clients"), timestampsPref(kv, "ble_auth", "timestamps") {}
+    BleAuthStore(AsyncPreferenceWriter* writer, IAsyncPreferenceKV& kv) :
+        clientsPref(writer, kv, "ble_auth", "clients"),
+        timestampsPref(writer, kv, "ble_auth", "timestamps") {}
 
     struct Client {
         BleAuthId id{};
@@ -70,11 +71,6 @@ public:
         timestampsPref.valueUpdateEnd();
 
         return true;
-    }
-
-    void tick() override {
-        clientsPref.tick();
-        timestampsPref.tick();
     }
 
 private:

@@ -4,8 +4,8 @@
 #include "app.hpp"
 
 void setup() {
-    logger_init();
-    prefs_init();
+    logger_start();
+    prefsWriter.start();
 
     app.setup();
 

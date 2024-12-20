@@ -72,39 +72,34 @@ struct dependent_false : std::false_type {};
 class AsyncPreferenceTickable {
 public:
     virtual void tick() = 0;
+    AsyncPreferenceTickable* next_pref = nullptr;
 };
 
 // Writer for asynchronous preferences
 class AsyncPreferenceWriter {
 public:
-    AsyncPreferenceWriter(uint32_t ms_period = 200, uint32_t (*get_time)() = nullptr)
-        : ms_period(ms_period), get_time(get_time), prev_run_ts(0) {}
-
-    void add(AsyncPreferenceTickable& pref) { preferences.push_back(&pref); }
+    void add(AsyncPreferenceTickable* pref) {
+        pref->next_pref = head;
+        head = pref;
+    }
 
     void tick() {
-        if (get_time) {
-            uint32_t timestamp = get_time();
-            if (timestamp < prev_run_ts) prev_run_ts = timestamp; // Handle overflow
-            if (timestamp - prev_run_ts < ms_period) return;
-            prev_run_ts = timestamp;
+        auto ptr = head;
+        while (ptr) {
+            ptr->tick();
+            ptr = ptr->next_pref;
         }
-
-        for (auto& pref : preferences) pref->tick();
     }
 
 private:
-    uint32_t ms_period;
-    uint32_t (*get_time)();
-    uint32_t prev_run_ts;
-    std::vector<AsyncPreferenceTickable*> preferences;
+    AsyncPreferenceTickable* head = nullptr;
 };
 
 template <typename T, typename Serializer = void>
 class AsyncPreference : public AsyncPreferenceTickable {
 public:
-    AsyncPreference(IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, T initial = T()) :
-        databox{initial}, kv{kv}, ns(ns), key(key), is_preloaded(false) {}
+    AsyncPreference(AsyncPreferenceWriter* writer, IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, T initial = T()) :
+        databox{initial}, kv{kv}, ns(ns), key(key), is_preloaded(false), is_writer_active(false), writer{writer} {}
 
     T& get() {
         preload();
@@ -127,6 +122,13 @@ public:
         // to restore persistance. But if write is called first, we should
         // disable persistance restore.
         if (!is_preloaded) is_preloaded = true;
+
+        // Lazily register in writer. This is done here, to allow use stitic classes,
+        // where initialization order is not defined.
+        if (!is_writer_active && writer) {
+            is_writer_active = true;
+            writer->add(this);
+        }
 
         databox.beginWrite();
     }
@@ -162,6 +164,8 @@ private:
     std::string ns;
     std::string key;
     bool is_preloaded;
+    bool is_writer_active;
+    AsyncPreferenceWriter* writer;
 
     // Fetch value from storage, if key exists. This is called only once in
     // life cycle. The next reads are always from memory only.
