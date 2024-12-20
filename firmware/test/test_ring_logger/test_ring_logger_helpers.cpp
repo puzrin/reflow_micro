@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "ring_logger/ring_logger.hpp"
+#include "lib/ring_logger/ring_logger.hpp"
 
 TEST(RingLoggerTest, Test_is_label_in_list) {
     auto in_list = ring_logger::is_label_in_list;

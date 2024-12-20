@@ -4,7 +4,7 @@
 #include "logger.hpp"
 #include "rpc.hpp"
 #include "lib/ble_chunker.hpp"
-#include "async_preference/prefs.hpp"
+#include "components/prefs.hpp"
 #include "ble_auth_store.hpp"
 #include "auth_utils.hpp"
 #include "app.hpp"

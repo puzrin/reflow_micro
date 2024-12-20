@@ -1,19 +1,19 @@
 #include <gtest/gtest.h>
-#include "ring_logger/ring_logger_buffer.hpp"
+#include "lib/ring_logger/ring_logger_buffer.hpp"
 
 TEST(RingLoggerBufferTest, WriteAndReadSingleRecord) {
     ring_logger::RingBuffer<1024> buffer;
     const uint8_t data[13] = {0};
     size_t dataSize = sizeof(data);
-    
+
     // Write record
     ASSERT_TRUE(buffer.writeRecord(data, dataSize));
-    
+
     // Read record
     uint8_t readData[1024];
     size_t readSize = 0;
     ASSERT_TRUE(buffer.readRecord(readData, readSize));
-    
+
     // Validate record
     ASSERT_EQ(readSize, dataSize);
     ASSERT_EQ(std::memcmp(data, readData, dataSize), 0);
@@ -77,7 +77,7 @@ TEST(RingLoggerBufferTest, ReadFromEmptyBuffer) {
     ring_logger::RingBuffer<1024> buffer;
     uint8_t readData[1024];
     size_t readSize = 0;
-    
+
     ASSERT_FALSE(buffer.readRecord(readData, readSize));
     ASSERT_EQ(readSize, static_cast<size_t>(0));
 }

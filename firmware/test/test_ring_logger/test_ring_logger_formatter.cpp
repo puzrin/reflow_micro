@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "ring_logger/ring_logger_formatter.hpp"
+#include "lib/ring_logger/ring_logger_formatter.hpp"
 
 using namespace ring_logger;
 
@@ -69,7 +69,7 @@ TEST(FormatterTest, MultipleTypes) {
         ArgVariant((uint32_t)32)
     };
     Formatter::print(
-        output, sizeof(output), 
+        output, sizeof(output),
         "Int8: {}, Int16: {}, Int32: {}, Uint8: {}, Uint16: {}, Uint32: {}",
         args, 6
     );
@@ -130,7 +130,7 @@ TEST(FormatterTest, AliasStringArgument) {
 TEST(FormatterTest, AliasMultipleTypes) {
     char output[256];
     Formatter::print(
-        output, sizeof(output), 
+        output, sizeof(output),
         "Int8: {}, Int16: {}, Int32: {}, Uint8: {}, Uint16: {}, Uint32: {}",
         ArgVariant((int8_t)8),
         ArgVariant((int16_t)16),

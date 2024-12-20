@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "utils/data_guard.hpp"
+#include "lib/data_guard.hpp"
 #include <string>
 
 TEST(DataGuardTest, SnapshotFailsWithoutWrite) {

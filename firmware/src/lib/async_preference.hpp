@@ -5,7 +5,7 @@
 #include <atomic>
 #include <vector>
 #include <type_traits>
-#include "utils/data_guard.hpp"
+#include "data_guard.hpp"
 
 // Interface for key-value storage
 class IAsyncPreferenceKV {

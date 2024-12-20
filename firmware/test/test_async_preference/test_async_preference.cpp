@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <cstring>
-#include "async_preference/async_preference.hpp"
+#include "lib/async_preference.hpp"
 
 // Mock class for IAsyncPreferenceKV
 class MockAsyncPreferenceKV : public IAsyncPreferenceKV {

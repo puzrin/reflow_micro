@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "ring_logger/ring_logger_packer.hpp"
+#include "lib/ring_logger/ring_logger_packer.hpp"
 
 using namespace ring_logger;
 
@@ -46,7 +46,7 @@ TEST(PackerTest, PackUnpackString) {
     const char* foo_str = "foo";
     TestPacker::PackedData packedData = {};
     std::memset(packedData.data, '=', BUFFER_SIZE);
-    
+
     // Using both pointer and literal for strings
     packedData = TestPacker::pack("", foo_str);
 

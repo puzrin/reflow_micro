@@ -1,6 +1,6 @@
 #include "logger.hpp"
 #include "rpc/rpc.hpp"
-#include "async_preference/prefs.hpp"
+#include "components/prefs.hpp"
 #include "app.hpp"
 
 void setup() {

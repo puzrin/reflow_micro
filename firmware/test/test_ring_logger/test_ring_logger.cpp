@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "ring_logger/ring_logger.hpp"
+#include "lib/ring_logger/ring_logger.hpp"
 
 // Define test labels
 constexpr const char foo_label[] = "foo";
