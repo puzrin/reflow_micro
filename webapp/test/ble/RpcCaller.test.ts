@@ -4,8 +4,8 @@ import { RpcCaller } from '../../src/lib/ble/RpcCaller';
 import { type BinaryTransport } from '../../src/lib/ble/BleClientChunker';
 import { encode } from '@msgpack/msgpack';
 
-function s2msgp(str: string): Uint8Array {
-    return encode(str);
+function json2msgp(str: string): Uint8Array {
+    return encode(JSON.parse(str));
 }
 
 class MockTransport implements BinaryTransport {
@@ -31,7 +31,7 @@ class MockTransport implements BinaryTransport {
 }
 
 test('RpcCaller should correctly send a request and receive a successful response', async () => {
-    const mockResponse = s2msgp('{ "ok": true, "result": 42 }');
+    const mockResponse = json2msgp('{ "ok": true, "result": 42 }');
     const transport = new MockTransport([mockResponse]);
     const rpcClient = new RpcCaller(transport);
 
@@ -41,7 +41,7 @@ test('RpcCaller should correctly send a request and receive a successful respons
 });
 
 test('RpcCaller should throw an error when the response contains an error', async () => {
-    const mockResponse = s2msgp('{ "ok": false, "result": "Error message" }');
+    const mockResponse = json2msgp('{ "ok": false, "result": "Error message" }');
     const transport = new MockTransport([mockResponse]);
     const rpcClient = new RpcCaller(transport);
 
@@ -54,7 +54,7 @@ test('RpcCaller should throw an error when the response contains an error', asyn
 });
 
 test('RpcCaller should correctly handle different argument types', async () => {
-    const mockResponse = s2msgp('{ "ok": true, "result": "success" }');
+    const mockResponse = json2msgp('{ "ok": true, "result": "success" }');
     const transport = new MockTransport([mockResponse]);
     const rpcClient = new RpcCaller(transport);
 
@@ -65,11 +65,11 @@ test('RpcCaller should correctly handle different argument types', async () => {
     // Check the sent data
     const writes = transport.getWrites();
     assert.strictEqual(writes.length, 1);
-    assert.deepStrictEqual(writes[0], s2msgp('{"method":"anotherMethod","args":[true,123,"test"]}'));
+    assert.deepStrictEqual(writes[0], json2msgp('{"method":"anotherMethod","args":[true,123,"test"]}'));
 });
 
 test('RpcCaller should handle empty argument list', async () => {
-    const mockResponse = s2msgp('{ "ok": true, "result": "empty" }');
+    const mockResponse = json2msgp('{ "ok": true, "result": "empty" }');
     const transport = new MockTransport([mockResponse]);
     const rpcClient = new RpcCaller(transport);
 
@@ -80,11 +80,11 @@ test('RpcCaller should handle empty argument list', async () => {
     // Check the sent data
     const writes = transport.getWrites();
     assert.strictEqual(writes.length, 1);
-    assert.deepStrictEqual(writes[0], s2msgp('{"method":"methodWithoutArgs","args":[]}'));
+    assert.deepStrictEqual(writes[0], json2msgp('{"method":"methodWithoutArgs","args":[]}'));
 });
 
 test('RpcCaller should handle unicode characters correctly', async () => {
-    const mockResponse = s2msgp('{ "ok": true, "result": "успех" }');
+    const mockResponse = json2msgp('{ "ok": true, "result": "успех" }');
     const transport = new MockTransport([mockResponse]);
     const rpcClient = new RpcCaller(transport);
 
@@ -95,5 +95,5 @@ test('RpcCaller should handle unicode characters correctly', async () => {
     // Check the sent data
     const writes = transport.getWrites();
     assert.strictEqual(writes.length, 1);
-    assert.deepStrictEqual(writes[0], s2msgp('{"method":"unicodeMethod","args":["тест"]}'));
+    assert.deepStrictEqual(writes[0], json2msgp('{"method":"unicodeMethod","args":["тест"]}'));
 });
