@@ -60,7 +60,8 @@ export const profiles_default: ProfilesData = {
       id: 6,
       name: 'Paint bake',
       segments: [
-        { target: 180, duration: 4500 }
+        { target: 180, duration: 6600 },
+        { target: 250, duration: 86400 }
       ]
     }
   ]
