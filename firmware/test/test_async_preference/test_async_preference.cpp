@@ -147,6 +147,64 @@ TEST(AsyncPreferenceTest, BufferLikeCopyable_Vector) {
     EXPECT_EQ(pref3.get(), data);
 }
 
+// Map of trivially copyable values
+TEST(AsyncPreferenceTest, Map_TriviallyCopyableValues) {
+    MockAsyncPreferenceKV kv;
+    AsyncPreferenceWriter pWriter;
+
+    AsyncPreferenceMap<int32_t> map(&pWriter, kv, "ns", "key", -1);
+
+    // Should use default when item not exists
+    EXPECT_EQ(map[5], -1);
+
+    // Should store value
+    map[5] = 123;
+    pWriter.tick();
+    EXPECT_EQ(kv.length("ns", "key_5"), sizeof(int32_t));
+
+    // Should load from store
+    AsyncPreferenceMap<int32_t> map2(nullptr, kv, "ns", "key", -1);
+    EXPECT_EQ(map2[5], 123);
+    EXPECT_EQ(map2[6], -1);  // Other indices still return default
+}
+
+// Map of string values
+TEST(AsyncPreferenceTest, Map_StringValues) {
+    MockAsyncPreferenceKV kv;
+    AsyncPreferenceWriter pWriter;
+
+    AsyncPreferenceMap<std::string> map(&pWriter, kv, "ns", "key", "default");
+    map[1] = "hello";
+    map[42] = "world";
+    pWriter.tick();
+
+    AsyncPreferenceMap<std::string> map2(nullptr, kv, "ns", "key", "default");
+    EXPECT_EQ(map2[1], "hello");
+    EXPECT_EQ(map2[42], "world");
+    EXPECT_EQ(map2[2], "default");
+}
+
+// Map of vector values
+TEST(AsyncPreferenceTest, Map_VectorValues) {
+    MockAsyncPreferenceKV kv;
+    AsyncPreferenceWriter pWriter;
+
+    std::vector<int32_t> v1 = {1000, 1001, 10002};
+    std::vector<int32_t> v2 = {2010, 2011};
+    std::vector<int32_t> v_default = {-1, -2};
+
+    AsyncPreferenceMap<std::vector<int32_t>> map(&pWriter, kv, "ns", "key", v_default);
+    map[1] = v1;
+    map[42] = v2;
+    pWriter.tick();
+
+    AsyncPreferenceMap<std::vector<int32_t>> map2(nullptr, kv, "ns", "key", v_default);
+    EXPECT_EQ(map2[1], v1);
+    EXPECT_EQ(map2[42], v2);
+    EXPECT_EQ(map2[2], v_default);
+}
+
+
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

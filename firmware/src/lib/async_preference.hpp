@@ -4,6 +4,7 @@
 #include <string>
 #include <atomic>
 #include <vector>
+#include <map>
 #include <type_traits>
 #include "data_guard.hpp"
 
@@ -191,4 +192,55 @@ private:
 
         is_preloaded = true;
     }
+};
+
+template<typename T>
+class AsyncPreferenceMap {
+public:
+    AsyncPreferenceMap(AsyncPreferenceWriter* writer, IAsyncPreferenceKV& kv,
+                        const std::string& ns, const std::string& key,
+                        T default_value = T())
+        : writer(writer)
+        , kv(kv)
+        , ns(ns)
+        , key(key)
+        , default_value(default_value)
+    {}
+
+    class PreferenceProxy {
+    public:
+        PreferenceProxy(AsyncPreference<T>* pref) : pref(pref) {}
+        operator T&() { return pref->get(); }
+        operator const T&() const { return pref->get(); }
+
+        PreferenceProxy& operator=(const T& value) { pref->set(value); return *this; }
+
+        bool operator==(const T& other) const { return pref->get() == other; }
+        friend bool operator==(const T& value, const PreferenceProxy& proxy) { return proxy == value; }
+
+    private:
+        AsyncPreference<T>* pref;
+    };
+
+    PreferenceProxy operator[](size_t idx) {
+        auto it = items.find(idx);
+        if (it == items.end()) {
+            auto pref = new AsyncPreference<T>(
+                writer, kv, ns,
+                key + "_" + std::to_string(idx),
+                default_value
+            );
+            items[idx] = pref;
+            return PreferenceProxy(pref);
+        }
+        return PreferenceProxy(it->second);
+    }
+
+private:
+    std::map<size_t, AsyncPreference<T>*> items;
+    AsyncPreferenceWriter* writer;
+    IAsyncPreferenceKV& kv;
+    std::string ns;
+    std::string key;
+    T default_value;
 };
