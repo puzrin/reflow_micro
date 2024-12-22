@@ -15,6 +15,8 @@ import { DEFAULT_PROFILES_DATA_PB, DEFAULT_HEATER_PARAMS_PB } from '@/proto/gene
 export const TICK_PERIOD_MS = 100
 
 export class VirtualBackend implements IBackend {
+  static id: string = 'virtual' as const
+
   private device: Device
   heater: Heater
 
@@ -187,7 +189,7 @@ export class VirtualBackend implements IBackend {
       version: this.remote_history_version,
       data: this.remote_history.get_data_after(after).slice(0, Constants.MAX_HISTORY_CHUNK)
     }
-}
+  }
 
   async run_reflow() {
     if (this.state !== DeviceState.Idle) throw new Error('Cannot start profile, device busy')
@@ -236,7 +238,7 @@ export class VirtualBackend implements IBackend {
     this.reset_remote_history(Constants.HISTORY_ID_STEP_RESPONSE)
     this.state = DeviceState.StepResponse
     this.task_iterator = task_step_response(this, watts)
-}
+  }
 
   async set_sensor_calibration_point(point_id: (0 | 1), temperature: number) {
     // This is not required since we always use pre-defined values. Left to pass types check.

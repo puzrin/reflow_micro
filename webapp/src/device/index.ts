@@ -1,5 +1,6 @@
 import { ref, type App, type Ref, toValue } from "vue"
 import { VirtualBackend } from "./virtual_backend"
+import { BleBackend } from "./ble_backend"
 import { useProfilesStore } from '@/stores/profiles'
 import { ProfilesData, Point, AdrcParams, SensorParams, DeviceStatus } from '@/proto/generated/types'
 import { SparseHistory } from './sparse_history'
@@ -48,6 +49,11 @@ export class Device {
   private backend_id: string = ''
   private unsubscribeProfilesStore: (() => void) | null = null
 
+  private available_backends = {
+    [VirtualBackend.id]: new VirtualBackend(this),
+    [BleBackend.id]: new BleBackend(this)
+  }
+
   constructor() {
     setInterval(async () => {
       try {
@@ -86,15 +92,15 @@ export class Device {
 
   // Control
   // id: computed(() => driverKey.value);
-  async selectBackend(id: BackendKey) {
+  async selectBackend(id: typeof VirtualBackend.id | typeof BleBackend.id) {
     // Don't reselect the same backend
     if (this.backend_id === id) return;
     // Detach old one if exists
     if (this.backend) await this.backend.detach();
 
     // Attach new one
-    this.is_virtual.value = id === 'virtual';
-    this.backend = backends[id];
+    this.is_virtual.value = id === VirtualBackend.id;
+    this.backend = this.available_backends[id];
     this.backend_id = id;
     await this.backend.attach();
   };
@@ -117,12 +123,6 @@ export class Device {
 }
 
 const device = new Device()
-
-const backends = {
-  virtual: new VirtualBackend(device)
-}
-
-type BackendKey = keyof typeof backends
 
 export default {
   install: (app: App) => {

@@ -9,7 +9,7 @@ interface AuthInfo {
     pairable: boolean;
 }
 
-type BleEvent = 'disconnected' | 'connected' | 'ready' | 'need_pairing';
+type BleEvent = 'disconnected' | 'connected' | 'ready' | 'need_pairing' | 'status_changed';
 
 export class BleRpcClient {
     private device: BluetoothDevice | null = null;
@@ -105,6 +105,7 @@ export class BleRpcClient {
                         this.lastAuthenticatedTime = 0;
 
                         this.emitter.emit('connected');
+                        this.emitter.emit('status_changed');
                     }
                 } catch (error) {
                     this.log_error('Error:', error);
@@ -121,9 +122,11 @@ export class BleRpcClient {
                         this.isAuthenticatedFlag = true;
                         this.needPairingFlag = false;
                         this.emitter.emit('ready');
+                        this.emitter.emit('status_changed');
                     } else {
                         this.needPairingFlag = true;
                         this.emitter.emit('need_pairing');
+                        this.emitter.emit('status_changed');
                     }
                 } catch (error) {
                     this.log_error('Error:', error);
@@ -218,6 +221,7 @@ export class BleRpcClient {
         this.log('Disconnected from GATT server.');
         this.cleanup();
         this.emitter.emit('disconnected');
+        this.emitter.emit('status_changed');
     }
 
     private delay(ms: number): Promise<void> {
