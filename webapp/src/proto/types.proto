@@ -90,8 +90,3 @@ message SensorParams {
   float p1_temperature = 3;
   float p1_value = 4;
 }
-
-message HeaterParams {
-  AdrcParams adrc = 1;
-  SensorParams sensor = 2;
-}

@@ -1,6 +1,6 @@
 // Used to generate protobuf data binaries. Don't use directly.
 
-import { ProfilesData, HeaterParams } from './generated/types'
+import { ProfilesData, AdrcParams, SensorParams } from './generated/types'
 
 // https://www.compuphase.com/electronics/reflowsolderprofiles.htm
 
@@ -67,17 +67,16 @@ export const profiles_default: ProfilesData = {
   ]
 }
 
-export const heater_default: HeaterParams = {
-  adrc: {
-    response: 132,
-    b0: 0.0202,
-    N: 50,
-    M: 3
-  },
-  sensor: {
-    p0_temperature: -1000,
-    p0_value: 0,
-    p1_temperature: -1000,
-    p1_value: 0
-  }
+export const adrc_default: AdrcParams = {
+  response: 132,
+  b0: 0.0202,
+  N: 50,
+  M: 3
+}
+
+export const sensor_default: SensorParams = {
+  p0_temperature: -1000,
+  p0_value: 0,
+  p1_temperature: -1000,
+  p1_value: 0
 }

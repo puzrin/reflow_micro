@@ -30,9 +30,6 @@ PB_BIND(AdrcParams, AdrcParams, AUTO)
 PB_BIND(SensorParams, SensorParams, AUTO)
 
 
-PB_BIND(HeaterParams, HeaterParams, AUTO)
-
-
 
 
 

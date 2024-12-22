@@ -205,11 +205,6 @@ export interface SensorParams {
   p1_value: number;
 }
 
-export interface HeaterParams {
-  adrc: AdrcParams | undefined;
-  sensor: SensorParams | undefined;
-}
-
 function createBaseDeviceStatus(): DeviceStatus {
   return {
     state: 0,
@@ -1032,86 +1027,6 @@ export const SensorParams: MessageFns<SensorParams> = {
     message.p0_value = object.p0_value ?? 0;
     message.p1_temperature = object.p1_temperature ?? 0;
     message.p1_value = object.p1_value ?? 0;
-    return message;
-  },
-};
-
-function createBaseHeaterParams(): HeaterParams {
-  return { adrc: undefined, sensor: undefined };
-}
-
-export const HeaterParams: MessageFns<HeaterParams> = {
-  encode(message: HeaterParams, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.adrc !== undefined) {
-      AdrcParams.encode(message.adrc, writer.uint32(10).fork()).join();
-    }
-    if (message.sensor !== undefined) {
-      SensorParams.encode(message.sensor, writer.uint32(18).fork()).join();
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): HeaterParams {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseHeaterParams();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.adrc = AdrcParams.decode(reader, reader.uint32());
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.sensor = SensorParams.decode(reader, reader.uint32());
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): HeaterParams {
-    return {
-      adrc: isSet(object.adrc) ? AdrcParams.fromJSON(object.adrc) : undefined,
-      sensor: isSet(object.sensor) ? SensorParams.fromJSON(object.sensor) : undefined,
-    };
-  },
-
-  toJSON(message: HeaterParams): unknown {
-    const obj: any = {};
-    if (message.adrc !== undefined) {
-      obj.adrc = AdrcParams.toJSON(message.adrc);
-    }
-    if (message.sensor !== undefined) {
-      obj.sensor = SensorParams.toJSON(message.sensor);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<HeaterParams>, I>>(base?: I): HeaterParams {
-    return HeaterParams.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<HeaterParams>, I>>(object: I): HeaterParams {
-    const message = createBaseHeaterParams();
-    message.adrc = (object.adrc !== undefined && object.adrc !== null)
-      ? AdrcParams.fromPartial(object.adrc)
-      : undefined;
-    message.sensor = (object.sensor !== undefined && object.sensor !== null)
-      ? SensorParams.fromPartial(object.sensor)
-      : undefined;
     return message;
   },
 };
