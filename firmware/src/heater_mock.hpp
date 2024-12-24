@@ -3,6 +3,7 @@
 #include <vector>
 #include <atomic>
 #include "lib/adrc.hpp"
+#include "components/heater_base.hpp"
 
 class ChargerMock {
 public:
@@ -28,8 +29,16 @@ private:
     std::vector<Profile> profiles;
 };
 
-class HeaterMock {
+class HeaterMock: public HeaterBase {
 private:
+    std::atomic<float> temperature;
+
+    void validate_calibration_points();
+    float calculate_resistance(float temp) const;
+    float calculate_heat_capacity() const;
+    float calculate_heat_transfer_coefficient() const;
+    float get_room_temp() const;
+
     struct Size { float x, y, z; };
     struct CalibrationPoint { float T, R, W; };
 
@@ -39,41 +48,26 @@ private:
     std::vector<CalibrationPoint> calibration_points;
     ChargerMock profiles;
 
-    std::atomic<float> temperature;
-    std::atomic<float> power_setpoint;
-    std::atomic<float> temperature_setpoint;
-
-    ADRC adrc;
-    std::atomic<bool> temperature_control_flag;
-
-    void validate_calibration_points();
-    float calculate_resistance(float temp) const;
-    float calculate_heat_capacity() const;
-    float calculate_heat_transfer_coefficient() const;
-
 public:
     HeaterMock();
 
+    float get_temperature() override { return temperature; }
+    float get_resistance() override { return calculate_resistance(temperature); }
+    float get_max_power() override { return profiles.get_power(get_resistance()); }
+    float get_power() override { return std::min(get_max_power(), power_setpoint.load(std::memory_order_relaxed)); }
+    float get_volts() override { return std::sqrt(get_power() * get_resistance()); }
+    float get_amperes() override {
+        float r = get_resistance();
+        return r > 0 ? std::sqrt(get_power() / r) : 0;
+    }
+
+    void iterate(float dt) override;
+    bool set_sensor_calibration_point(uint32_t point_id, float temperature) override;
+
+    // Mock-related methods
     HeaterMock& calibrate_TR(float T, float R);
     HeaterMock& calibrate_TWV(float T, float W, float V);
     HeaterMock& scale_r_to(float new_base);
     HeaterMock& reset();
     HeaterMock& set_size(float x, float y, float z);
-
-    float get_temperature() const { return temperature; }
-    float get_room_temp() const;
-    float get_resistance() const { return calculate_resistance(temperature); }
-    float get_max_power() const;
-    float get_power() const { return std::min(get_max_power(), power_setpoint.load(std::memory_order_relaxed)); }
-    float get_volts() const { return std::sqrt(get_power() * get_resistance()); }
-    float get_amperes() const {
-        float r = get_resistance();
-        return r > 0 ? std::sqrt(get_power() / r) : 0;
-    }
-
-    void set_power(float power) { power_setpoint = (power < 0 ? 0 : power); }
-    void set_temperature(float temp) { temperature_setpoint = temp; }
-    void iterate(float dt);
-    void temperature_control_on();
-    void temperature_control_off();
 };

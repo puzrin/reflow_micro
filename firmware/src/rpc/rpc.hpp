@@ -4,7 +4,7 @@
 
 extern MsgpackRpcDispatcher rpc;
 
-void rpc_init();
+void rpc_start();
 
 void pairing_enable();
 void pairing_disable();

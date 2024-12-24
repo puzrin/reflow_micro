@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <cmath>
 #include "heater_mock.hpp"
+#include "proto/generated/defaults.hpp"
 
 ChargerMock& ChargerMock::add(const Profile& profile) {
     profiles.push_back(profile);
@@ -59,11 +60,8 @@ static ChargerMock make_charger_140w_with_pps() {
 }
 
 HeaterMock::HeaterMock()
-    : size{0.08f, 0.07f, 0.0038f}
-    , temperature{25.0f}
-    , power_setpoint{0}
-    , temperature_setpoint{25.0f}
-    , temperature_control_flag{false}
+    : temperature{25.0f}
+    , size{0.08f, 0.07f, 0.0038f}
 {
     profiles = make_charger_140w_with_pps();
 
@@ -145,10 +143,6 @@ float HeaterMock::get_room_temp() const {
     return it != calibration_points.end() ? it->T : 25.0f;
 }
 
-float HeaterMock::get_max_power() const {
-    return profiles.get_power(get_resistance());
-}
-
 HeaterMock& HeaterMock::scale_r_to(float new_base) {
     if (calibration_points.empty()) {
         throw std::runtime_error("No calibration points to scale");
@@ -195,19 +189,21 @@ void HeaterMock::iterate(float dt) {
 
     temperature = curr_temp + temp_change;
 
-    if (temperature_control_flag) {
-        float power = adrc.iterate(curr_temp, temperature_setpoint, get_max_power(), dt);
-        set_power(power);
+    HeaterBase::iterate(dt);
+}
+
+bool HeaterMock::set_sensor_calibration_point(uint32_t point_id, float temperature) {
+    if (!is_hotplate_connected()) return false;
+
+    auto sensor_params = get_sensor_params();
+
+    if (point_id == 0) {
+        sensor_params.p0_temperature = temperature;
+    } else if (point_id == 1) {
+        sensor_params.p1_temperature = temperature;
+    } else {
+        return false;
     }
-}
 
-void HeaterMock::temperature_control_on() {
-    adrc.reset_to(temperature);
-    temperature_control_flag = true;
-}
-
-void HeaterMock::temperature_control_off() {
-    temperature_control_flag = false;
-    set_power(0);
-    set_temperature(get_room_temp());
+    return set_sensor_params(sensor_params);
 }

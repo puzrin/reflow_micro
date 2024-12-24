@@ -8,6 +8,7 @@
 #include "ble_auth_store.hpp"
 #include "auth_utils.hpp"
 #include "app.hpp"
+#include "api.hpp"
 
 MsgpackRpcDispatcher rpc;
 MsgpackRpcDispatcher auth_rpc;
@@ -275,10 +276,11 @@ std::string pair(const std::string str_client_id) {
 void pairing_enable() { pairing_enabled_flag = true; }
 void pairing_disable() { pairing_enabled_flag = false; }
 
-void rpc_init() {
+void rpc_start() {
     auth_rpc.addMethod("auth_info", auth_info);
     auth_rpc.addMethod("authenticate", authenticate);
     auth_rpc.addMethod("pair", pair);
 
+    api_methods_create();
     ble_init();
 }

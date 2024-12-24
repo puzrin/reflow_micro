@@ -18,7 +18,7 @@ void setup() {
         return result;
     });
 
-    rpc_init();
+    rpc_start();
 }
 
 void loop() {}
