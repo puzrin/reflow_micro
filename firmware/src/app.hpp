@@ -6,27 +6,34 @@
 #include "components/button.hpp"
 #include "components/blinker.hpp"
 
-struct AppEventId {
-    enum Enum {
-        START,
+namespace AppCmd {
+
+namespace _id {
+    enum {
         STOP,
-        BOND_ON,
+        REFLOW,
+        SENSOR_BAKE,
+        ADRC_TEST,
+        STEP_RESPONSE,
         BOND_OFF,
-        BUTTON_ACTION,
+        BUTTON
     };
-};
+}
 
-class Start : public etl::message<AppEventId::START> {};
-class Stop : public etl::message<AppEventId::STOP> {};
-class BondOn : public etl::message<AppEventId::BOND_ON> {};
-class BondOff : public etl::message<AppEventId::BOND_OFF> {};
+class Stop : public etl::message<_id::STOP> {};
+class Reflow : public etl::message<_id::REFLOW> {};
+class SensorBake : public etl::message<_id::SENSOR_BAKE> {};
+class AdrcTest : public etl::message<_id::ADRC_TEST> {};
+class StepResponse : public etl::message<_id::STEP_RESPONSE> {};
+class BondOff : public etl::message<_id::BOND_OFF> {};
 
-class ButtonAction : public etl::message<AppEventId::BUTTON_ACTION> {
+class Button : public etl::message<_id::BUTTON> {
 public:
-    ButtonAction(ButtonEventId type) : type(type) {}
+    Button(ButtonEventId type) : type(type) {}
     ButtonEventId type;
 };
 
+} // namespace AppCmd
 
 class App : public etl::fsm {
 public:
@@ -49,7 +56,7 @@ public:
 private:
     SemaphoreHandle_t mutex = nullptr;
     Button<ButtonDriver> button;
-    void handleButton(ButtonEventId event) { safe_receive(ButtonAction(event)); }
+    void handleButton(ButtonEventId event) { safe_receive(AppCmd::Button(event)); }
 };
 
 extern App app;

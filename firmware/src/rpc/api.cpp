@@ -44,28 +44,28 @@ bool save_profiles_data(std::vector<uint8_t> pb_data) {
 }
 
 bool stop() {
-    // TODO
-    return true;
+    app.safe_receive(AppCmd::Stop());
+    return app.get_state_id() == DeviceState_Idle;
 }
 
 bool run_reflow() {
-    // TODO
-    return true;
+    app.safe_receive(AppCmd::Reflow());
+    return app.get_state_id() == DeviceState_Reflow;
 }
 
 bool run_sensor_bake() {
-    // TODO
-    return true;
+    app.safe_receive(AppCmd::SensorBake());
+    return app.get_state_id() == DeviceState_SensorBake;
 }
 
 bool run_adrc_test() {
-    // TODO
-    return true;
+    app.safe_receive(AppCmd::AdrcTest());
+    return app.get_state_id() == DeviceState_AdrcTest;
 }
 
 bool run_step_response() {
-    // TODO
-    return true;
+    app.safe_receive(AppCmd::StepResponse());
+    return app.get_state_id() == DeviceState_StepResponse;
 }
 
 bool set_sensor_calibration_point(uint32_t point_id, float temperature) {
