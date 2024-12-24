@@ -1,11 +1,14 @@
 syntax = "proto3";
 
 enum Constants {
+  option allow_alias = true;
+
   CONSTANT_UNSPECIFIED = 0;
   // Initial temperature for all profiles
   START_TEMPERATURE = 30;
   // Static sizes for repeated/maps
   MAX_REFLOW_PROFILES = 10;
+  MAX_REFLOW_SEGMENTS = 10;
   MAX_HISTORY_CHUNK = 100;
   // History IDs for tasks (selected to not conflict with profile IDs)
   HISTORY_ID_SENSOR_BAKE_MODE = 4000;
@@ -14,12 +17,14 @@ enum Constants {
 }
 
 enum DeviceState {
-  DEVICE_STATE_UNSPECIFIED = 0;
+  Init = 0;
   Idle = 1;
   Reflow = 2;
   SensorBake = 3;
   AdrcTest = 4;
   StepResponse = 5;
+  Bonding = 6;
+  NumberOfStates = 7;
 }
 
 message DeviceStatus {

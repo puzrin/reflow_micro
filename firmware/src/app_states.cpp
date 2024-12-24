@@ -2,6 +2,7 @@
 #include "rpc/rpc.hpp"
 #include "blink_signals.hpp"
 #include "logger.hpp"
+#include "proto/generated/types.pb.h"
 
 namespace {
 
@@ -144,8 +145,26 @@ etl::ifsm_state* stateList[AppStateId::NUMBER_OF_STATES] = {
     &bonding
 };
 
+constexpr bool check_device_state_sequential() {
+    size_t i = 0;
+    for(auto state : {
+        DeviceState_Init,
+        DeviceState_Idle,
+        DeviceState_Reflow,
+        DeviceState_SensorBake,
+        DeviceState_AdrcTest,
+        DeviceState_StepResponse,
+        DeviceState_Bonding,
+        DeviceState_NumberOfStates
+    }) {
+        if(static_cast<int>(state) != i++) return false;
+    }
+    return true;
+}
+
 }
 
 void app_setup_states(App& app) {
+    static_assert(check_device_state_sequential(), "DeviceState values must be sequential starting from 0");
     app.set_states(stateList, AppStateId::NUMBER_OF_STATES);
 }

@@ -1,3 +1,4 @@
+Constants long_names:false
 ProfilesData.items max_count:10
 Profile.segments max_count:10
 Profile.name max_length:50

@@ -15,6 +15,7 @@ export enum Constants {
   START_TEMPERATURE = 30,
   /** MAX_REFLOW_PROFILES - Static sizes for repeated/maps */
   MAX_REFLOW_PROFILES = 10,
+  MAX_REFLOW_SEGMENTS = 10,
   MAX_HISTORY_CHUNK = 100,
   /** HISTORY_ID_SENSOR_BAKE_MODE - History IDs for tasks (selected to not conflict with profile IDs) */
   HISTORY_ID_SENSOR_BAKE_MODE = 4000,
@@ -34,6 +35,9 @@ export function constantsFromJSON(object: any): Constants {
     case 10:
     case "MAX_REFLOW_PROFILES":
       return Constants.MAX_REFLOW_PROFILES;
+    case 10:
+    case "MAX_REFLOW_SEGMENTS":
+      return Constants.MAX_REFLOW_SEGMENTS;
     case 100:
     case "MAX_HISTORY_CHUNK":
       return Constants.MAX_HISTORY_CHUNK;
@@ -61,6 +65,8 @@ export function constantsToJSON(object: Constants): string {
       return "START_TEMPERATURE";
     case Constants.MAX_REFLOW_PROFILES:
       return "MAX_REFLOW_PROFILES";
+    case Constants.MAX_REFLOW_SEGMENTS:
+      return "MAX_REFLOW_SEGMENTS";
     case Constants.MAX_HISTORY_CHUNK:
       return "MAX_HISTORY_CHUNK";
     case Constants.HISTORY_ID_SENSOR_BAKE_MODE:
@@ -76,20 +82,22 @@ export function constantsToJSON(object: Constants): string {
 }
 
 export enum DeviceState {
-  DEVICE_STATE_UNSPECIFIED = 0,
+  Init = 0,
   Idle = 1,
   Reflow = 2,
   SensorBake = 3,
   AdrcTest = 4,
   StepResponse = 5,
+  Bonding = 6,
+  NumberOfStates = 7,
   UNRECOGNIZED = -1,
 }
 
 export function deviceStateFromJSON(object: any): DeviceState {
   switch (object) {
     case 0:
-    case "DEVICE_STATE_UNSPECIFIED":
-      return DeviceState.DEVICE_STATE_UNSPECIFIED;
+    case "Init":
+      return DeviceState.Init;
     case 1:
     case "Idle":
       return DeviceState.Idle;
@@ -105,6 +113,12 @@ export function deviceStateFromJSON(object: any): DeviceState {
     case 5:
     case "StepResponse":
       return DeviceState.StepResponse;
+    case 6:
+    case "Bonding":
+      return DeviceState.Bonding;
+    case 7:
+    case "NumberOfStates":
+      return DeviceState.NumberOfStates;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -114,8 +128,8 @@ export function deviceStateFromJSON(object: any): DeviceState {
 
 export function deviceStateToJSON(object: DeviceState): string {
   switch (object) {
-    case DeviceState.DEVICE_STATE_UNSPECIFIED:
-      return "DEVICE_STATE_UNSPECIFIED";
+    case DeviceState.Init:
+      return "Init";
     case DeviceState.Idle:
       return "Idle";
     case DeviceState.Reflow:
@@ -126,6 +140,10 @@ export function deviceStateToJSON(object: DeviceState): string {
       return "AdrcTest";
     case DeviceState.StepResponse:
       return "StepResponse";
+    case DeviceState.Bonding:
+      return "Bonding";
+    case DeviceState.NumberOfStates:
+      return "NumberOfStates";
     case DeviceState.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";

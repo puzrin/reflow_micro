@@ -1,8 +1,8 @@
 /// <reference types="node" />
 
-import { ProfilesData, AdrcParams, SensorParams } from './generated/types'
+import { ProfilesData, AdrcParams, SensorParams, DeviceState } from './generated/types'
 import { profiles_default, adrc_default, sensor_default } from './defaults_src';
-import { writeFileSync} from 'fs'
+import { writeFileSync } from 'fs'
 
 const ts_header = '// Auto-generated file. DO NOT EDIT.'
 const hpp_header = `// Auto-generated file. DO NOT EDIT.
@@ -50,3 +50,10 @@ write_relative('../../../firmware/src/proto/generated/defaults.hpp', [
   to_hpp('DEFAULT_ADRC_PARAMS_PB', AdrcParams.encode(adrc_default).finish()),
   to_hpp('DEFAULT_SENSOR_PARAMS_PB', SensorParams.encode(sensor_default).finish())
 ].join('\n\n') + `\n`)
+
+// Validate DeviceState fields, required for FSM
+const state_values = Object.values(DeviceState).filter(v => typeof v === 'number' && v >= 0);
+if (!state_values.every((v, i) => v === i)) {
+  throw new Error('DeviceState values must be sequential starting from 0');
+}
+
