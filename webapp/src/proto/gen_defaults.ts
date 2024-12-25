@@ -44,9 +44,15 @@ write_relative('./generated/defaults.ts', [
   to_ts('DEFAULT_SENSOR_PARAMS_PB', SensorParams.encode(sensor_default).finish())
 ].join('\n\n') + `\n`)
 
+const profiles_default_unselected = { ...profiles_default, selectedId: -1 }
+
 write_relative('../../../firmware/src/proto/generated/defaults.hpp', [
   hpp_header,
-  to_hpp('DEFAULT_PROFILES_DATA_PB', ProfilesData.encode(profiles_default).finish()),
+  //to_hpp('DEFAULT_PROFILES_DATA_PB', ProfilesData.encode(profiles_default).finish()),
+  // Split into selection & unselected data tp simplify initialization & updates
+  `inline const int32_t DEFAULT_PROFILES_SELECTION = ${profiles_default.selectedId};`,
+  to_hpp('DEFAULT_PROFILES_DATA_UNSELECTED_PB', ProfilesData.encode(profiles_default_unselected).finish()),
+
   to_hpp('DEFAULT_ADRC_PARAMS_PB', AdrcParams.encode(adrc_default).finish()),
   to_hpp('DEFAULT_SENSOR_PARAMS_PB', SensorParams.encode(sensor_default).finish())
 ].join('\n\n') + `\n`)

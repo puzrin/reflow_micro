@@ -5,6 +5,7 @@
 #include "lib/sparse_history.hpp"
 #include "components/button.hpp"
 #include "components/blinker.hpp"
+#include "components/profiles_config.hpp"
 
 namespace AppCmd {
 
@@ -21,10 +22,27 @@ namespace _id {
 }
 
 class Stop : public etl::message<_id::STOP> {};
+
 class Reflow : public etl::message<_id::REFLOW> {};
-class SensorBake : public etl::message<_id::SENSOR_BAKE> {};
-class AdrcTest : public etl::message<_id::ADRC_TEST> {};
-class StepResponse : public etl::message<_id::STEP_RESPONSE> {};
+
+class SensorBake : public etl::message<_id::SENSOR_BAKE> {
+public:
+    SensorBake(float watts) : watts(watts) {}
+    float watts;
+};
+
+class AdrcTest : public etl::message<_id::ADRC_TEST> {
+public:
+    AdrcTest(float temperature) : temperature(temperature) {}
+    float temperature;
+};
+
+class StepResponse : public etl::message<_id::STEP_RESPONSE> {
+public:
+    StepResponse(float watts) : watts(watts) {}
+    float watts;
+};
+
 class BondOff : public etl::message<_id::BOND_OFF> {};
 
 class Button : public etl::message<_id::BUTTON> {
@@ -42,6 +60,7 @@ public:
     HeaterMock heater;
     SparseHistory history;
     Blinker<LedDriver> blinker;
+    ProfilesConfig profilesConfig;
 
     void LogUnknownEvent(const etl::imessage& msg);
     void setup();

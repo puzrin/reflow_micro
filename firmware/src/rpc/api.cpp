@@ -20,26 +20,26 @@ std::vector<uint8_t> get_status() {
         .duty_cycle = app.heater.get_duty_cycle()
     };
 
-    uint8_t buffer[DeviceStatus_size];
-    pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+    std::vector<uint8_t> buffer(DeviceStatus_size);
+    pb_ostream_t stream = pb_ostream_from_buffer(buffer.data(), buffer.size());
 
     pb_encode(&stream, DeviceStatus_fields, &status);
+    buffer.resize(stream.bytes_written);
 
-    return std::vector<uint8_t>(buffer, buffer + stream.bytes_written);
+    return buffer;
 }
 
-std::vector<uint8_t> get_history_chunk() {
+std::vector<uint8_t> get_history_chunk(float from) {
     // TODO
     return {};
 }
 
 std::vector<uint8_t> get_profiles_data() {
-    // TODO
-    return {};
+    return app.profilesConfig.get_profiles_pb();
 }
 
 bool save_profiles_data(std::vector<uint8_t> pb_data) {
-    // TODO
+    app.profilesConfig.set_profiles_pb(pb_data);
     return true;
 }
 
@@ -53,18 +53,18 @@ bool run_reflow() {
     return app.get_state_id() == DeviceState_Reflow;
 }
 
-bool run_sensor_bake() {
-    app.safe_receive(AppCmd::SensorBake());
+bool run_sensor_bake(float watts) {
+    app.safe_receive(AppCmd::SensorBake(watts));
     return app.get_state_id() == DeviceState_SensorBake;
 }
 
-bool run_adrc_test() {
-    app.safe_receive(AppCmd::AdrcTest());
+bool run_adrc_test(float temperature) {
+    app.safe_receive(AppCmd::AdrcTest(temperature));
     return app.get_state_id() == DeviceState_AdrcTest;
 }
 
-bool run_step_response() {
-    app.safe_receive(AppCmd::StepResponse());
+bool run_step_response(float watts) {
+    app.safe_receive(AppCmd::StepResponse(watts));
     return app.get_state_id() == DeviceState_StepResponse;
 }
 
