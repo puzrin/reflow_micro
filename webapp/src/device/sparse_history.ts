@@ -48,11 +48,10 @@ export class SparseHistory {
     return false
   }
 
-  get_data_after(x: number): Point[] {
+  get_data_from(x: number): Point[] {
     for (let i = 0; i < this.data.length; i++) {
-      if (this.data[i].x > x) return this.data.slice(i)
+      if (this.data[i].x >= x) return this.data.slice(i)
     }
     return []
   }
-
 }

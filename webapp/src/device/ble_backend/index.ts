@@ -36,9 +36,9 @@ export class BleBackend implements IBackend {
     if (!this.device.is_ready.value) return
 
     const len = this.device.history.value.length
-    const after = len ? this.device.history.value[len-1].x : -1
+    const from = len ? this.device.history.value[len-1].x : 0
 
-    const pb_history_chunk: Uint8Array = await this.bleRpcClient.invoke('get_history_chunk', this.client_history_version, after) as Uint8Array
+    const pb_history_chunk: Uint8Array = await this.bleRpcClient.invoke('get_history_chunk', this.client_history_version, from) as Uint8Array
     const history_chunk = HistoryChunk.decode(pb_history_chunk)
 
     if (history_chunk.version === this.client_history_version) {

@@ -54,12 +54,20 @@ export class Device {
     [BleBackend.id]: new BleBackend(this)
   }
 
+  private timer_call_in_progress: boolean = false
+
   constructor() {
     setInterval(async () => {
+      if (this.timer_call_in_progress) return
       try {
+        this.timer_call_in_progress = true
         await this.backend?.fetch_status()
         await this.backend?.fetch_history()
-      } catch {}
+      }
+      catch {}
+      finally {
+        this.timer_call_in_progress = false
+      }
     }, 1000)
   }
 

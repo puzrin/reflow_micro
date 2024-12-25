@@ -63,11 +63,9 @@ export class VirtualBackend implements IBackend {
     if (!this.device.is_ready.value) return
 
     const len = this.device.history.value.length
-    const after = len ? this.device.history.value[len-1].x : -1
+    const from = len ? this.device.history.value[len-1].x : 0
 
-    const history_slice = await this.get_history_slice(this.client_history_version, after)
-
-    if (!history_slice) return
+    const history_slice = await this.get_history_slice(this.client_history_version, from)
 
     if (history_slice.version === this.client_history_version) {
       // Merge update
@@ -149,7 +147,7 @@ export class VirtualBackend implements IBackend {
     this.remote_history.reset()
   }
 
-  private async get_history_slice(version: number, after: number): Promise<HistoryChunk> {
+  private async get_history_slice(version: number, from: number): Promise<HistoryChunk> {
     // History outdated => return full new one
     if (this.remote_history_version != version) {
       return {
@@ -162,7 +160,7 @@ export class VirtualBackend implements IBackend {
     return {
       type: this.remote_history_id,
       version: this.remote_history_version,
-      data: this.remote_history.get_data_after(after).slice(0, Constants.MAX_HISTORY_CHUNK)
+      data: this.remote_history.get_data_from(from).slice(0, Constants.MAX_HISTORY_CHUNK)
     }
   }
 
