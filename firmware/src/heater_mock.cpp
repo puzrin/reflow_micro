@@ -179,7 +179,10 @@ HeaterMock& HeaterMock::reset() {
     return *this;
 }
 
-void HeaterMock::iterate(float dt) {
+void HeaterMock::iterate(uint32_t dt_ms) {
+    static constexpr float dt_inv_multiplier = 1.0f / 1000.0f;
+    float dt = dt_ms * dt_inv_multiplier;
+
     float curr_temp = temperature;
     float clamped_power = get_power();
 
@@ -189,7 +192,7 @@ void HeaterMock::iterate(float dt) {
 
     temperature = curr_temp + temp_change;
 
-    HeaterBase::iterate(dt);
+    HeaterBase::iterate(dt_ms);
 }
 
 bool HeaterMock::set_sensor_calibration_point(uint32_t point_id, float temperature) {

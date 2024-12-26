@@ -2,7 +2,6 @@
 
 #include "etl/fsm.h"
 #include "heater_mock.hpp"
-#include "lib/sparse_history.hpp"
 #include "components/button.hpp"
 #include "components/blinker.hpp"
 #include "components/profiles_config.hpp"
@@ -58,7 +57,6 @@ public:
     App();
 
     HeaterMock heater;
-    SparseHistory history;
     Blinker<LedDriver> blinker;
     ProfilesConfig profilesConfig;
 

@@ -29,9 +29,11 @@ std::vector<uint8_t> get_status() {
     return buffer;
 }
 
-std::vector<uint8_t> get_history_chunk(float from) {
-    // TODO
-    return {};
+std::vector<uint8_t> get_history_chunk(int32_t client_history_version, int32_t from) {
+    std::vector<uint8_t> pb_data(HistoryChunk_size);
+
+    app.heater.get_history_pb(client_history_version, from, pb_data);
+    return pb_data;
 }
 
 std::vector<uint8_t> get_profiles_data() {

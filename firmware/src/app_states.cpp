@@ -9,8 +9,7 @@ namespace {
 class Init : public etl::fsm_state<App, Init, DeviceState_Init> {
 public:
     etl::fsm_state_id_t on_enter_state() {
-        DEBUG("Init entered");
-        BLINK_SET_IDLE_BACKGROUND(get_fsm_context().blinker);
+        DEBUG("Init state entered");
         return DeviceState_Idle;
     }
 
@@ -25,14 +24,37 @@ class Idle : public etl::fsm_state<App, Idle, DeviceState_Idle,
     AppCmd::Reflow, AppCmd::SensorBake, AppCmd::AdrcTest, AppCmd::StepResponse, AppCmd::Button> {
 public:
     etl::fsm_state_id_t on_enter_state() {
-        DEBUG("Idle entered");
+        DEBUG("Idle state entered");
         return No_State_Change;
     }
 
-    etl::fsm_state_id_t on_event(const AppCmd::Reflow& event) { return DeviceState_Reflow; }
-    etl::fsm_state_id_t on_event(const AppCmd::SensorBake& event) { return DeviceState_SensorBake; }
-    etl::fsm_state_id_t on_event(const AppCmd::AdrcTest& event) { return DeviceState_AdrcTest; }
-    etl::fsm_state_id_t on_event(const AppCmd::StepResponse& event) { return DeviceState_StepResponse; }
+    etl::fsm_state_id_t on_event(const AppCmd::Reflow& event) {
+        auto& heater = get_fsm_context().heater;
+        if (!heater.is_hotplate_connected()) return No_State_Change;
+
+        return DeviceState_Reflow;
+    }
+    etl::fsm_state_id_t on_event(const AppCmd::SensorBake& event) {
+        auto& heater = get_fsm_context().heater;
+        if (!heater.is_hotplate_connected()) return No_State_Change;
+
+        heater.set_power(event.watts);
+        return DeviceState_SensorBake;
+    }
+    etl::fsm_state_id_t on_event(const AppCmd::AdrcTest& event) {
+        auto& heater = get_fsm_context().heater;
+        if (!heater.is_hotplate_connected()) return No_State_Change;
+
+        heater.set_temperature(event.temperature);
+        return DeviceState_AdrcTest;
+    }
+    etl::fsm_state_id_t on_event(const AppCmd::StepResponse& event) {
+        auto& heater = get_fsm_context().heater;
+        if (!heater.is_hotplate_connected()) return No_State_Change;
+
+        heater.set_power(event.watts);
+        return DeviceState_StepResponse;
+    }
 
     etl::fsm_state_id_t on_event(const AppCmd::Button& event) {
         switch (event.type) {
@@ -68,16 +90,32 @@ public:
 };
 
 
-class Reflow : public etl::fsm_state<App, Reflow, DeviceState_Reflow, AppCmd::Stop> {
+class Reflow : public etl::fsm_state<App, Reflow, DeviceState_Reflow,
+    AppCmd::Stop, AppCmd::Button> {
 public:
     etl::fsm_state_id_t on_enter_state() {
-        // Temporary stub
-        DEBUG("Reflow entered");
-        get_fsm_context().blinker.once({ {0, 200}, {255, 300}, {0, 200} });
-        return DeviceState_Idle;
+        DEBUG("Reflow state entered");
+
+        auto& app = get_fsm_context();
+        auto& heater = app.heater;
+        app.blinker.once({ {0, 200}, {255, 300}, {0, 200} });
+
+        // TODO: add profile loading and temperature generator
+        const int32_t profile = 0;
+        heater.temperature_control_on();
+        heater.task_start(profile);
+        return No_State_Change;
+    }
+
+    void on_exit_state() {
+        get_fsm_context().heater.task_stop();
     }
 
     etl::fsm_state_id_t on_event(const AppCmd::Stop& event) { return DeviceState_Idle; }
+    etl::fsm_state_id_t on_event(const AppCmd::Button& event) {
+        if (event.type == ButtonEventId::BUTTON_PRESSED_1X) return DeviceState_Idle;
+        return No_State_Change;
+    }
 
     etl::fsm_state_id_t on_event_unknown(const etl::imessage& event) {
         get_fsm_context().LogUnknownEvent(event);
@@ -85,15 +123,30 @@ public:
     }
 };
 
-class SensorBake : public etl::fsm_state<App, SensorBake, DeviceState_SensorBake, AppCmd::Stop> {
+class SensorBake : public etl::fsm_state<App, SensorBake, DeviceState_SensorBake,
+    AppCmd::Stop, AppCmd::Button, AppCmd::SensorBake> {
 public:
     etl::fsm_state_id_t on_enter_state() {
-        // Temporary stub
-        DEBUG("SensorBake entered");
-        return DeviceState_Idle;
+        DEBUG("SensorBake state entered");
+
+        auto& heater = get_fsm_context().heater;
+        heater.task_start(HISTORY_ID_SENSOR_BAKE_MODE);
+        return No_State_Change;
+    }
+
+    void on_exit_state() {
+        get_fsm_context().heater.task_stop();
     }
 
     etl::fsm_state_id_t on_event(const AppCmd::Stop& event) { return DeviceState_Idle; }
+    etl::fsm_state_id_t on_event(const AppCmd::Button& event) {
+        if (event.type == ButtonEventId::BUTTON_PRESSED_1X) return DeviceState_Idle;
+        return No_State_Change;
+    }
+    etl::fsm_state_id_t on_event(const AppCmd::SensorBake& event) {
+        get_fsm_context().heater.set_power(event.watts);
+        return No_State_Change;
+    }
 
     etl::fsm_state_id_t on_event_unknown(const etl::imessage& event) {
         get_fsm_context().LogUnknownEvent(event);
@@ -101,15 +154,31 @@ public:
     }
 };
 
-class AdrcTest : public etl::fsm_state<App, AdrcTest, DeviceState_AdrcTest, AppCmd::Stop> {
+class AdrcTest : public etl::fsm_state<App, AdrcTest, DeviceState_AdrcTest,
+    AppCmd::Stop, AppCmd::Button, AppCmd::AdrcTest> {
 public:
     etl::fsm_state_id_t on_enter_state() {
-        // Temporary stub
-        DEBUG("AdrcTest entered");
-        return DeviceState_Idle;
+        DEBUG("AdrcTest state entered");
+
+        auto& heater = get_fsm_context().heater;
+        heater.task_start(HISTORY_ID_ADRC_TEST_MODE);
+        heater.temperature_control_on();
+        return No_State_Change;
+    }
+
+    void on_exit_state() {
+        get_fsm_context().heater.task_stop();
     }
 
     etl::fsm_state_id_t on_event(const AppCmd::Stop& event) { return DeviceState_Idle; }
+    etl::fsm_state_id_t on_event(const AppCmd::Button& event) {
+        if (event.type == ButtonEventId::BUTTON_PRESSED_1X) return DeviceState_Idle;
+        return No_State_Change;
+    }
+    etl::fsm_state_id_t on_event(const AppCmd::AdrcTest& event) {
+        get_fsm_context().heater.set_temperature(event.temperature);
+        return No_State_Change;
+    }
 
     etl::fsm_state_id_t on_event_unknown(const etl::imessage& event) {
         get_fsm_context().LogUnknownEvent(event);
@@ -117,15 +186,26 @@ public:
     }
 };
 
-class StepResponse : public etl::fsm_state<App, StepResponse, DeviceState_StepResponse, AppCmd::Stop> {
+class StepResponse : public etl::fsm_state<App, StepResponse, DeviceState_StepResponse,
+    AppCmd::Stop, AppCmd::Button> {
 public:
     etl::fsm_state_id_t on_enter_state() {
-        // Temporary stub
-        DEBUG("StepResponse entered");
-        return DeviceState_Idle;
+        DEBUG("StepResponse state entered");
+
+        auto& heater = get_fsm_context().heater;
+        heater.task_start(HISTORY_ID_STEP_RESPONSE);
+        return No_State_Change;
+    }
+
+    void on_exit_state() {
+        get_fsm_context().heater.task_stop();
     }
 
     etl::fsm_state_id_t on_event(const AppCmd::Stop& event) { return DeviceState_Idle; }
+    etl::fsm_state_id_t on_event(const AppCmd::Button& event) {
+        if (event.type == ButtonEventId::BUTTON_PRESSED_1X) return DeviceState_Idle;
+        return No_State_Change;
+    }
 
     etl::fsm_state_id_t on_event_unknown(const etl::imessage& event) {
         get_fsm_context().LogUnknownEvent(event);
@@ -139,6 +219,8 @@ public:
     static constexpr uint32_t BONDING_PERIOD_MS = 15*1000;
 
     etl::fsm_state_id_t on_enter_state() {
+        DEBUG("Bonding state entered");
+
         BLINK_BONDING_LOOP(get_fsm_context().blinker);
 
         // Enable bonding for 30 seconds

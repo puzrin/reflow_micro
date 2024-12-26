@@ -1,9 +1,13 @@
 #include <vector>
 #include <atomic>
+#include <functional>
 #include "prefs.hpp"
 #include "proto/generated/types.pb.h"
 #include "proto/generated/defaults.hpp"
 #include "lib/adrc.hpp"
+#include "history.hpp"
+
+using HeaterTaskTickerFn = std::function<void(uint32_t, uint32_t)>;
 
 class HeaterBase {
 private:
@@ -38,6 +42,8 @@ public:
     SensorParams get_sensor_params();
     bool set_sensor_params(const SensorParams& params);
 
+    void get_history_pb(uint32_t client_history_version, int32_t from, std::vector<uint8_t>& pb_data);
+
     virtual void load_all_params();
 
     virtual float get_temperature() = 0;
@@ -53,6 +59,23 @@ public:
     virtual void temperature_control_on();
     virtual void temperature_control_off();
 
-    virtual void iterate(float dt);
+    virtual void iterate(uint32_t dt_ms);
     virtual bool set_sensor_calibration_point(uint32_t point_id, float temperature) = 0;
+
+    // "task" machinery, by default record history.
+
+    void task_start(int32_t task_id, HeaterTaskTickerFn task_ticker = nullptr);
+    void task_stop();
+    void task_tick_common(uint32_t dt_ms);
+
+private:
+    std::atomic<bool> is_task_active = false;
+    HeaterTaskTickerFn task_ticker = nullptr;
+    uint32_t task_time_ms = 0;
+    History history;
+    int32_t history_version = 0;
+    int32_t history_task_id = 0;
+    uint32_t history_last_recorded_ts = 0;
+    static constexpr uint32_t history_y_multiplier = 256;
+    static constexpr float history_y_multiplier_inv = 1.0f / history_y_multiplier;
 };

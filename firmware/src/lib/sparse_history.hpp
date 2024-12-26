@@ -3,34 +3,19 @@
 #include <vector>
 #include <cmath>
 #include <cstdint>
-#include "freertos/FreeRTOS.h"
-#include "freertos/semphr.h"
 
 // TODO: Consider use M4 Aggregate for packing
 
 class SparseHistory {
-private:
-    struct Point { uint32_t x; int32_t y; };
-
 public:
+    struct Point { uint32_t x; int32_t y; };
+    std::vector<Point> data;
+
     SparseHistory() {
-        mutex = xSemaphoreCreateMutex();
-
-        constexpr uint32_t x_mult = 1000;
-        constexpr uint32_t y_mult = 16;
-
-        set_params(x_mult, y_mult, 2 * x_mult, 1 * y_mult, 400 * x_mult);
+        set_params(10, 1, 400);
     }
 
-    ~SparseHistory() {
-        vSemaphoreDelete(mutex);
-    }
-
-    void set_params(uint32_t _x_multiplier, int32_t _y_multiplier,
-                   uint32_t _x_threshold, int32_t _y_threshold,
-                   uint32_t _x_scale_after) {
-        x_multiplier = _x_multiplier;
-        y_multiplier = _y_multiplier;
+    void set_params(uint32_t _x_threshold, int32_t _y_threshold, uint32_t _x_scale_after) {
         x_threshold = _x_threshold;
         y_threshold = _y_threshold;
         x_scale_after = _x_scale_after;
@@ -53,9 +38,8 @@ public:
         unlock();
     }
 
-    void add(uint32_t x, float y) {
-        add(x, static_cast<int32_t>(std::round(y * y_multiplier)));
-    }
+    virtual void lock() {}
+    virtual void unlock() {}
 
 private:
     bool is_last_point_landed() {
@@ -71,16 +55,6 @@ private:
 
         return false;
     }
-
-    void lock() { xSemaphoreTake(mutex, portMAX_DELAY); }
-    void unlock() { xSemaphoreGive(mutex); }
-
-    std::vector<Point> data;
-    SemaphoreHandle_t mutex;
-
-    // Conversion factors from external to internal representation
-    uint32_t x_multiplier;
-    int32_t y_multiplier;
 
     // Thresholds for delta encoding
     uint32_t x_threshold;

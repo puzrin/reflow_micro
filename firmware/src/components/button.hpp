@@ -21,8 +21,6 @@ private:
 template <typename Driver>
 class Button : public ButtonEngine<Driver> {
 private:
-    TimerHandle_t timer;
-
     static void timerCallback(TimerHandle_t timer) {
         Button* self = static_cast<Button*>(pvTimerGetTimerID(timer));
         self->tick(millis());
@@ -30,13 +28,14 @@ private:
 
 public:
     void start() {
-        timer = xTimerCreate(
-            "ButtonTimer",
-            pdMS_TO_TICKS(10),
-            pdTRUE,
-            this,
-            timerCallback
+        xTaskCreate(
+            [](void* params) {
+                auto* self = static_cast<Button*>(params);
+                while (true) {
+                    self->tick(millis());
+                    vTaskDelay(pdMS_TO_TICKS(10));
+                }
+            }, "button", 1024*4, this, 4, nullptr
         );
-        xTimerStart(timer, 0);
     }
 };
