@@ -210,8 +210,9 @@ public:
     class PreferenceProxy {
     public:
         PreferenceProxy(AsyncPreference<T>* pref) : pref(pref) {}
-        operator T&() { return pref->get(); }
-        operator const T&() const { return pref->get(); }
+
+        operator T&() const = delete;
+        operator const T&() { return pref->get(); }
 
         PreferenceProxy& operator=(const T& value) { pref->set(value); return *this; }
 

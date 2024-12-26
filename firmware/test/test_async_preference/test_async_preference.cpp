@@ -166,6 +166,9 @@ TEST(AsyncPreferenceTest, Map_TriviallyCopyableValues) {
     AsyncPreferenceMap<int32_t> map2(nullptr, kv, "ns", "key", -1);
     EXPECT_EQ(map2[5], 123);
     EXPECT_EQ(map2[6], -1);  // Other indices still return default
+
+    const int32_t& const_ref = map2[5];
+    EXPECT_EQ(const_ref, 123);
 }
 
 // Map of string values
@@ -182,6 +185,9 @@ TEST(AsyncPreferenceTest, Map_StringValues) {
     EXPECT_EQ(map2[1], "hello");
     EXPECT_EQ(map2[42], "world");
     EXPECT_EQ(map2[2], "default");
+
+    const std::string& const_ref = map2[42];
+    EXPECT_EQ(const_ref, "world");
 }
 
 // Map of vector values
@@ -202,6 +208,9 @@ TEST(AsyncPreferenceTest, Map_VectorValues) {
     EXPECT_EQ(map2[1], v1);
     EXPECT_EQ(map2[42], v2);
     EXPECT_EQ(map2[2], v_default);
+
+    const std::vector<int32_t>& const_ref = map2[42];
+    EXPECT_EQ(const_ref, v2);
 }
 
 
