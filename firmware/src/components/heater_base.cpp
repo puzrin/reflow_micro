@@ -5,7 +5,7 @@
 #include <algorithm>
 
 std::vector<uint8_t> HeaterBase::get_adrc_params_pb() {
-    if (is_hotplate_connected()) return adrc_params[get_hotplate_id()];
+    if (is_hotplate_connected()) return adrc_params[get_hotplate_id()].get();
 
     // Return default to avoid error/exception
     return std::vector<uint8_t>(std::vector<uint8_t>{std::begin(DEFAULT_ADRC_PARAMS_PB), std::end(DEFAULT_ADRC_PARAMS_PB)});
@@ -14,7 +14,7 @@ std::vector<uint8_t> HeaterBase::get_adrc_params_pb() {
 bool HeaterBase::set_adrc_params_pb(const std::vector<uint8_t> &pb_data) {
     if (!is_hotplate_connected()) return false;
 
-    adrc_params[get_hotplate_id()] = pb_data;
+    adrc_params[get_hotplate_id()].set(pb_data);
     load_all_params(); // Auto-reload all heater params on update
     return true;
 }
@@ -39,7 +39,7 @@ bool HeaterBase::set_adrc_params(const AdrcParams& params) {
 }
 
 std::vector<uint8_t> HeaterBase::get_sensor_params_pb() {
-    if (is_hotplate_connected()) return sensor_params[get_hotplate_id()];
+    if (is_hotplate_connected()) return sensor_params[get_hotplate_id()].get();
 
     // Return default to avoid error/exception
     return std::vector<uint8_t>(std::vector<uint8_t>{std::begin(DEFAULT_SENSOR_PARAMS_PB), std::end(DEFAULT_SENSOR_PARAMS_PB)});
@@ -48,7 +48,7 @@ std::vector<uint8_t> HeaterBase::get_sensor_params_pb() {
 bool HeaterBase::set_sensor_params_pb(const std::vector<uint8_t>& pb_data) {
     if (!is_hotplate_connected()) return false;
 
-    sensor_params[get_hotplate_id()] = pb_data;
+    sensor_params[get_hotplate_id()].set(pb_data);
     load_all_params(); // Auto-reload all heater params on update
     return true;
 }

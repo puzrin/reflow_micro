@@ -155,20 +155,17 @@ TEST(AsyncPreferenceTest, Map_TriviallyCopyableValues) {
     AsyncPreferenceMap<int32_t> map(&pWriter, kv, "ns", "key", -1);
 
     // Should use default when item not exists
-    EXPECT_EQ(map[5], -1);
+    EXPECT_EQ(map[5].get(), -1);
 
     // Should store value
-    map[5] = 123;
+    map[5].set(123);
     pWriter.tick();
     EXPECT_EQ(kv.length("ns", "key_5"), sizeof(int32_t));
 
     // Should load from store
     AsyncPreferenceMap<int32_t> map2(nullptr, kv, "ns", "key", -1);
-    EXPECT_EQ(map2[5], 123);
-    EXPECT_EQ(map2[6], -1);  // Other indices still return default
-
-    const int32_t& const_ref = map2[5];
-    EXPECT_EQ(const_ref, 123);
+    EXPECT_EQ(map2[5].get(), 123);
+    EXPECT_EQ(map2[6].get(), -1);  // Other indices still return default
 }
 
 // Map of string values
@@ -177,17 +174,14 @@ TEST(AsyncPreferenceTest, Map_StringValues) {
     AsyncPreferenceWriter pWriter;
 
     AsyncPreferenceMap<std::string> map(&pWriter, kv, "ns", "key", "default");
-    map[1] = "hello";
-    map[42] = "world";
+    map[1].set("hello");
+    map[42].set("world");
     pWriter.tick();
 
     AsyncPreferenceMap<std::string> map2(nullptr, kv, "ns", "key", "default");
-    EXPECT_EQ(map2[1], "hello");
-    EXPECT_EQ(map2[42], "world");
-    EXPECT_EQ(map2[2], "default");
-
-    const std::string& const_ref = map2[42];
-    EXPECT_EQ(const_ref, "world");
+    EXPECT_EQ(map2[1].get(), "hello");
+    EXPECT_EQ(map2[42].get(), "world");
+    EXPECT_EQ(map2[2].get(), "default");
 }
 
 // Map of vector values
@@ -200,17 +194,14 @@ TEST(AsyncPreferenceTest, Map_VectorValues) {
     std::vector<int32_t> v_default = {-1, -2};
 
     AsyncPreferenceMap<std::vector<int32_t>> map(&pWriter, kv, "ns", "key", v_default);
-    map[1] = v1;
-    map[42] = v2;
+    map[1].set(v1);
+    map[42].set(v2);
     pWriter.tick();
 
     AsyncPreferenceMap<std::vector<int32_t>> map2(nullptr, kv, "ns", "key", v_default);
-    EXPECT_EQ(map2[1], v1);
-    EXPECT_EQ(map2[42], v2);
-    EXPECT_EQ(map2[2], v_default);
-
-    const std::vector<int32_t>& const_ref = map2[42];
-    EXPECT_EQ(const_ref, v2);
+    EXPECT_EQ(map2[1].get(), v1);
+    EXPECT_EQ(map2[42].get(), v2);
+    EXPECT_EQ(map2[2].get(), v_default);
 }
 
 
