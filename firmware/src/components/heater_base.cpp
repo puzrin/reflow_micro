@@ -1,78 +1,68 @@
 #include "heater_base.hpp"
-#include <pb_encode.h>
-#include <pb_decode.h>
+#include "components/pb2struct.hpp"
 #include <cmath>
 #include <algorithm>
 
-std::vector<uint8_t> HeaterBase::get_adrc_params_pb() {
-    if (is_hotplate_connected()) return adrc_params[get_hotplate_id()].get();
+bool HeaterBase::get_adrc_params(std::vector<uint8_t>& pb_data) {
+    if (!is_hotplate_connected()) return false;
 
-    // Return default to avoid error/exception
-    return std::vector<uint8_t>(std::vector<uint8_t>{std::begin(DEFAULT_ADRC_PARAMS_PB), std::end(DEFAULT_ADRC_PARAMS_PB)});
+    pb_data = adrc_params[get_hotplate_id()].get();
+    return true;
 }
 
-bool HeaterBase::set_adrc_params_pb(const std::vector<uint8_t> &pb_data) {
+bool HeaterBase::get_adrc_params(AdrcParams& params) {
+    if (!is_hotplate_connected()) return false;
+
+    return pb2struct(adrc_params[get_hotplate_id()].get(), params, AdrcParams_fields);
+}
+
+bool HeaterBase::set_adrc_params(const std::vector<uint8_t> &pb_data) {
     if (!is_hotplate_connected()) return false;
 
     adrc_params[get_hotplate_id()].set(pb_data);
-    load_all_params(); // Auto-reload all heater params on update
     return true;
-}
-
-AdrcParams HeaterBase::get_adrc_params() {
-    auto pb_data = get_adrc_params_pb();
-    AdrcParams params;
-
-    pb_istream_t stream = pb_istream_from_buffer(pb_data.data(), pb_data.size());
-    if (!pb_decode(&stream, AdrcParams_fields, &params)) return AdrcParams_init_default;
-
-    return params;
 }
 
 bool HeaterBase::set_adrc_params(const AdrcParams& params) {
-    uint8_t buffer[AdrcParams_size];
-    pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
-
-    if (!pb_encode(&stream, AdrcParams_fields, &params)) return false;
-
-    return set_adrc_params_pb(std::vector<uint8_t>(buffer, buffer + stream.bytes_written));
-}
-
-std::vector<uint8_t> HeaterBase::get_sensor_params_pb() {
-    if (is_hotplate_connected()) return sensor_params[get_hotplate_id()].get();
-
-    // Return default to avoid error/exception
-    return std::vector<uint8_t>(std::vector<uint8_t>{std::begin(DEFAULT_SENSOR_PARAMS_PB), std::end(DEFAULT_SENSOR_PARAMS_PB)});
-}
-
-bool HeaterBase::set_sensor_params_pb(const std::vector<uint8_t>& pb_data) {
     if (!is_hotplate_connected()) return false;
 
-    sensor_params[get_hotplate_id()].set(pb_data);
-    load_all_params(); // Auto-reload all heater params on update
+    std::vector<uint8_t> pb_data(AdrcParams_size);
+    if (!struct2pb(params, pb_data, AdrcParams_fields, AdrcParams_size)) return false;
+
+    adrc_params[get_hotplate_id()].set(pb_data);
     return true;
 }
 
-SensorParams HeaterBase::get_sensor_params() {
-   auto pb_data = get_sensor_params_pb();
-   SensorParams params;
+bool HeaterBase::get_sensor_params(std::vector<uint8_t>& pb_data) {
+    if (!is_hotplate_connected()) return false;
 
-   pb_istream_t stream = pb_istream_from_buffer(pb_data.data(), pb_data.size());
-   if (!pb_decode(&stream, SensorParams_fields, &params)) return SensorParams_init_default;
+    pb_data = sensor_params[get_hotplate_id()].get();
+    return true;
+}
 
-   return params;
+bool HeaterBase::get_sensor_params(SensorParams& params) {
+    if (!is_hotplate_connected()) return false;
+
+    return pb2struct(sensor_params[get_hotplate_id()].get(), params, SensorParams_fields);
+}
+bool HeaterBase::set_sensor_params(const std::vector<uint8_t>& pb_data) {
+    if (!is_hotplate_connected()) return false;
+
+    sensor_params[get_hotplate_id()].set(pb_data);
+    return true;
 }
 
 bool HeaterBase::set_sensor_params(const SensorParams& params) {
-   uint8_t buffer[SensorParams_size];
-   pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+    if (!is_hotplate_connected()) return false;
 
-   if (!pb_encode(&stream, SensorParams_fields, &params)) return false;
+    std::vector<uint8_t> pb_data(SensorParams_size);
+    if (!struct2pb(params, pb_data, SensorParams_fields, SensorParams_size)) return false;
 
-   return set_sensor_params_pb(std::vector<uint8_t>(buffer, buffer + stream.bytes_written));
+    sensor_params[get_hotplate_id()].set(pb_data);
+    return true;
 }
 
-void HeaterBase::get_history_pb(uint32_t client_history_version, int32_t from, std::vector<uint8_t>& pb_data) {
+void HeaterBase::get_history(uint32_t client_history_version, int32_t from, std::vector<uint8_t>& pb_data) {
     size_t from_idx = 0;
     size_t chunk_length;
     auto history_chunk = new HistoryChunk();
@@ -125,9 +115,11 @@ void HeaterBase::get_history_pb(uint32_t client_history_version, int32_t from, s
 }
 
 
-void HeaterBase::load_all_params() {
-    auto p = get_adrc_params();
+bool HeaterBase::load_all_params() {
+    AdrcParams p;
+    if (!get_adrc_params(p)) return false;
     adrc.set_params(p.b0, p.response, p.N, p.M);
+    return true;
 }
 
 void HeaterBase::temperature_control_on() {
@@ -157,7 +149,10 @@ void HeaterBase::iterate(uint32_t dt_ms) {
     }
 }
 
-void HeaterBase::task_start(int32_t task_id, HeaterTaskTickerFn ticker) {
+bool HeaterBase::task_start(int32_t task_id, HeaterTaskTickerFn ticker) {
+    if (is_task_active) return false;
+    if (!load_all_params()) return false;
+
     history.data.clear();
     history.set_params(2, history_y_multiplier * 1, 400);
     task_time_ms = 0;
@@ -170,6 +165,8 @@ void HeaterBase::task_start(int32_t task_id, HeaterTaskTickerFn ticker) {
 
     task_ticker = ticker;
     is_task_active = true;
+
+    return true;
 }
 
 void HeaterBase::task_stop() {

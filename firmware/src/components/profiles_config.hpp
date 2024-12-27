@@ -11,15 +11,13 @@ public:
             DEFAULT_PROFILES_SELECTION)
     {};
 
-    std::vector<uint8_t> get_profiles_pb();
-    void set_profiles_pb(const std::vector<uint8_t>& pb_data);
-    void get_profiles(ProfilesData& profiles);
-    void set_profiles(const ProfilesData& profiles);
+    bool get_profiles(std::vector<uint8_t>& pb_data);
+    bool get_profiles(ProfilesData& profiles);
+    bool set_profiles(const std::vector<uint8_t>& pb_data);
+    bool set_profiles(const ProfilesData& profiles);
 
 private:
     AsyncPreference<std::vector<uint8_t>> unselected_profiles_store;
     AsyncPreference<int32_t> selection_store;
     void adjustSelection(ProfilesData& profiles_config);
-    void pb2struct(const std::vector<uint8_t>& pb_data, ProfilesData& profiles_config);
-    void struct2pb(const ProfilesData& profiles_config, std::vector<uint8_t>& pb_data);
 };

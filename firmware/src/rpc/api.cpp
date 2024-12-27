@@ -32,16 +32,18 @@ std::vector<uint8_t> get_status() {
 std::vector<uint8_t> get_history_chunk(int32_t client_history_version, int32_t from) {
     std::vector<uint8_t> pb_data(HistoryChunk_size);
 
-    app.heater.get_history_pb(client_history_version, from, pb_data);
+    app.heater.get_history(client_history_version, from, pb_data);
     return pb_data;
 }
 
 std::vector<uint8_t> get_profiles_data() {
-    return app.profilesConfig.get_profiles_pb();
+    std::vector<uint8_t> pb_data(ProfilesData_size);
+    app.profilesConfig.get_profiles(pb_data);
+    return pb_data;
 }
 
 bool save_profiles_data(std::vector<uint8_t> pb_data) {
-    app.profilesConfig.set_profiles_pb(pb_data);
+    app.profilesConfig.set_profiles(pb_data);
     return true;
 }
 
@@ -71,21 +73,42 @@ bool run_step_response(float watts) {
 }
 
 bool set_sensor_calibration_point(uint32_t point_id, float temperature) {
-    if (!app.heater.is_hotplate_connected()) throw std::runtime_error("Hotplate is not connected");
-
-    return app.heater.set_sensor_calibration_point(point_id, temperature);
+    if (!app.heater.is_hotplate_connected() ||
+        !app.heater.set_sensor_calibration_point(point_id, temperature))
+    {
+        throw std::runtime_error("Hotplate is not connected");
+    }
+    return true;
 }
 
 std::vector<uint8_t> get_sensor_params() {
-    return app.heater.get_sensor_params_pb();
+    std::vector<uint8_t> pb_data(SensorParams_size);
+    if (!app.heater.is_hotplate_connected() ||
+        !app.heater.get_sensor_params(pb_data))
+    {
+        throw std::runtime_error("Hotplate is not connected");
+    }
+    return pb_data;
 }
 
 bool set_adrc_params(std::vector<uint8_t> pb_data) {
-    return app.heater.set_adrc_params_pb(pb_data);
+    if (!app.heater.is_hotplate_connected() ||
+        !app.heater.set_adrc_params(pb_data))
+    {
+        throw std::runtime_error("Hotplate is not connected");
+    }
+    return true;
 }
 
 std::vector<uint8_t> get_adrc_params() {
-    return app.heater.get_adrc_params_pb();
+    std::vector<uint8_t> pb_data(AdrcParams_size);
+    if (!app.heater.is_hotplate_connected() ||
+        !app.heater.get_adrc_params(pb_data))
+    {
+        throw std::runtime_error("Hotplate is not connected");
+    }
+
+    return pb_data;
 }
 
 }

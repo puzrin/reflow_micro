@@ -32,19 +32,19 @@ public:
     virtual bool is_hotplate_connected() { return true;};
     virtual uint8_t get_hotplate_id() { return 0; };
 
-    std::vector<uint8_t> get_adrc_params_pb();
-    bool set_adrc_params_pb(const std::vector<uint8_t>& pb_data);
-    AdrcParams get_adrc_params();
+    bool get_adrc_params(std::vector<uint8_t>& pb_data);
+    bool get_adrc_params(AdrcParams& params);
+    bool set_adrc_params(const std::vector<uint8_t>& pb_data);
     bool set_adrc_params(const AdrcParams& params);
 
-    std::vector<uint8_t> get_sensor_params_pb();
-    bool set_sensor_params_pb(const std::vector<uint8_t>& pb_data);
-    SensorParams get_sensor_params();
+    bool get_sensor_params(std::vector<uint8_t>& pb_data);
+    bool get_sensor_params(SensorParams& params);
+    bool set_sensor_params(const std::vector<uint8_t>& pb_data);
     bool set_sensor_params(const SensorParams& params);
 
-    void get_history_pb(uint32_t client_history_version, int32_t from, std::vector<uint8_t>& pb_data);
+    void get_history(uint32_t client_history_version, int32_t from, std::vector<uint8_t>& pb_data);
 
-    virtual void load_all_params();
+    virtual bool load_all_params();
 
     virtual float get_temperature() = 0;
     virtual float get_resistance() = 0;
@@ -64,7 +64,7 @@ public:
 
     // "task" machinery, by default record history.
 
-    void task_start(int32_t task_id, HeaterTaskTickerFn task_ticker = nullptr);
+    bool task_start(int32_t task_id, HeaterTaskTickerFn task_ticker = nullptr);
     void task_stop();
     void task_tick_common(uint32_t dt_ms);
 

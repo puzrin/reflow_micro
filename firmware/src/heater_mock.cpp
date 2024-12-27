@@ -198,7 +198,8 @@ void HeaterMock::iterate(uint32_t dt_ms) {
 bool HeaterMock::set_sensor_calibration_point(uint32_t point_id, float temperature) {
     if (!is_hotplate_connected()) return false;
 
-    auto sensor_params = get_sensor_params();
+    SensorParams sensor_params;
+    if (!get_sensor_params(sensor_params)) return false;
 
     if (point_id == 0) {
         sensor_params.p0_temperature = temperature;
