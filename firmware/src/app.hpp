@@ -77,5 +77,3 @@ private:
 };
 
 extern App app;
-
-void app_setup_states(App& app);
