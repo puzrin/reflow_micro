@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <NimBLEDevice.h>
 #include <map>
+#include <memory>
 #include "logger.hpp"
 #include "rpc.hpp"
 #include "lib/ble_chunker.hpp"
@@ -28,9 +29,12 @@ auto bleAuthStore = BleAuthStore<4>(&prefsWriter, prefsKV);
 auto bleNameStore = AsyncPreference<std::string>(&prefsWriter, prefsKV, "settings", "ble_name", "Reflow Table");
 
 class Session;
-Session* context;
-void set_context(Session* ctx) { context = ctx; }
-Session* get_context() { return context; }
+
+std::map<decltype(ble_gap_conn_desc::conn_handle), std::shared_ptr<Session>> sessions;
+std::shared_ptr<Session> context;
+
+void set_context(std::shared_ptr<Session> ctx) { context = ctx; }
+std::shared_ptr<Session> get_context() { return context; }
 
 class Session {
 public:
@@ -73,8 +77,6 @@ public:
     std::array<uint8_t, 32> random;
 };
 
-std::map<uint16_t, Session*> sessions;
-
 class RpcCharacteristicCallbacks : public NimBLECharacteristicCallbacks {
 public:
     void onWrite(NimBLECharacteristic* pCharacteristic, ble_gap_conn_desc* desc) override {
@@ -111,7 +113,7 @@ public:
     }
 
     void onRead(NimBLECharacteristic* pCharacteristic, ble_gap_conn_desc* desc) override {
-        uint16_t conn_handle = desc->conn_handle;
+        auto conn_handle = desc->conn_handle;
         if (!sessions.count(conn_handle)) return;
         pCharacteristic->setValue(sessions[conn_handle]->authChunker.getResponseChunk());
     }
@@ -120,8 +122,8 @@ public:
 class ServerCallbacks : public NimBLEServerCallbacks {
 public:
     void onConnect(NimBLEServer* pServer, ble_gap_conn_desc* desc) override {
-        uint16_t conn_handle = desc->conn_handle;
-        sessions[conn_handle] = new Session();
+        auto conn_handle = desc->conn_handle;
+        sessions[conn_handle] = std::make_shared<Session>();
         DEBUG("BLE: Device connected, conn_handle {}", conn_handle);
 
         // For BLE 5 clients with DLE extension support - set data packet size to max.
@@ -136,9 +138,8 @@ public:
     }
 
     void onDisconnect(NimBLEServer* pServer, ble_gap_conn_desc* desc) override {
-        uint16_t conn_handle = desc->conn_handle;
+        auto conn_handle = desc->conn_handle;
         DEBUG("BLE: Device disconnected, conn_handle {}", conn_handle);
-        delete sessions[conn_handle];
         sessions.erase(conn_handle);
     }
 

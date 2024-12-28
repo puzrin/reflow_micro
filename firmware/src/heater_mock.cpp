@@ -179,7 +179,7 @@ HeaterMock& HeaterMock::reset() {
     return *this;
 }
 
-void HeaterMock::iterate(uint32_t dt_ms) {
+void HeaterMock::iterate(int32_t dt_ms) {
     static constexpr float dt_inv_multiplier = 1.0f / 1000.0f;
     float dt = dt_ms * dt_inv_multiplier;
 

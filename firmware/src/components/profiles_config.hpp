@@ -16,6 +16,8 @@ public:
     bool set_profiles(const std::vector<uint8_t>& pb_data);
     bool set_profiles(const ProfilesData& profiles);
 
+    bool get_selected_profile(Profile& profile);
+
 private:
     AsyncPreference<std::vector<uint8_t>> unselected_profiles_store;
     AsyncPreference<int32_t> selection_store;

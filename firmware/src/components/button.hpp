@@ -20,12 +20,6 @@ private:
 
 template <typename Driver>
 class Button : public ButtonEngine<Driver> {
-private:
-    static void timerCallback(TimerHandle_t timer) {
-        Button* self = static_cast<Button*>(pvTimerGetTimerID(timer));
-        self->tick(millis());
-    }
-
 public:
     void start() {
         xTaskCreate(

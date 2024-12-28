@@ -9,8 +9,12 @@ public:
     etl::fsm_state_id_t on_enter_state() {
         DEBUG("State => AdrcTest");
 
-        auto& heater = get_fsm_context().heater;
-        heater.task_start(HISTORY_ID_ADRC_TEST_MODE);
+        auto& app = get_fsm_context();
+        auto& heater = app.heater;
+
+        heater.set_temperature(app.last_cmd_data);
+        if (!heater.task_start(HISTORY_ID_ADRC_TEST_MODE)) return DeviceState_Idle;
+
         heater.temperature_control_on();
         return No_State_Change;
     }

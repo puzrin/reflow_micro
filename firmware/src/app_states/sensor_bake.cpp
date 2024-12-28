@@ -9,8 +9,12 @@ public:
     etl::fsm_state_id_t on_enter_state() {
         DEBUG("State => SensorBake");
 
-        auto& heater = get_fsm_context().heater;
-        heater.task_start(HISTORY_ID_SENSOR_BAKE_MODE);
+        auto& app = get_fsm_context();
+        auto& heater = app.heater;
+        if (!heater.task_start(HISTORY_ID_SENSOR_BAKE_MODE)) return DeviceState_Idle;
+
+        heater.set_power(app.last_cmd_data);
+
         return No_State_Change;
     }
 

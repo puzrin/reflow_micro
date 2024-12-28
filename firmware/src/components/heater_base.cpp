@@ -62,7 +62,7 @@ bool HeaterBase::set_sensor_params(const SensorParams& params) {
     return true;
 }
 
-void HeaterBase::get_history(uint32_t client_history_version, int32_t from, std::vector<uint8_t>& pb_data) {
+void HeaterBase::get_history(int32_t client_history_version, int32_t from, std::vector<uint8_t>& pb_data) {
     size_t from_idx = 0;
     size_t chunk_length;
     auto history_chunk = new HistoryChunk();
@@ -85,7 +85,7 @@ void HeaterBase::get_history(uint32_t client_history_version, int32_t from, std:
                 // Special case, nothing to skip
                 from_idx = 0;
             } else {
-                for (int i = data.size() - 1; i >= 0; --i) {
+                for (int32_t i = data.size() - 1; i >= 0; --i) {
                     if (data[i].x < from) {
                         from_idx = i + 1;
                         break;
@@ -133,10 +133,10 @@ void HeaterBase::temperature_control_off() {
     set_power(0);
 }
 
-void HeaterBase::iterate(uint32_t dt_ms) {
+void HeaterBase::iterate(int32_t dt_ms) {
     if (!temperature_control_flag) return;
 
-    static constexpr float dt_inv_multiplier = 1.0f / 1000.0f;
+    static constexpr float dt_inv_multiplier = 1.0f / 1000;
     float dt = dt_ms * dt_inv_multiplier;
 
     float power = adrc.iterate(get_temperature(), temperature_setpoint, get_max_power(), dt);
@@ -145,7 +145,7 @@ void HeaterBase::iterate(uint32_t dt_ms) {
     if (is_task_active) {
         task_time_ms += dt_ms;
         task_tick_common(dt_ms);
-        if (task_ticker) task_ticker(get_temperature(), task_time_ms);
+        if (task_ticker) task_ticker(dt_ms, task_time_ms);
     }
 }
 
@@ -177,7 +177,7 @@ void HeaterBase::task_stop() {
 };
 
 
-void HeaterBase::task_tick_common(uint32_t dt_ms) {
+void HeaterBase::task_tick_common(int32_t dt_ms) {
     const uint32_t seconds = task_time_ms / 1000;
 
     if (seconds > history_last_recorded_ts) {

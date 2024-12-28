@@ -1,16 +1,14 @@
 #include "profiles_config.hpp"
 #include "components/pb2struct.hpp"
+#include <memory>
 
 
 bool ProfilesConfig::get_profiles(std::vector<uint8_t>& pb_data) {
     // Struct can be big, use heap instead of stack
-    auto profiles_data = new ProfilesData();
+    auto profiles_data = std::make_unique<ProfilesData>();
 
     get_profiles(*profiles_data);
-    bool status = struct2pb(*profiles_data, pb_data, ProfilesData_fields, ProfilesData_size);
-
-    delete profiles_data;
-    return status;
+    return struct2pb(*profiles_data, pb_data, ProfilesData_fields, ProfilesData_size);
 }
 
 bool ProfilesConfig::get_profiles(ProfilesData& profiles_config) {
@@ -22,29 +20,24 @@ bool ProfilesConfig::get_profiles(ProfilesData& profiles_config) {
 }
 
 bool ProfilesConfig::set_profiles(const std::vector<uint8_t>& pb_data) {
-    // Struct can be big, use heap instead of stack
-    auto profiles_data = new ProfilesData();
+    auto profiles_data = std::make_unique<ProfilesData>();
 
-    bool status = pb2struct(pb_data, *profiles_data, ProfilesData_fields);
-    status = status && set_profiles(*profiles_data);
-
-    delete profiles_data;
-    return status;
+    if (!pb2struct(pb_data, *profiles_data, ProfilesData_fields)) return false;
+    return set_profiles(*profiles_data);
 }
 
 bool ProfilesConfig::set_profiles(const ProfilesData& profiles_config) {
-    auto profiles_unselected = new ProfilesData(profiles_config);
+    auto profiles_unselected = std::make_unique<ProfilesData>(profiles_config);
 
-    selection_store.set(profiles_config.selectedId);
+    auto selection = profiles_config.selectedId;
     profiles_unselected->selectedId = -1;
 
     std::vector<uint8_t> buffer_pb(ProfilesData_size);
+    if (!struct2pb(*profiles_unselected, buffer_pb, ProfilesData_fields, ProfilesData_size)) return false;
 
-    bool status = struct2pb(*profiles_unselected, buffer_pb, ProfilesData_fields, ProfilesData_size);
     unselected_profiles_store.set(buffer_pb);
-
-    delete profiles_unselected;
-    return status;
+    selection_store.set(selection);
+    return true;
 }
 
 void ProfilesConfig::adjustSelection(ProfilesData& profiles_config) {
@@ -53,9 +46,22 @@ void ProfilesConfig::adjustSelection(ProfilesData& profiles_config) {
         return;
     }
 
-    for (uint32_t i = 0; i < profiles_config.items_count; i++) {
+    for (size_t i = 0; i < profiles_config.items_count; i++) {
         if (profiles_config.items[i].id == profiles_config.selectedId) return;
     }
 
     profiles_config.selectedId = profiles_config.items[0].id;
+}
+
+bool ProfilesConfig::get_selected_profile(Profile& profile) {
+    auto profiles_data = std::make_unique<ProfilesData>();
+    get_profiles(*profiles_data);
+
+    for (size_t i = 0; i < profiles_data->items_count; i++) {
+        if (profiles_data->items[i].id == profiles_data->selectedId) {
+            profile = profiles_data->items[i];
+            return true;
+        }
+    }
+    return false;
 }

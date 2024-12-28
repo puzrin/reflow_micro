@@ -70,6 +70,8 @@ public:
         xSemaphoreGive(mutex);
     }
 
+    float last_cmd_data = 0;
+
 private:
     SemaphoreHandle_t mutex = nullptr;
     Button<ButtonDriver> button;

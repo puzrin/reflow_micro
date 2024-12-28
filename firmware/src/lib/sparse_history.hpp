@@ -8,14 +8,14 @@
 
 class SparseHistory {
 public:
-    struct Point { uint32_t x; int32_t y; };
+    struct Point { int32_t x; int32_t y; };
     std::vector<Point> data;
 
     SparseHistory() {
         set_params(10, 1, 400);
     }
 
-    void set_params(uint32_t _x_threshold, int32_t _y_threshold, uint32_t _x_scale_after) {
+    void set_params(int32_t _x_threshold, int32_t _y_threshold, int32_t _x_scale_after) {
         x_threshold = _x_threshold;
         y_threshold = _y_threshold;
         x_scale_after = _x_scale_after;
@@ -23,7 +23,7 @@ public:
 
     void reset() { lock(); data.clear(); unlock();}
 
-    void add(uint32_t x, int32_t y) {
+    void add(int32_t x, int32_t y) {
         lock();
 
         if (data.size() && data.back().x == x && data.back().y == y) {
@@ -57,9 +57,9 @@ private:
     }
 
     // Thresholds for delta encoding
-    uint32_t x_threshold;
+    int32_t x_threshold;
     int32_t y_threshold;
 
     // Boundary to start increasing x_threshold (useful for long charts)
-    uint32_t x_scale_after;
+    int32_t x_scale_after;
 };

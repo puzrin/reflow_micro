@@ -42,7 +42,7 @@ public:
     bool set_sensor_params(const std::vector<uint8_t>& pb_data);
     bool set_sensor_params(const SensorParams& params);
 
-    void get_history(uint32_t client_history_version, int32_t from, std::vector<uint8_t>& pb_data);
+    void get_history(int32_t client_history_version, int32_t from, std::vector<uint8_t>& pb_data);
 
     virtual bool load_all_params();
 
@@ -59,23 +59,23 @@ public:
     virtual void temperature_control_on();
     virtual void temperature_control_off();
 
-    virtual void iterate(uint32_t dt_ms);
+    virtual void iterate(int32_t dt_ms);
     virtual bool set_sensor_calibration_point(uint32_t point_id, float temperature) = 0;
 
     // "task" machinery, by default record history.
 
     bool task_start(int32_t task_id, HeaterTaskTickerFn task_ticker = nullptr);
     void task_stop();
-    void task_tick_common(uint32_t dt_ms);
+    void task_tick_common(int32_t dt_ms);
 
 private:
     std::atomic<bool> is_task_active = false;
     HeaterTaskTickerFn task_ticker = nullptr;
-    uint32_t task_time_ms = 0;
+    int32_t task_time_ms = 0;
     History history;
     int32_t history_version = 0;
     int32_t history_task_id = 0;
-    uint32_t history_last_recorded_ts = 0;
-    static constexpr uint32_t history_y_multiplier = 256;
+    int32_t history_last_recorded_ts = 0;
+    static constexpr int32_t history_y_multiplier = 256;
     static constexpr float history_y_multiplier_inv = 1.0f / history_y_multiplier;
 };
