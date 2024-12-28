@@ -12,31 +12,17 @@ public:
         return No_State_Change;
     }
 
-    etl::fsm_state_id_t on_event(const AppCmd::Reflow& event) {
-        auto& app = get_fsm_context();
-        if (!app.heater.is_hotplate_connected()) return No_State_Change;
-
-        return DeviceState_Reflow;
-    }
+    etl::fsm_state_id_t on_event(const AppCmd::Reflow& event) { return DeviceState_Reflow; }
     etl::fsm_state_id_t on_event(const AppCmd::SensorBake& event) {
-        auto& app = get_fsm_context();
-        if (!app.heater.is_hotplate_connected()) return No_State_Change;
-
-        app.last_cmd_data = event.watts;
+        get_fsm_context().last_cmd_data = event.watts;
         return DeviceState_SensorBake;
     }
     etl::fsm_state_id_t on_event(const AppCmd::AdrcTest& event) {
-        auto& app = get_fsm_context();
-        if (!app.heater.is_hotplate_connected()) return No_State_Change;
-
-        app.last_cmd_data = event.temperature;
+        get_fsm_context().last_cmd_data = event.temperature;
         return DeviceState_AdrcTest;
     }
     etl::fsm_state_id_t on_event(const AppCmd::StepResponse& event) {
-        auto& app = get_fsm_context();
-        if (!app.heater.is_hotplate_connected()) return No_State_Change;
-
-        app.last_cmd_data = event.watts;
+        get_fsm_context().last_cmd_data = event.watts;
         return DeviceState_StepResponse;
     }
 

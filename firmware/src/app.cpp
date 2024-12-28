@@ -2,7 +2,7 @@
 #include "logger.hpp"
 #include "blink_signals.hpp"
 
-const etl::message_router_id_t APP_FSM_ROUTER_ID = 0;
+static constexpr etl::message_router_id_t APP_FSM_ROUTER_ID = 0;
 App app;
 
 App::App() : etl::fsm(APP_FSM_ROUTER_ID) {

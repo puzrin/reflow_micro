@@ -7,7 +7,7 @@
 #include "lib/adrc.hpp"
 #include "history.hpp"
 
-using HeaterTaskTickerFn = std::function<void(uint32_t, uint32_t)>;
+using HeaterTaskIteratorFn = std::function<void(uint32_t, uint32_t)>;
 
 class HeaterBase {
 private:
@@ -60,18 +60,17 @@ public:
     virtual void temperature_control_on();
     virtual void temperature_control_off();
 
-    virtual void iterate(int32_t dt_ms);
+    virtual void tick(int32_t dt_ms);
     virtual bool set_sensor_calibration_point(uint32_t point_id, float temperature) = 0;
 
     // "task" machinery, by default record history.
 
-    bool task_start(int32_t task_id, HeaterTaskTickerFn task_ticker = nullptr);
+    bool task_start(int32_t task_id, HeaterTaskIteratorFn task_iterator = nullptr);
     void task_stop();
-    void task_tick_common(int32_t dt_ms);
 
 private:
     std::atomic<bool> is_task_active = false;
-    HeaterTaskTickerFn task_ticker = nullptr;
+    HeaterTaskIteratorFn task_iterator = nullptr;
     int32_t task_time_ms = 0;
     History history;
     int32_t history_version = 0;

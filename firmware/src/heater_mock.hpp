@@ -63,7 +63,7 @@ public:
     }
 
     void start() override;
-    void iterate(int32_t dt_ms) override;
+    void tick(int32_t dt_ms) override;
     bool set_sensor_calibration_point(uint32_t point_id, float temperature) override;
 
     // Mock-related methods

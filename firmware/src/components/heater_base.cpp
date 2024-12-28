@@ -123,7 +123,9 @@ bool HeaterBase::load_all_params() {
 }
 
 void HeaterBase::temperature_control_on() {
-    load_all_params();
+    // If task was is running - it already loaded params, don't repeat
+    if (!is_task_active) load_all_params();
+
     adrc.reset_to(get_temperature());
     temperature_control_flag = true;
 }
@@ -133,24 +135,33 @@ void HeaterBase::temperature_control_off() {
     set_power(0);
 }
 
-void HeaterBase::iterate(int32_t dt_ms) {
-    if (!temperature_control_flag) return;
+void HeaterBase::tick(int32_t dt_ms) {
+    // If temperature controller active - use it to update power
+    if (temperature_control_flag) {
+        static constexpr float dt_inv_multiplier = 1.0f / 1000;
+        float dt = dt_ms * dt_inv_multiplier;
 
-    static constexpr float dt_inv_multiplier = 1.0f / 1000;
-    float dt = dt_ms * dt_inv_multiplier;
-
-    float power = adrc.iterate(get_temperature(), temperature_setpoint, get_max_power(), dt);
-    set_power(power);
-
-    if (is_task_active) {
-        task_time_ms += dt_ms;
-        task_tick_common(dt_ms);
-        if (task_ticker) task_ticker(dt_ms, task_time_ms);
+        float power = adrc.iterate(get_temperature(), temperature_setpoint, get_max_power(), dt);
+        set_power(power);
     }
+
+    if (!is_task_active) return;
+    task_time_ms += dt_ms;
+
+    // Write history every second
+    const uint32_t seconds = task_time_ms / 1000;
+    if (seconds > history_last_recorded_ts) {
+        history.add(seconds, lround(get_temperature() * history_y_multiplier));
+        history_last_recorded_ts = seconds;
+    }
+
+    // Task can have custom iterator, execute it is needed
+    if (task_iterator) task_iterator(dt_ms, task_time_ms);
 }
 
-bool HeaterBase::task_start(int32_t task_id, HeaterTaskTickerFn ticker) {
+bool HeaterBase::task_start(int32_t task_id, HeaterTaskIteratorFn ticker) {
     if (is_task_active) return false;
+    if (!is_hotplate_connected()) return false;
     if (!load_all_params()) return false;
 
     history.data.clear();
@@ -163,25 +174,14 @@ bool HeaterBase::task_start(int32_t task_id, HeaterTaskTickerFn ticker) {
     // Add first point
     history.add(0, lround(get_temperature() * history_y_multiplier));
 
-    task_ticker = ticker;
+    task_iterator = ticker;
     is_task_active = true;
-
     return true;
 }
 
 void HeaterBase::task_stop() {
     is_task_active = false;
-    task_ticker = nullptr;
+    task_iterator = nullptr;
     temperature_control_off();
     set_power(0);
 };
-
-
-void HeaterBase::task_tick_common(int32_t dt_ms) {
-    const uint32_t seconds = task_time_ms / 1000;
-
-    if (seconds > history_last_recorded_ts) {
-        history.add(seconds, lround(get_temperature() * history_y_multiplier));
-        history_last_recorded_ts = seconds;
-    }
-}

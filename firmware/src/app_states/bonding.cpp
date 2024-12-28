@@ -7,7 +7,7 @@ namespace {
 
 class Bonding : public etl::fsm_state<App, Bonding, DeviceState_Bonding, AppCmd::BondOff> {
 public:
-    static constexpr int32_t BONDING_PERIOD_MS = 15*1000;
+    static constexpr int32_t BONDING_PERIOD_MS = 15 * 1000;
 
     etl::fsm_state_id_t on_enter_state() {
         DEBUG("State => Bonding");

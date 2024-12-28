@@ -18,9 +18,7 @@ public:
         return No_State_Change;
     }
 
-    void on_exit_state() {
-        get_fsm_context().heater.task_stop();
-    }
+    void on_exit_state() { get_fsm_context().heater.task_stop(); }
 
     etl::fsm_state_id_t on_event(const AppCmd::Stop& event) { return DeviceState_Idle; }
     etl::fsm_state_id_t on_event(const AppCmd::Button& event) {

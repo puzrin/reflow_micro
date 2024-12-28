@@ -45,6 +45,7 @@ static float interpolate(float x, const std::vector<std::pair<float, float>>& po
         }
     }
 
+    // This will never be reached
     throw std::runtime_error("Interpolation error: x is out of bounds.");
 }
 
@@ -179,20 +180,22 @@ HeaterMock& HeaterMock::reset() {
     return *this;
 }
 
+// Need separate thread, because can send events to app (guarded with mutexes)
 void HeaterMock::start() {
     // Work at 10x speed for convenience
     xTaskCreate(
         [](void* params) {
             auto* self = static_cast<HeaterMock*>(params);
             while (true) {
-                self->iterate(100);
+                self->tick(100);
                 vTaskDelay(pdMS_TO_TICKS(10));
             }
         }, "heater mock", 1024*4, this, 4, nullptr
     );
 }
 
-void HeaterMock::iterate(int32_t dt_ms) {
+void HeaterMock::tick(int32_t dt_ms) {
+    // Iterate temperature
     static constexpr float dt_inv_multiplier = 1.0f / 1000.0f;
     float dt = dt_ms * dt_inv_multiplier;
 
@@ -205,7 +208,8 @@ void HeaterMock::iterate(int32_t dt_ms) {
 
     temperature = curr_temp + temp_change;
 
-    HeaterBase::iterate(dt_ms);
+    // Call base method with main logic
+    HeaterBase::tick(dt_ms);
 }
 
 bool HeaterMock::set_sensor_calibration_point(uint32_t point_id, float temperature) {
