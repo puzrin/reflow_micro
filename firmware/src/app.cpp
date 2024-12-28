@@ -57,8 +57,9 @@ constexpr bool check_device_state_sequential() {
 void App::setup() {
     static_assert(check_device_state_sequential(), "DeviceState values must be sequential starting from 0");
     app.set_states(stateList, DeviceState_NumberOfStates);
-
     start();
+
+    heater.start();
     button.start();
     blinker.start();
     BLINK_SET_IDLE_BACKGROUND(blinker);

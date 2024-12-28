@@ -29,6 +29,7 @@ private:
     std::vector<Profile> profiles;
 };
 
+
 class HeaterMock: public HeaterBase {
 private:
     std::atomic<float> temperature;
@@ -61,6 +62,7 @@ public:
         return r > 0 ? std::sqrt(get_power() / r) : 0;
     }
 
+    void start() override;
     void iterate(int32_t dt_ms) override;
     bool set_sensor_calibration_point(uint32_t point_id, float temperature) override;
 

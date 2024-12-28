@@ -44,6 +44,7 @@ public:
 
     void get_history(int32_t client_history_version, int32_t from, std::vector<uint8_t>& pb_data);
 
+    virtual void start() = 0;
     virtual bool load_all_params();
 
     virtual float get_temperature() = 0;

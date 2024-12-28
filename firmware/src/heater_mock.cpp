@@ -179,6 +179,19 @@ HeaterMock& HeaterMock::reset() {
     return *this;
 }
 
+void HeaterMock::start() {
+    // Work at 10x speed for convenience
+    xTaskCreate(
+        [](void* params) {
+            auto* self = static_cast<HeaterMock*>(params);
+            while (true) {
+                self->iterate(100);
+                vTaskDelay(pdMS_TO_TICKS(10));
+            }
+        }, "heater mock", 1024*4, this, 4, nullptr
+    );
+}
+
 void HeaterMock::iterate(int32_t dt_ms) {
     static constexpr float dt_inv_multiplier = 1.0f / 1000.0f;
     float dt = dt_ms * dt_inv_multiplier;
