@@ -36,20 +36,19 @@ std::shared_ptr<Session> context;
 void set_context(std::shared_ptr<Session> ctx) { context = ctx; }
 std::shared_ptr<Session> get_context() { return context; }
 
-class Session {
+class Session : public std::enable_shared_from_this<Session> {
 public:
     Session()
         : rpcChunker(16*1024 + 500), authChunker(1*1024), authenticated(false)
     {
-        rpcChunker.onMessage = [](const std::vector<uint8_t>& message) {
+        rpcChunker.onMessage = [this](const std::vector<uint8_t>& message) {
             size_t freeMemory = heap_caps_get_free_size(MALLOC_CAP_8BIT);
             size_t minimumFreeMemory = heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT);
             DEBUG("Free memory: {} Minimum free memory: {}", uint32_t(freeMemory), uint32_t(minimumFreeMemory));
 
             DEBUG("BLE: Received message of length {}", uint32_t(message.size()));
 
-            auto session = get_context();
-            if (session && session->authenticated) {
+            if (authenticated) {
                 std::vector<uint8_t> response;
                 rpc.dispatch(message, response);
                 return response;
@@ -61,9 +60,13 @@ public:
             return error;
         };
 
-        authChunker.onMessage = [](const std::vector<uint8_t>& message) {
+        authChunker.onMessage = [this](const std::vector<uint8_t>& message) {
+            set_context(shared_from_this());
+
             std::vector<uint8_t> response;
             auth_rpc.dispatch(message, response);
+
+            set_context(nullptr);
             return response;
         };
 
@@ -85,7 +88,6 @@ public:
         //DEBUG("BLE: Received chunk of length {}", uint32_t(pCharacteristic->getDataLength()));
 
         auto session = sessions[conn_handle];
-        set_context(session);
         session->rpcChunker.consumeChunk(pCharacteristic->getValue(), pCharacteristic->getDataLength());
     }
 
@@ -108,7 +110,6 @@ public:
             (uint8_t)sec.encrypted, (uint8_t)sec.authenticated, (uint8_t)sec.bonded);
 
         auto session = sessions[conn_handle];
-        set_context(session);
         session->authChunker.consumeChunk(pCharacteristic->getValue(), pCharacteristic->getDataLength());
     }
 
