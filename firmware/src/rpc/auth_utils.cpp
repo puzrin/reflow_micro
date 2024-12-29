@@ -3,7 +3,7 @@
 #include <mbedtls/md.h>
 #include "esp_system.h"
 
-std::string bin2hex(const uint8_t* data, size_t length) {
+auto bin2hex(const uint8_t* data, size_t length) -> std::string {
     const char* hex_chars = "0123456789ABCDEF";
     std::string hex;
 
@@ -15,7 +15,7 @@ std::string bin2hex(const uint8_t* data, size_t length) {
     return hex;
 }
 
-uint8_t hexchar2num(char c) {
+auto hexchar2num(char c) -> uint8_t {
     if (c >= '0' && c <= '9') { return c - '0'; }
     if (c >= 'A' && c <= 'F') { return c - 'A' + 10; }
     if (c >= 'a' && c <= 'f') { return c - 'a' + 10; }
@@ -35,7 +35,7 @@ void hex2bin(const std::string& hex, uint8_t* out, size_t length) {
     }
 }
 
-std::array<uint8_t, 32> hmac_sha256(const std::array<uint8_t, 32>& message, const std::array<uint8_t, 32>& key) {
+auto hmac_sha256(const std::array<uint8_t, 32>& message, const std::array<uint8_t, 32>& key) -> std::array<uint8_t, 32> {
     std::array<uint8_t, 32> output = {0};
 
     mbedtls_md_context_t ctx;
@@ -58,14 +58,14 @@ std::array<uint8_t, 32> hmac_sha256(const std::array<uint8_t, 32>& message, cons
     return output;
 }
 
-std::array<uint8_t, 6> get_own_mac() {
+auto get_own_mac() -> std::array<uint8_t, 6> {
     std::array<uint8_t, 6> mac;
     //esp_read_mac(mac.data(), ESP_MAC_WIFI_STA);
     esp_efuse_mac_get_default(mac.data());
     return mac;
 }
 
-std::array<uint8_t, 32> create_secret() {
+auto create_secret() -> std::array<uint8_t, 32> {
     std::array<uint8_t, 32> secret;
 
     for (size_t i = 0; i < secret.size(); i += 4) {

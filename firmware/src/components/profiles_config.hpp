@@ -4,12 +4,12 @@
 
 class ProfilesConfig {
 public:
-    bool get_profiles(std::vector<uint8_t>& pb_data);
-    bool get_profiles(ProfilesData& profiles);
-    bool set_profiles(const std::vector<uint8_t>& pb_data);
-    bool set_profiles(const ProfilesData& profiles);
+    auto get_profiles(std::vector<uint8_t>& pb_data) -> bool;
+    auto get_profiles(ProfilesData& profiles) -> bool;
+    auto set_profiles(const std::vector<uint8_t>& pb_data) -> bool;
+    auto set_profiles(const ProfilesData& profiles) -> bool;
 
-    bool get_selected_profile(Profile& profile);
+    auto get_selected_profile(Profile& profile) -> bool;
 
 private:
     AsyncPreference<std::vector<uint8_t>> unselected_profiles_store{

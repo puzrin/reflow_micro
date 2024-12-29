@@ -35,7 +35,7 @@ etl::ifsm_state* stateList[DeviceState_NumberOfStates] = {
     &state_bonding
 };
 
-constexpr bool check_device_state_sequential() {
+constexpr auto check_device_state_sequential() -> bool {
     size_t i = 0;
     for(auto state : {
         DeviceState_Init,

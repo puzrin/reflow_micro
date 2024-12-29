@@ -81,7 +81,7 @@ public:
         // Empty implementation for disabled conditions
     }
 
-    bool pull(char* outputBuffer, size_t bufferSize) {
+    auto pull(char* outputBuffer, size_t bufferSize) -> bool {
         uint8_t recordData[MaxRecordSize];
         size_t recordSize = MaxRecordSize;
 
@@ -145,7 +145,7 @@ private:
     ring_logger::Packer<MaxRecordSize, MaxArgs + 4> packer;
     ring_logger::RingBuffer<BufferSize> ringBuffer;
 
-    size_t writeLogHeader(char* outputBuffer, size_t bufferSize, uint32_t /*timestamp*/, RingLoggerLevel level, const char* label) {
+    auto writeLogHeader(char* outputBuffer, size_t bufferSize, uint32_t /*timestamp*/, RingLoggerLevel level, const char* label) -> size_t {
         using namespace ring_logger;
 
         const char* levelStr = nullptr;

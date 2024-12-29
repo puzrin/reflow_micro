@@ -11,9 +11,9 @@
 // Interface for key-value storage
 class IAsyncPreferenceKV {
 public:
-    virtual bool write(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) = 0;
-    virtual bool read(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) = 0;
-    virtual size_t length(const std::string& ns, const std::string& key) = 0;
+    virtual auto write(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) -> bool = 0;
+    virtual auto read(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) -> bool = 0;
+    virtual auto length(const std::string& ns, const std::string& key) -> size_t = 0;
 };
 
 namespace async_preference_ns {
@@ -21,7 +21,7 @@ namespace async_preference_ns {
 // Serializer for trivially copyable types
 template <typename T>
 struct TrivialSerializer {
-    static bool save(IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, const T& value) {
+    static auto save(IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, const T& value) -> bool {
         return kv.write(ns, key, reinterpret_cast<uint8_t*>(const_cast<T*>(&value)), sizeof(T));
     }
 
@@ -39,7 +39,7 @@ struct TrivialSerializer {
 // Primary goal is to fit std::string and std::vector
 template <typename T>
 struct BufferSerializer {
-    static bool save(IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, const T& value) {
+    static auto save(IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, const T& value) -> bool {
         return kv.write(ns, key, reinterpret_cast<uint8_t*>(const_cast<typename T::value_type*>(value.data())), value.size() * sizeof(typename T::value_type));
     }
 
@@ -116,7 +116,7 @@ public:
         preload();
     }
 
-    T& get() {
+    auto get() -> T& {
         preload();
         return databox.value;
     }

@@ -71,7 +71,7 @@ constexpr bool check_tuple_types = []<std::size_t... Is>(std::index_sequence<Is.
 
 
 template<typename T>
-T convert_from_msgp(const JsonVariant& value) {
+auto convert_from_msgp(const JsonVariant& value) -> T {
     if constexpr (std::is_same_v<T, std::vector<uint8_t>>) {
         auto binary = value.as<MsgPackBinary>();
         return std::vector<uint8_t>(
@@ -84,12 +84,12 @@ T convert_from_msgp(const JsonVariant& value) {
 }
 
 template<typename ArgsTuple, std::size_t... Is>
-ArgsTuple from_msgp_impl(const JsonArray& j, std::index_sequence<Is...>) {
+auto from_msgp_impl(const JsonArray& j, std::index_sequence<Is...>) -> ArgsTuple {
     return std::make_tuple(convert_from_msgp<std::tuple_element_t<Is, ArgsTuple>>(j[Is])...);
 }
 
 template<typename ArgsTuple>
-ArgsTuple from_msgp(const JsonArray& j) {
+auto from_msgp(const JsonArray& j) -> ArgsTuple {
     return from_msgp_impl<ArgsTuple>(j, std::make_index_sequence<std::tuple_size_v<ArgsTuple>>{});
 }
 
@@ -113,7 +113,7 @@ struct function_traits<Ret(ClassType::*)(Args...) const> {
 
 // Helper to create response object
 template<typename T>
-const JsonDocument create_response(bool status, const T& result) {
+auto create_response(bool status, const T& result) -> const JsonDocument {
     JsonDocument doc;
     doc["ok"] = status;
 
@@ -132,12 +132,12 @@ inline void serialize_to(const JsonDocument& doc, std::vector<uint8_t>& output) 
     serializeMsgPack(doc, output.data(), size);
 }
 
-inline DeserializationError deserialize_from(const std::vector<uint8_t>& input, JsonDocument& doc) {
+inline auto deserialize_from(const std::vector<uint8_t>& input, JsonDocument& doc) -> DeserializationError {
     return deserializeMsgPack(doc, input.data(), input.size());
 }
 
 template<typename T>
-bool check_type(const JsonVariant& value) {
+auto check_type(const JsonVariant& value) -> bool {
     if constexpr (std::is_same_v<T, std::vector<uint8_t>>) {
         return value.is<MsgPackBinary>();
     } else {
@@ -146,7 +146,7 @@ bool check_type(const JsonVariant& value) {
 }
 
 template<typename ArgsTuple>
-bool runtime_type_check(const JsonArray& args) {
+auto runtime_type_check(const JsonArray& args) -> bool {
     return [&]<std::size_t... Is>(std::index_sequence<Is...>) {
         return ((check_type<std::tuple_element_t<Is, ArgsTuple>>(args[Is])) && ...);
     }(std::make_index_sequence<std::tuple_size_v<ArgsTuple>>{});

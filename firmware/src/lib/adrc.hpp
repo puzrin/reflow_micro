@@ -27,7 +27,7 @@ public:
         this->kp = kp;
     }
 
-    float iterate(float y, float y_ref, float u_max, float dt) {
+    auto iterate(float y, float y_ref, float u_max, float dt) -> float {
         float e = y_ref - z1;
         float u = (kp * e - z2) / b0;
 

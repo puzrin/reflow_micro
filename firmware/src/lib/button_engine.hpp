@@ -10,7 +10,7 @@ namespace ButtonConstants {
 }
 
 class IButtonDriver {
-    virtual bool get() = 0;
+    virtual auto get() -> bool = 0;
 };
 
 enum class ButtonEventId {

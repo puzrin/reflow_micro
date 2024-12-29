@@ -38,7 +38,7 @@ public:
     virtual void unlock() {}
 
 private:
-    bool is_last_point_landed() {
+    auto is_last_point_landed() -> bool {
         if (data.size() < 2) { return true; }
 
         const auto& last = data.back();

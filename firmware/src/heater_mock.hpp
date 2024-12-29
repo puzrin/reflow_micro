@@ -9,9 +9,9 @@ class ChargerProfileMock {
 public:
     ChargerProfileMock(float _V, float _I, bool _PPS = false) : V{_V}, I{_I}, PPS{_PPS} {}
 
-    bool is_useable(float R) const { return PPS ? true : (V / R) <= I; }
+    auto is_useable(float R) const -> bool { return PPS ? true : (V / R) <= I; }
 
-    float get_power(float R) const {
+    auto get_power(float R) const -> float {
         if (PPS) { return pow(std::min(V, I * R), 2) / R; }
         return is_useable(R) ? pow(V, 2) / R : 0;
     };
@@ -24,8 +24,8 @@ private:
 class ChargerMock {
 public:
     ChargerMock() : profiles{} {};
-    ChargerMock& add(const ChargerProfileMock& profile);
-    float get_power(float R) const;
+    auto add(const ChargerProfileMock& profile) -> ChargerMock&;
+    auto get_power(float R) const -> float;
 
 private:
     std::vector<ChargerProfileMock> profiles;
@@ -37,10 +37,10 @@ private:
     std::atomic<float> temperature;
 
     void validate_calibration_points();
-    float calculate_resistance(float temp) const;
-    float calculate_heat_capacity() const;
-    float calculate_heat_transfer_coefficient() const;
-    float get_room_temp() const;
+    auto calculate_resistance(float temp) const -> float;
+    auto calculate_heat_capacity() const -> float;
+    auto calculate_heat_transfer_coefficient() const -> float;
+    auto get_room_temp() const -> float;
 
     struct Size { float x, y, z; };
     struct CalibrationPoint { float T, R, W; };
@@ -54,24 +54,24 @@ private:
 public:
     HeaterMock();
 
-    float get_temperature() override { return temperature; }
-    float get_resistance() override { return calculate_resistance(temperature); }
-    float get_max_power() override { return charger.get_power(get_resistance()); }
-    float get_power() override { return std::min(get_max_power(), power_setpoint.load(std::memory_order_relaxed)); }
-    float get_volts() override { return std::sqrt(get_power() * get_resistance()); }
-    float get_amperes() override {
+    auto get_temperature() -> float override { return temperature; }
+    auto get_resistance() -> float override { return calculate_resistance(temperature); }
+    auto get_max_power() -> float override { return charger.get_power(get_resistance()); }
+    auto get_power() -> float override { return std::min(get_max_power(), power_setpoint.load(std::memory_order_relaxed)); }
+    auto get_volts() -> float override { return std::sqrt(get_power() * get_resistance()); }
+    auto get_amperes() -> float override {
         float r = get_resistance();
         return r > 0 ? std::sqrt(get_power() / r) : 0;
     }
 
     void start() override;
     void tick(int32_t dt_ms) override;
-    bool set_sensor_calibration_point(uint32_t point_id, float temperature) override;
+    auto set_sensor_calibration_point(uint32_t point_id, float temperature) -> bool override;
 
     // Mock-related methods
-    HeaterMock& calibrate_TR(float T, float R);
-    HeaterMock& calibrate_TWV(float T, float W, float V);
-    HeaterMock& scale_r_to(float new_base);
-    HeaterMock& reset();
-    HeaterMock& set_size(float x, float y, float z);
+    auto calibrate_TR(float T, float R) -> HeaterMock&;
+    auto calibrate_TWV(float T, float W, float V) -> HeaterMock&;
+    auto scale_r_to(float new_base) -> HeaterMock&;
+    auto reset() -> HeaterMock&;
+    auto set_size(float x, float y, float z) -> HeaterMock&;
 };

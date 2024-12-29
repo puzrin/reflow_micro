@@ -6,7 +6,7 @@ namespace {
 class StepResponse : public etl::fsm_state<App, StepResponse, DeviceState_StepResponse,
     AppCmd::Stop, AppCmd::Button> {
 public:
-    etl::fsm_state_id_t on_enter_state() override {
+    auto on_enter_state() -> etl::fsm_state_id_t override {
         DEBUG("State => StepResponse");
 
         auto& app = get_fsm_context();
@@ -23,13 +23,13 @@ public:
 
     void on_exit_state() override { get_fsm_context().heater.task_stop(); }
 
-    etl::fsm_state_id_t on_event(const AppCmd::Stop& event) { return DeviceState_Idle; }
-    etl::fsm_state_id_t on_event(const AppCmd::Button& event) {
+    auto on_event(const AppCmd::Stop& event) -> etl::fsm_state_id_t { return DeviceState_Idle; }
+    auto on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
         if (event.type == ButtonEventId::BUTTON_PRESSED_1X) { return DeviceState_Idle; }
         return No_State_Change;
     }
 
-    etl::fsm_state_id_t on_event_unknown(const etl::imessage& event) {
+    auto on_event_unknown(const etl::imessage& event) -> etl::fsm_state_id_t {
         get_fsm_context().LogUnknownEvent(event);
         return No_State_Change;
     }

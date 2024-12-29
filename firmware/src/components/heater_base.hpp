@@ -11,31 +11,31 @@ using HeaterTaskIteratorFn = std::function<void(uint32_t, uint32_t)>;
 
 class HeaterBase {
 public:
-    virtual bool is_hotplate_connected() { return true;};
-    virtual uint8_t get_hotplate_id() { return 0; };
+    virtual auto is_hotplate_connected() -> bool { return true;};
+    virtual auto get_hotplate_id() -> uint8_t { return 0; };
 
-    bool get_adrc_params(std::vector<uint8_t>& pb_data);
-    bool get_adrc_params(AdrcParams& params);
-    bool set_adrc_params(const std::vector<uint8_t>& pb_data);
-    bool set_adrc_params(const AdrcParams& params);
+    auto get_adrc_params(std::vector<uint8_t>& pb_data) -> bool;
+    auto get_adrc_params(AdrcParams& params) -> bool;
+    auto set_adrc_params(const std::vector<uint8_t>& pb_data) -> bool;
+    auto set_adrc_params(const AdrcParams& params) -> bool;
 
-    bool get_sensor_params(std::vector<uint8_t>& pb_data);
-    bool get_sensor_params(SensorParams& params);
-    bool set_sensor_params(const std::vector<uint8_t>& pb_data);
-    bool set_sensor_params(const SensorParams& params);
+    auto get_sensor_params(std::vector<uint8_t>& pb_data) -> bool;
+    auto get_sensor_params(SensorParams& params) -> bool;
+    auto set_sensor_params(const std::vector<uint8_t>& pb_data) -> bool;
+    auto set_sensor_params(const SensorParams& params) -> bool;
 
     void get_history(int32_t client_history_version, int32_t from, std::vector<uint8_t>& pb_data);
 
     virtual void start() = 0;
-    virtual bool load_all_params();
+    virtual auto load_all_params() -> bool;
 
-    virtual float get_temperature() = 0;
-    virtual float get_resistance() = 0;
-    virtual float get_max_power() = 0;
-    virtual float get_power() = 0;
-    virtual float get_volts() = 0;
-    virtual float get_amperes() = 0;
-    virtual float get_duty_cycle() { return 1.0f; }
+    virtual auto get_temperature() -> float = 0;
+    virtual auto get_resistance() -> float = 0;
+    virtual auto get_max_power() -> float = 0;
+    virtual auto get_power() -> float = 0;
+    virtual auto get_volts() -> float = 0;
+    virtual auto get_amperes() -> float = 0;
+    virtual auto get_duty_cycle() -> float { return 1.0f; }
 
     virtual void set_power(float power) { power_setpoint = (power < 0 ? 0 : power); }
     virtual void set_temperature(float temp) { temperature_setpoint = temp; }
@@ -43,11 +43,11 @@ public:
     virtual void temperature_control_off();
 
     virtual void tick(int32_t dt_ms);
-    virtual bool set_sensor_calibration_point(uint32_t point_id, float temperature) = 0;
+    virtual auto set_sensor_calibration_point(uint32_t point_id, float temperature) -> bool = 0;
 
     // "task" machinery, by default record history.
 
-    bool task_start(int32_t task_id, HeaterTaskIteratorFn task_iterator = nullptr);
+    auto task_start(int32_t task_id, HeaterTaskIteratorFn task_iterator = nullptr) -> bool;
     void task_stop();
 
 protected:

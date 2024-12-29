@@ -3,27 +3,27 @@
 #include <cmath>
 #include <algorithm>
 
-bool HeaterBase::get_adrc_params(std::vector<uint8_t>& pb_data) {
+auto HeaterBase::get_adrc_params(std::vector<uint8_t>& pb_data) -> bool {
     if (!is_hotplate_connected()) { return false; }
 
     pb_data = adrc_params[get_hotplate_id()].get();
     return true;
 }
 
-bool HeaterBase::get_adrc_params(AdrcParams& params) {
+auto HeaterBase::get_adrc_params(AdrcParams& params) -> bool {
     if (!is_hotplate_connected()) { return false; }
 
     return pb2struct(adrc_params[get_hotplate_id()].get(), params, AdrcParams_fields);
 }
 
-bool HeaterBase::set_adrc_params(const std::vector<uint8_t> &pb_data) {
+auto HeaterBase::set_adrc_params(const std::vector<uint8_t> &pb_data) -> bool {
     if (!is_hotplate_connected()) { return false; }
 
     adrc_params[get_hotplate_id()].set(pb_data);
     return true;
 }
 
-bool HeaterBase::set_adrc_params(const AdrcParams& params) {
+auto HeaterBase::set_adrc_params(const AdrcParams& params) -> bool {
     if (!is_hotplate_connected()) { return false; }
 
     std::vector<uint8_t> pb_data(AdrcParams_size);
@@ -33,26 +33,26 @@ bool HeaterBase::set_adrc_params(const AdrcParams& params) {
     return true;
 }
 
-bool HeaterBase::get_sensor_params(std::vector<uint8_t>& pb_data) {
+auto HeaterBase::get_sensor_params(std::vector<uint8_t>& pb_data) -> bool {
     if (!is_hotplate_connected()) { return false; }
 
     pb_data = sensor_params[get_hotplate_id()].get();
     return true;
 }
 
-bool HeaterBase::get_sensor_params(SensorParams& params) {
+auto HeaterBase::get_sensor_params(SensorParams& params) -> bool {
     if (!is_hotplate_connected()) { return false; }
 
     return pb2struct(sensor_params[get_hotplate_id()].get(), params, SensorParams_fields);
 }
-bool HeaterBase::set_sensor_params(const std::vector<uint8_t>& pb_data) {
+auto HeaterBase::set_sensor_params(const std::vector<uint8_t>& pb_data) -> bool {
     if (!is_hotplate_connected()) { return false; }
 
     sensor_params[get_hotplate_id()].set(pb_data);
     return true;
 }
 
-bool HeaterBase::set_sensor_params(const SensorParams& params) {
+auto HeaterBase::set_sensor_params(const SensorParams& params) -> bool {
     if (!is_hotplate_connected()) { return false; }
 
     std::vector<uint8_t> pb_data(SensorParams_size);
@@ -115,7 +115,7 @@ void HeaterBase::get_history(int32_t client_history_version, int32_t from, std::
 }
 
 
-bool HeaterBase::load_all_params() {
+auto HeaterBase::load_all_params() -> bool {
     AdrcParams p;
     if (!get_adrc_params(p)) { return false; }
     adrc.set_params(p.b0, p.response, p.N, p.M);
@@ -159,7 +159,7 @@ void HeaterBase::tick(int32_t dt_ms) {
     if (task_iterator) task_iterator(dt_ms, task_time_ms);
 }
 
-bool HeaterBase::task_start(int32_t task_id, HeaterTaskIteratorFn ticker) {
+auto HeaterBase::task_start(int32_t task_id, HeaterTaskIteratorFn ticker) -> bool {
     if (is_task_active) { return false; }
     if (!is_hotplate_connected()) { return false; }
     if (!load_all_params()) { return false; }

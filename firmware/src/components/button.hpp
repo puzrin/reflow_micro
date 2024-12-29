@@ -5,7 +5,7 @@
 
 class ButtonDriver : public IButtonDriver {
 public:
-    bool get() override {
+    auto get() -> bool override {
         if (!initialized) {
             initialized = true;
             pinMode(btnPin, INPUT_PULLUP);

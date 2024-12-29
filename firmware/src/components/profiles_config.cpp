@@ -3,7 +3,7 @@
 #include <memory>
 
 
-bool ProfilesConfig::get_profiles(std::vector<uint8_t>& pb_data) {
+auto ProfilesConfig::get_profiles(std::vector<uint8_t>& pb_data) -> bool {
     // Struct can be big, use heap instead of stack
     auto profiles_data = std::make_unique<ProfilesData>();
 
@@ -11,7 +11,7 @@ bool ProfilesConfig::get_profiles(std::vector<uint8_t>& pb_data) {
     return struct2pb(*profiles_data, pb_data, ProfilesData_fields, ProfilesData_size);
 }
 
-bool ProfilesConfig::get_profiles(ProfilesData& profiles_config) {
+auto ProfilesConfig::get_profiles(ProfilesData& profiles_config) -> bool {
     bool status = pb2struct(unselected_profiles_store.get(), profiles_config, ProfilesData_fields);
     profiles_config.selectedId = selection_store.get();
 
@@ -19,14 +19,14 @@ bool ProfilesConfig::get_profiles(ProfilesData& profiles_config) {
     return status;
 }
 
-bool ProfilesConfig::set_profiles(const std::vector<uint8_t>& pb_data) {
+auto ProfilesConfig::set_profiles(const std::vector<uint8_t>& pb_data) -> bool {
     auto profiles_data = std::make_unique<ProfilesData>();
 
     if (!pb2struct(pb_data, *profiles_data, ProfilesData_fields)) { return false; }
     return set_profiles(*profiles_data);
 }
 
-bool ProfilesConfig::set_profiles(const ProfilesData& profiles_config) {
+auto ProfilesConfig::set_profiles(const ProfilesData& profiles_config) -> bool {
     auto profiles_unselected = std::make_unique<ProfilesData>(profiles_config);
 
     auto selection = profiles_config.selectedId;
@@ -53,7 +53,7 @@ void ProfilesConfig::adjustSelection(ProfilesData& profiles_config) {
     profiles_config.selectedId = profiles_config.items[0].id;
 }
 
-bool ProfilesConfig::get_selected_profile(Profile& profile) {
+auto ProfilesConfig::get_selected_profile(Profile& profile) -> bool {
     auto profiles_data = std::make_unique<ProfilesData>();
     get_profiles(*profiles_data);
 

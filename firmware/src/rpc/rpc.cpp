@@ -18,7 +18,7 @@ namespace {
 
 bool pairing_enabled_flag = false;
 
-bool is_pairing_enabled() { return pairing_enabled_flag; }
+auto is_pairing_enabled() -> bool { return pairing_enabled_flag; }
 
 // UUIDs for the BLE service and characteristic
 const char* SERVICE_UUID = "5f524546-4c4f-575f-5250-435f5356435f"; // _REFLOW_RPC_SVC_
@@ -34,7 +34,7 @@ std::map<decltype(ble_gap_conn_desc::conn_handle), std::shared_ptr<Session>> ses
 std::shared_ptr<Session> context;
 
 void set_context(std::shared_ptr<Session> ctx) { context = ctx; }
-std::shared_ptr<Session> get_context() { return context; }
+auto get_context() -> std::shared_ptr<Session> { return context; }
 
 class Session : public std::enable_shared_from_this<Session> {
 public:
@@ -233,7 +233,7 @@ std::vector<uint8_t> auth_info() {
     return output;
 }
 
-bool authenticate(const std::string str_client_id, const std::string str_hmac, uint64_t timestamp) {
+auto authenticate(const std::string str_client_id, const std::string str_hmac, uint64_t timestamp) -> bool {
     auto session = get_context();
 
     BleAuthId client_id;
@@ -258,7 +258,7 @@ bool authenticate(const std::string str_client_id, const std::string str_hmac, u
     return true;
 }
 
-std::string pair(const std::string str_client_id) {
+auto pair(const std::string str_client_id) -> std::string {
     if (!is_pairing_enabled()) { return ""; }
 
     BleAuthId client_id;

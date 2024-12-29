@@ -42,37 +42,37 @@ std::vector<uint8_t> get_profiles_data() {
     return pb_data;
 }
 
-bool save_profiles_data(std::vector<uint8_t> pb_data) {
+auto save_profiles_data(std::vector<uint8_t> pb_data) -> bool {
     application.profilesConfig.set_profiles(pb_data);
     return true;
 }
 
-bool stop() {
+auto stop() -> bool {
     application.safe_receive(AppCmd::Stop());
     return application.get_state_id() == DeviceState_Idle;
 }
 
-bool run_reflow() {
+auto run_reflow() -> bool {
     application.safe_receive(AppCmd::Reflow());
     return application.get_state_id() == DeviceState_Reflow;
 }
 
-bool run_sensor_bake(float watts) {
+auto run_sensor_bake(float watts) -> bool {
     application.safe_receive(AppCmd::SensorBake(watts));
     return application.get_state_id() == DeviceState_SensorBake;
 }
 
-bool run_adrc_test(float temperature) {
+auto run_adrc_test(float temperature) -> bool {
     application.safe_receive(AppCmd::AdrcTest(temperature));
     return application.get_state_id() == DeviceState_AdrcTest;
 }
 
-bool run_step_response(float watts) {
+auto run_step_response(float watts) -> bool {
     application.safe_receive(AppCmd::StepResponse(watts));
     return application.get_state_id() == DeviceState_StepResponse;
 }
 
-bool set_sensor_calibration_point(uint32_t point_id, float temperature) {
+auto set_sensor_calibration_point(uint32_t point_id, float temperature) -> bool {
     if (!application.heater.is_hotplate_connected() ||
         !application.heater.set_sensor_calibration_point(point_id, temperature))
     {
@@ -91,7 +91,7 @@ std::vector<uint8_t> get_sensor_params() {
     return pb_data;
 }
 
-bool set_adrc_params(std::vector<uint8_t> pb_data) {
+auto set_adrc_params(std::vector<uint8_t> pb_data) -> bool {
     if (!application.heater.is_hotplate_connected() ||
         !application.heater.set_adrc_params(pb_data))
     {

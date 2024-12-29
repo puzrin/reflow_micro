@@ -24,7 +24,7 @@ public:
 
 
     // Atomic clone of the value
-    bool makeSnapshot() {
+    auto makeSnapshot() -> bool {
         const uint32_t version_before = data_version.load(std::memory_order_acquire);
 
         // If version is odd, it means that value is being updated right now.

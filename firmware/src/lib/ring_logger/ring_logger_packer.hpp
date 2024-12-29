@@ -21,7 +21,7 @@ public:
     };
 
     template<typename... Args>
-    static PackedData pack(const Args&... args) {
+    static auto pack(const Args&... args) -> PackedData {
         static_assert(sizeof...(args) <= MAX_ARGUMENTS, "Number of arguments exceeds the maximum allowed");
 
         PackedData packedData = {};
@@ -38,7 +38,7 @@ public:
         return packedData;
     }
 
-    static bool unpack(const PackedData& packedData, UnpackedData& unpackedData) {
+    static auto unpack(const PackedData& packedData, UnpackedData& unpackedData) -> bool {
         size_t offset = 0;
 
         // Read the number of arguments
@@ -79,7 +79,7 @@ public:
     }
 
     template<typename... Args>
-    static size_t getPackedSize(const Args&... args) {
+    static auto getPackedSize(const Args&... args) -> size_t {
         size_t size = 1; // For the number of arguments
         int dummy[] = { 0, (calculateArgumentSize(size, args), 0)... };
         static_cast<void>(dummy); // Avoid unused variable warning
@@ -141,14 +141,14 @@ private:
     }
 
     template<typename T>
-    static T deserialize(const uint8_t* buffer, size_t& offset) {
+    static auto deserialize(const uint8_t* buffer, size_t& offset) -> T {
         T value;
         std::memcpy(&value, buffer + offset, sizeof(value));
         offset += sizeof(value);
         return value;
     }
 
-    static const char* deserializeString(const uint8_t* buffer, size_t& offset) {
+    static auto deserializeString(const uint8_t* buffer, size_t& offset) -> const char* {
         uint16_t length;
         std::memcpy(&length, buffer + offset, sizeof(length));
         offset += sizeof(length);

@@ -12,7 +12,7 @@ public:
         uint16_t size;
     };
 
-    bool writeRecord(const uint8_t* data, size_t size) {
+    auto writeRecord(const uint8_t* data, size_t size) -> bool {
         size_t record_size = sizeof(RecordHeader) + size; // Include size header
         size_t head, next_head;
 
@@ -36,7 +36,7 @@ public:
         return true;
     }
 
-    bool readRecord(uint8_t* data, size_t& size) {
+    auto readRecord(uint8_t* data, size_t& size) -> bool {
         while (true) {
             size_t tail = this->tail_idx.load(std::memory_order_acquire);
             size_t head = this->head_idx.load(std::memory_order_acquire);

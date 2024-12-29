@@ -21,7 +21,7 @@ public:
 template <typename T>
 class BlinkerSimpleQueue {
 public:
-    bool write(const T& value) {
+    auto write(const T& value) -> bool {
         // Disable parallel writes
         bool expected = false;
         if (!writerActive.compare_exchange_strong(expected, true)) { return false; }
@@ -34,7 +34,7 @@ public:
         return true;
     }
 
-    bool read(T& output) {
+    auto read(T& output) -> bool {
         uint32_t versionBefore = versionCounter.load(std::memory_order_acquire);
 
         if (versionBefore == lastReadVersion) { return false; } // No new data
@@ -94,10 +94,10 @@ public:
 
     void off() { once({ {backgroundValue, 0} }); }
 
-    static Action flowTo(const typename Driver::DataType target, uint32_t duration) { return {target, duration, true}; }
+    static auto flowTo(const typename Driver::DataType target, uint32_t duration) -> Action { return {target, duration, true}; }
     // Sugar for single channel, to omit brackets
     template<int Channels = Driver::ChannelsCount, typename = std::enable_if_t<Channels == 1>>
-    static Action flowTo(uint8_t target, uint32_t duration) { return {target, duration, true}; }
+    static auto flowTo(uint8_t target, uint32_t duration) -> Action { return {target, duration, true}; }
 
     static inline const Action OFF = { typename Driver::DataType{}, 0 };
 

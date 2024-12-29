@@ -61,7 +61,7 @@ public:
     }
 
 private:
-    static FormatPlaceholder get_next_placeholder(const char* str) {
+    static auto get_next_placeholder(const char* str) -> FormatPlaceholder {
         while (*str) {
             if (*str == '{' && *(str + 1) == '}') {
                 return {str, str + 2};
@@ -72,7 +72,7 @@ private:
         return {nullptr, nullptr};
     }
 
-    static bool write(char* output, std::size_t& out_index, std::size_t max_length, const ArgVariant& arg) {
+    static auto write(char* output, std::size_t& out_index, std::size_t max_length, const ArgVariant& arg) -> bool {
         std::string arg_str;
         switch (arg.type) {
             case ArgTypeTag::INT8: arg_str = std::to_string(arg.int8Value); break;
@@ -91,7 +91,7 @@ private:
         return copy(arg_str.c_str(), output, out_index, arg_str.size(), max_length);
     }
 
-    static bool copy(const char* src, char* dest, std::size_t& out_index, std::size_t size, std::size_t max_allowed) {
+    static auto copy(const char* src, char* dest, std::size_t& out_index, std::size_t size, std::size_t max_allowed) -> bool {
         if (size == 0) { return true; } // If string to copy is empty, consider it successful.
         std::size_t copy_size = (out_index + size > max_allowed) ? max_allowed - out_index : size;
         if (copy_size == 0) { return false; }

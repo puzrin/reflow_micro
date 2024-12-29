@@ -4,12 +4,12 @@
 #include "heater_mock.hpp"
 #include "proto/generated/defaults.hpp"
 
-ChargerMock& ChargerMock::add(const ChargerProfileMock& profile) {
+auto ChargerMock::add(const ChargerProfileMock& profile) -> ChargerMock& {
     profiles.push_back(profile);
     return *this;
 }
 
-float ChargerMock::get_power(float R) const {
+auto ChargerMock::get_power(float R) const -> float {
     float max_power = 0;
     for (const auto& profile : profiles) {
         if (profile.is_useable(R)) {
@@ -20,7 +20,7 @@ float ChargerMock::get_power(float R) const {
     return max_power;
 }
 
-static float interpolate(float x, const std::vector<std::pair<float, float>>& points) {
+static auto interpolate(float x, const std::vector<std::pair<float, float>>& points) -> float {
     if (points.size() < 2) {
         throw std::runtime_error("At least two points are required for interpolation.");
     }
@@ -49,7 +49,7 @@ static float interpolate(float x, const std::vector<std::pair<float, float>>& po
     throw std::runtime_error("Interpolation error: x is out of bounds.");
 }
 
-static ChargerMock make_charger_140w_with_pps() {
+static auto make_charger_140w_with_pps() -> ChargerMock {
     ChargerMock charger;
     charger.add(ChargerProfileMock(9, 3))
            .add(ChargerProfileMock(12, 3))
@@ -86,7 +86,7 @@ void HeaterMock::validate_calibration_points() {
     }
 }
 
-float HeaterMock::calculate_resistance(float temp) const {
+auto HeaterMock::calculate_resistance(float temp) const -> float {
     if (calibration_points.empty()) {
         throw std::runtime_error("No calibration points defined.");
     }
@@ -104,7 +104,7 @@ float HeaterMock::calculate_resistance(float temp) const {
     return interpolate(temp, points);
 }
 
-float HeaterMock::calculate_heat_capacity() const {
+auto HeaterMock::calculate_heat_capacity() const -> float {
     const float material_shc = 897;     // J/kg/K for Aluminum 6061
     const float material_density = 2700; // kg/m3 for Aluminum 6061
     const float volume = size.x * size.y * size.z;
@@ -112,7 +112,7 @@ float HeaterMock::calculate_heat_capacity() const {
     return mass * material_shc;
 }
 
-float HeaterMock::calculate_heat_transfer_coefficient() const {
+auto HeaterMock::calculate_heat_transfer_coefficient() const -> float {
     std::vector<CalibrationPoint> points_with_power;
     std::copy_if(calibration_points.begin(), calibration_points.end(),
                  std::back_inserter(points_with_power),
@@ -137,13 +137,13 @@ float HeaterMock::calculate_heat_transfer_coefficient() const {
     return interpolate(temperature, points);
 }
 
-float HeaterMock::get_room_temp() const {
+auto HeaterMock::get_room_temp() const -> float {
     auto it = std::find_if(calibration_points.begin(), calibration_points.end(),
                           [](const CalibrationPoint& p) { return p.W == 0; });
     return it != calibration_points.end() ? it->T : 25.0f;
 }
 
-HeaterMock& HeaterMock::scale_r_to(float new_base) {
+auto HeaterMock::scale_r_to(float new_base) -> HeaterMock& {
     if (calibration_points.empty()) {
         throw std::runtime_error("No calibration points to scale");
     }
@@ -155,26 +155,26 @@ HeaterMock& HeaterMock::scale_r_to(float new_base) {
     return *this;
 }
 
-HeaterMock& HeaterMock::calibrate_TR(float T, float R) {
+auto HeaterMock::calibrate_TR(float T, float R) -> HeaterMock& {
     calibration_points.push_back({T, R, 0});
     temperature = T;
     validate_calibration_points();
     return *this;
 }
 
-HeaterMock& HeaterMock::calibrate_TWV(float T, float W, float V) {
+auto HeaterMock::calibrate_TWV(float T, float W, float V) -> HeaterMock& {
     float R = (V * V) / W;
     calibration_points.push_back({T, R, W});
     validate_calibration_points();
     return *this;
 }
 
-HeaterMock& HeaterMock::set_size(float x, float y, float z) {
+auto HeaterMock::set_size(float x, float y, float z) -> HeaterMock& {
     size = {x, y, z};
     return *this;
 }
 
-HeaterMock& HeaterMock::reset() {
+auto HeaterMock::reset() -> HeaterMock& {
     temperature = get_room_temp();
     return *this;
 }
@@ -211,7 +211,7 @@ void HeaterMock::tick(int32_t dt_ms) {
     HeaterBase::tick(dt_ms);
 }
 
-bool HeaterMock::set_sensor_calibration_point(uint32_t point_id, float temperature) {
+auto HeaterMock::set_sensor_calibration_point(uint32_t point_id, float temperature) -> bool {
     if (!is_hotplate_connected()) { return false; }
 
     SensorParams sensor_params;
