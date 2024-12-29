@@ -7,10 +7,10 @@
 template <typename T>
 class DataGuard {
 public:
-    explicit DataGuard(const T& initial = T()) : value{initial}, snapshot{}, data_version(0), last_snapshot_version(0) {}
+    explicit DataGuard(const T& initial = T()) : value{initial} {}
 
     T value;
-    T snapshot;
+    T snapshot{};
 
     void writeData(const T& newValue) {
         beginWrite();
@@ -41,6 +41,6 @@ public:
     }
 
 private:
-    std::atomic<uint32_t> data_version;
-    uint32_t last_snapshot_version;
+    std::atomic<uint32_t> data_version{0};
+    uint32_t last_snapshot_version{0};
 };

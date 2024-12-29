@@ -5,7 +5,6 @@
 
 class ButtonDriver : public IButtonDriver {
 public:
-    ButtonDriver() : initialized(false) {};
     bool get() override {
         if (!initialized) {
             initialized = true;
@@ -14,8 +13,8 @@ public:
         return digitalRead(btnPin) == LOW;
     }
 private:
-    static constexpr uint8_t btnPin = 9;
-    bool initialized;
+    static constexpr uint8_t btnPin{9};
+    bool initialized{false};
 };
 
 template <typename Driver>

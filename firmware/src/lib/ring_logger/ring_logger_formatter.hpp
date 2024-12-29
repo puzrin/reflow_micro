@@ -29,7 +29,7 @@ struct all_are_arg_variant<T, Rest...>
 class Formatter {
 public:
     static void print(char* output, std::size_t max_length, const char* message, const ArgVariant* args, std::size_t num_args) {
-        if (!output || !message || max_length == 0) return;
+        if (!output || !message || max_length == 0) { return; }
 
         std::size_t out_index = 0;
         std::size_t arg_index = 0;
@@ -39,10 +39,10 @@ public:
             FormatPlaceholder placeholder = get_next_placeholder(message);
 
             if (placeholder.start && arg_index < num_args) {
-                if (!copy(message, output, out_index, placeholder.start - message, available_length)) break;
+                if (!copy(message, output, out_index, placeholder.start - message, available_length)) { break; }
                 message = placeholder.end;
 
-                if (!write(output, out_index, available_length, args[arg_index++])) break;
+                if (!write(output, out_index, available_length, args[arg_index++])) { break; }
             } else {
                 copy(message, output, out_index, std::strlen(message), available_length);
                 break;
@@ -62,8 +62,13 @@ public:
 
 private:
     static FormatPlaceholder get_next_placeholder(const char* str) {
-        while (*str) 
-            if (*str == '{' && *(str + 1) == '}') return {str, str + 2}; else ++str;
+        while (*str) {
+            if (*str == '{' && *(str + 1) == '}') {
+                return {str, str + 2};
+            } else {
+                ++str;
+            }
+        }
         return {nullptr, nullptr};
     }
 
@@ -87,9 +92,9 @@ private:
     }
 
     static bool copy(const char* src, char* dest, std::size_t& out_index, std::size_t size, std::size_t max_allowed) {
-        if (size == 0) return true; // If string to copy is empty, consider it successful.
+        if (size == 0) { return true; } // If string to copy is empty, consider it successful.
         std::size_t copy_size = (out_index + size > max_allowed) ? max_allowed - out_index : size;
-        if (copy_size == 0) return false;
+        if (copy_size == 0) { return false; }
         std::memcpy(dest + out_index, src, copy_size);
         out_index += copy_size;
         return copy_size == size;

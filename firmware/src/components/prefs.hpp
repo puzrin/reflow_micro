@@ -40,7 +40,7 @@ public:
 
 private:
     AsyncPreferenceKV() {} // Prohibit direct call
-    Preferences prefs;
+    Preferences prefs{};
 };
 
 class PrefsWriter : public AsyncPreferenceWriter {

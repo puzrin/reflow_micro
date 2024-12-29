@@ -11,7 +11,7 @@ public:
 
         auto& app = get_fsm_context();
         auto& heater = app.heater;
-        if (!heater.task_start(HISTORY_ID_SENSOR_BAKE_MODE)) return DeviceState_Idle;
+        if (!heater.task_start(HISTORY_ID_SENSOR_BAKE_MODE)) { return DeviceState_Idle; }
 
         heater.set_power(app.last_cmd_data);
 
@@ -22,7 +22,7 @@ public:
 
     etl::fsm_state_id_t on_event(const AppCmd::Stop& event) { return DeviceState_Idle; }
     etl::fsm_state_id_t on_event(const AppCmd::Button& event) {
-        if (event.type == ButtonEventId::BUTTON_PRESSED_1X) return DeviceState_Idle;
+        if (event.type == ButtonEventId::BUTTON_PRESSED_1X) { return DeviceState_Idle; }
         return No_State_Change;
     }
     etl::fsm_state_id_t on_event(const AppCmd::SensorBake& event) {

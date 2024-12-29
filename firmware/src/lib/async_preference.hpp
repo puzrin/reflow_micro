@@ -28,8 +28,8 @@ struct TrivialSerializer {
     static void load(IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, T& value) {
         const size_t size = kv.length(ns, key);
 
-        if (size == 0) return; // Key not exists => nothing to load
-        if (size != sizeof(T)) return; // Wrong size => broken data, ignore it
+        if (size == 0) { return; } // Key not exists => nothing to load
+        if (size != sizeof(T)) { return; } // Wrong size => broken data, ignore it
 
         kv.read(ns, key, reinterpret_cast<uint8_t*>(&value), sizeof(T));
     }
@@ -46,8 +46,8 @@ struct BufferSerializer {
     static void load(IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, T& value) {
         size_t size = kv.length(ns, key);
 
-        if (size == 0) return; // Key not exists => nothing to load
-        if (size % sizeof(typename T::value_type) != 0) return; // Wrong size => broken data, ignore it
+        if (size == 0) { return; } // Key not exists => nothing to load
+        if (size % sizeof(typename T::value_type) != 0) { return; } // Wrong size => broken data, ignore it
 
         value.resize(size / sizeof(typename T::value_type));
         kv.read(ns, key, reinterpret_cast<uint8_t*>(value.data()), size);
@@ -106,7 +106,7 @@ template <typename T, typename Serializer = void>
 class AsyncPreference : public AsyncPreferenceTickable {
 public:
     AsyncPreference(IAsyncPreferenceWriter& writer, IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, const T& initial = T()) :
-        databox{initial}, kv{kv}, ns(ns), key(key), is_preloaded(false), writer{writer}, has_pending_write{false}
+        databox{initial}, kv{kv}, ns{ns}, key{key}, writer{writer}
     {
         writer.add(this);
 
@@ -123,7 +123,7 @@ public:
 
     void set(const T& value) {
         // Don't write the same data
-        if (is_preloaded && databox.value == value) return;
+        if (is_preloaded && databox.value == value) { return; }
 
         valueUpdateBegin();
         databox.value = value;
@@ -176,7 +176,7 @@ public:
                 static_assert(dependent_false<T>::value, "No suitable serializer found for this type");
             }
 
-            if (!succeeded) has_pending_write = true;
+            if (!succeeded) { has_pending_write = true; }
         }
     }
 
@@ -185,18 +185,18 @@ private:
     IAsyncPreferenceKV& kv;
     std::string ns;
     std::string key;
-    bool is_preloaded;
     IAsyncPreferenceWriter& writer;
-    bool has_pending_write;
+    bool is_preloaded{false};
+    bool has_pending_write{false};
 
     // Fetch value from storage, if key exists. This is called only once in
     // life cycle. The next reads are always from memory only.
     void preload() {
         using namespace async_preference_ns;
 
-        if (is_preloaded) return;
+        if (is_preloaded) { return; }
 
-        if (kv.length(ns, key) == 0) return; // If key does not exist
+        if (kv.length(ns, key) == 0) { return; } // If key does not exist
 
         if constexpr (!std::is_void_v<Serializer>) {
             // Use custom serializer if provided
@@ -221,11 +221,11 @@ public:
     AsyncPreferenceMap(IAsyncPreferenceWriter& writer, IAsyncPreferenceKV& kv,
                         const std::string& ns, const std::string& key,
                         const T& default_value = T())
-        : writer(writer)
-        , kv(kv)
-        , ns(ns)
-        , key(key)
-        , default_value(default_value)
+        : writer{writer}
+        , kv{kv}
+        , ns{ns}
+        , key{key}
+        , default_value{default_value}
     {}
 
    AsyncPreference<T>& operator[](size_t idx) {
@@ -243,7 +243,7 @@ public:
    }
 
 private:
-    std::map<size_t, AsyncPreference<T>*> items;
+    std::map<size_t, AsyncPreference<T>*> items{};
     IAsyncPreferenceWriter& writer;
     IAsyncPreferenceKV& kv;
     std::string ns;

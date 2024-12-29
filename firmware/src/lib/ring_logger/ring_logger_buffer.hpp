@@ -12,8 +12,6 @@ public:
         uint16_t size;
     };
 
-    RingBuffer() : buffer{}, head_idx(0), tail_idx(0) {}
-
     bool writeRecord(const uint8_t* data, size_t size) {
         size_t record_size = sizeof(RecordHeader) + size; // Include size header
         size_t head, next_head;
@@ -56,7 +54,7 @@ public:
 
             // Make sure data was not corrupted, tail should not be changed.
             // Start from the beginning on fail.
-            if (this->tail_idx.load(std::memory_order_acquire) != tail) continue;
+            if (this->tail_idx.load(std::memory_order_acquire) != tail) { continue; }
 
             size_t next_tail = (tail + sizeof(RecordHeader) + size) % BufferSize;
 
@@ -65,7 +63,7 @@ public:
             readBuffer((tail + sizeof(RecordHeader)) % BufferSize, data, size);
 
             // Check tail was not changed from outside, update and finish on success
-            if (this->tail_idx.compare_exchange_weak(tail, next_tail, std::memory_order_release, std::memory_order_relaxed)) break;
+            if (this->tail_idx.compare_exchange_weak(tail, next_tail, std::memory_order_release, std::memory_order_relaxed)) { break; }
         }
 
         return true;
@@ -80,7 +78,7 @@ private:
             size_t space_available = head >= tail ? (BufferSize - head + tail) : (tail - head);
 
             // Exit if enough space
-            if (space_available >= required_space) return;
+            if (space_available >= required_space) { return; }
 
             // Release a single record
             // Content can be invalid at this moment if tail changed.
@@ -134,9 +132,9 @@ private:
         }
     }
 
-    uint8_t buffer[BufferSize];
-    std::atomic<size_t> head_idx;
-    std::atomic<size_t> tail_idx;
+    uint8_t buffer[BufferSize]{};
+    std::atomic<size_t> head_idx{0};
+    std::atomic<size_t> tail_idx{0};
 };
 
 } // namespace ring_logger

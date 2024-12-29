@@ -19,7 +19,7 @@ public:
             [](TimerHandle_t xTimer){ application.receive(AppCmd::BondOff()); });
 
         // Ideally, we should check all returned statuses, but who cares...
-        if (xTimeoutTimer) xTimerStart(xTimeoutTimer, 0);
+        if (xTimeoutTimer) { xTimerStart(xTimeoutTimer, 0); }
 
         pairing_enable();
         return No_State_Change;
@@ -43,7 +43,7 @@ public:
     }
 
 private:
-    TimerHandle_t xTimeoutTimer = nullptr;
+    TimerHandle_t xTimeoutTimer{nullptr};
 };
 
 Bonding bonding;

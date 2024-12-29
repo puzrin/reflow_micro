@@ -16,9 +16,9 @@ std::string bin2hex(const uint8_t* data, size_t length) {
 }
 
 uint8_t hexchar2num(char c) {
-    if (c >= '0' && c <= '9') return c - '0';
-    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
-    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+    if (c >= '0' && c <= '9') { return c - '0'; }
+    if (c >= 'A' && c <= 'F') { return c - 'A' + 10; }
+    if (c >= 'a' && c <= 'f') { return c - 'a' + 10; }
     return 0;
 }
 
@@ -70,8 +70,8 @@ std::array<uint8_t, 32> create_secret() {
 
     for (size_t i = 0; i < secret.size(); i += 4) {
         auto random4b = esp_random();
-        std::copy(reinterpret_cast<uint8_t*>(&random4b), 
-            reinterpret_cast<uint8_t*>(&random4b) + 4, 
+        std::copy(reinterpret_cast<uint8_t*>(&random4b),
+            reinterpret_cast<uint8_t*>(&random4b) + 4,
             secret.begin() + i);
     }
 

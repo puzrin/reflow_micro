@@ -25,11 +25,10 @@ public:
     BleChunkHead(uint8_t messageId, uint16_t sequenceNumber, uint8_t flags)
         : messageId(messageId), sequenceNumber(sequenceNumber), flags(flags) {}
 
-    BleChunkHead(const uint8_t* chunk) {
-        messageId = chunk[0];
-        sequenceNumber = static_cast<uint16_t>(chunk[1] | (chunk[2] << 8));
-        flags = chunk[3];
-    }
+    BleChunkHead(const uint8_t* chunk)
+        : messageId(chunk[0])
+        , sequenceNumber(static_cast<uint16_t>(chunk[1] | (chunk[2] << 8)))
+        , flags(chunk[3]) {}
 
     BleChunkHead(const std::vector<uint8_t>& chunk) : BleChunkHead(chunk.data()) {}
 
@@ -45,9 +44,7 @@ public:
 
 class BleChunker {
 public:
-    BleChunker(size_t maxMessageSize = 65536)
-            : maxMessageSize(maxMessageSize),
-            messageSize(0), expectedSequenceNumber(0), firstMessage(true), skipTail(false) {
+    BleChunker(size_t maxMessageSize = 65536) : maxMessageSize(maxMessageSize) {
         assembledMessage.reserve(maxMessageSize);
     }
 
@@ -133,12 +130,12 @@ private:
     static constexpr size_t MAX_CHUNK_SIZE = 244;
 
     size_t maxMessageSize;
-    uint8_t currentMessageId;
-    size_t messageSize;
-    uint16_t expectedSequenceNumber;
-    bool firstMessage;
-    bool skipTail;
-    std::vector<uint8_t> assembledMessage;
+    uint8_t currentMessageId{0};
+    size_t messageSize{0};
+    uint16_t expectedSequenceNumber{0};
+    bool firstMessage{true};
+    bool skipTail{false};
+    std::vector<uint8_t> assembledMessage{};
 
     void resetState() {
         assembledMessage.clear();

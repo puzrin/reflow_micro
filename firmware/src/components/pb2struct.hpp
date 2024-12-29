@@ -16,12 +16,12 @@ bool struct2pb(const T& obj, std::vector<uint8_t>& pb_data, const pb_msgdesc_t* 
     } else {
         // If max_pb_data_size is not provided, calculate the size of the encoded message
         size_t message_length;
-        if (!pb_get_encoded_size(&message_length, fields_descriptor, &obj)) return false;
+        if (!pb_get_encoded_size(&message_length, fields_descriptor, &obj)) { return false; }
         pb_data.resize(message_length);
     }
 
     pb_ostream_t stream = pb_ostream_from_buffer(pb_data.data(), pb_data.size());
-    if (!pb_encode(&stream, fields_descriptor, &obj)) return false;
+    if (!pb_encode(&stream, fields_descriptor, &obj)) { return false; }
     pb_data.resize(stream.bytes_written);
     return true;
 }

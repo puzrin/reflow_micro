@@ -29,10 +29,6 @@ enum class ButtonEventId {
 template <typename Driver>
 class ButtonEngine {
 public:
-    ButtonEngine() : driver{}, state{START}, unfilteredBtn{false}, btnPressed{false},
-        unfilteredBtnTimestamp{0}, btnToggleTimestamp{0}, prevPeriod{0}, currentPeriod{0},
-        shortPressesCounter{0} {}
-
     template <typename Handler>
     void setEventHandler(Handler&& handler) {
         eventHandler = std::forward<Handler>(handler);
@@ -156,17 +152,17 @@ private:
         WAIT_SHORT_PRESS
     };
 
-    Driver driver;
-    std::function<void(ButtonEventId)> eventHandler;
+    Driver driver{};
+    std::function<void(ButtonEventId)> eventHandler{nullptr};
 
-    State state;
-    bool unfilteredBtn;
-    bool btnPressed;
-    uint32_t unfilteredBtnTimestamp;
-    uint32_t btnToggleTimestamp;
-    uint32_t prevPeriod;
-    uint32_t currentPeriod;
-    uint8_t shortPressesCounter;
+    State state{START};
+    bool unfilteredBtn{false};
+    bool btnPressed{false};
+    uint32_t unfilteredBtnTimestamp{0};
+    uint32_t btnToggleTimestamp{0};
+    uint32_t prevPeriod{0};
+    uint32_t currentPeriod{0};
+    uint8_t shortPressesCounter{0};
 
     void handleEvent(ButtonEventId event) {
         if (eventHandler) eventHandler(event);

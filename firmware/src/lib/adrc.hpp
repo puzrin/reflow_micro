@@ -5,12 +5,12 @@
 
 class ADRC {
 private:
-    float b0 = 0.0f;
-    float beta1 = 0.0f;
-    float beta2 = 0.0f;
-    float kp = 0.0f;
-    float z1 = 0.0f;
-    float z2 = 0.0f;
+    float b0{0.0f};
+    float beta1{0.0f};
+    float beta2{0.0f};
+    float kp{0.0f};
+    float z1{0.0f};
+    float z2{0.0f};
 
 public:
     void set_params(float b0, float tau, float N, float M) {

@@ -20,19 +20,11 @@ public:
 
 template <typename T>
 class BlinkerSimpleQueue {
-private:
-    T buffer;
-    std::atomic<uint32_t> versionCounter;
-    std::atomic<bool> writerActive;
-    uint32_t lastReadVersion;
-
 public:
-    BlinkerSimpleQueue() : versionCounter(0), writerActive(false), lastReadVersion(0) {}
-
     bool write(const T& value) {
         // Disable parallel writes
         bool expected = false;
-        if (!writerActive.compare_exchange_strong(expected, true)) return false;
+        if (!writerActive.compare_exchange_strong(expected, true)) { return false; }
 
         versionCounter.fetch_add(1, std::memory_order_acquire); // Odd => write in progress
         buffer = value;
@@ -45,20 +37,25 @@ public:
     bool read(T& output) {
         uint32_t versionBefore = versionCounter.load(std::memory_order_acquire);
 
-        if (versionBefore == lastReadVersion) return false; // No new data
+        if (versionBefore == lastReadVersion) { return false; } // No new data
 
-        if (versionBefore % 2 != 0) return false; // Override in progress
+        if (versionBefore % 2 != 0) { return false; } // Override in progress
 
         T tempBuffer = buffer;
 
         // Re-read version to make sure data not changed
         uint32_t versionAfter = versionCounter.load(std::memory_order_acquire);
-        if (versionAfter != versionBefore) return false;
+        if (versionAfter != versionBefore) { return false; }
 
         output = tempBuffer;
         lastReadVersion = versionBefore;
         return true;
     }
+private:
+    T buffer{};
+    std::atomic<uint32_t> versionCounter{0};
+    std::atomic<bool> writerActive{false};
+    uint32_t lastReadVersion{0};
 };
 
 template<typename Driver>
@@ -79,9 +76,6 @@ public:
         Action(uint8_t _singleValue, uint32_t _period, bool _isAnimated = false)
             : value{std::array<uint8_t, 1>{_singleValue}}, period{_period}, isAnimated{_isAnimated} {}
     };
-
-    BlinkerEngine() : driver(), sequenceQueue{}, backgroundQueue{}, prevTickTs(0), hasNewJob(false), working(false),
-        sequence{}, backgroundValue{}, currentActionIdx(0), actionProgress(0), prevActionValue{} {}
 
     void loop(const std::initializer_list<Action>& actions) { updateSequence(actions, true); }
 
@@ -113,7 +107,7 @@ public:
         uint32_t elapsed = msTimestamp - prevTickTs;
         prevTickTs = msTimestamp;
 
-        if (sequenceQueue.read(sequence)) hasNewJob = true;
+        if (sequenceQueue.read(sequence)) { hasNewJob = true; }
 
         if (hasNewJob) {
             currentActionIdx = 0;
@@ -122,7 +116,7 @@ public:
             hasNewJob = false;
         }
 
-        if (backgroundQueue.read(backgroundValue) && !working) driver.set(backgroundValue);
+        if (backgroundQueue.read(backgroundValue) && !working) { driver.set(backgroundValue); }
 
         if (working) {
             const auto& action = sequence.actions[currentActionIdx];
@@ -152,8 +146,8 @@ public:
                 if (currentActionIdx >= sequence.length) {
                     working = false;
                     // If looping, start over
-                    if (sequence.looping) hasNewJob = true;
-                    else driver.set(backgroundValue);
+                    if (sequence.looping) { hasNewJob = true; }
+                    else { driver.set(backgroundValue); }
                 }
             }
         }
@@ -175,17 +169,17 @@ private:
         sequenceQueue.write(seq);
     }
 
-    Driver driver;
-    BlinkerSimpleQueue<Sequence> sequenceQueue;
-    BlinkerSimpleQueue<typename Driver::DataType> backgroundQueue;
+    Driver driver{};
+    BlinkerSimpleQueue<Sequence> sequenceQueue{};
+    BlinkerSimpleQueue<typename Driver::DataType> backgroundQueue{};
 
     // Ticker states
-    uint32_t prevTickTs;
-    bool hasNewJob;
-    bool working;
-    Sequence sequence;
-    typename Driver::DataType backgroundValue;
-    uint8_t currentActionIdx;
-    uint32_t actionProgress;
-    typename Driver::DataType prevActionValue;
+    uint32_t prevTickTs{0};
+    bool hasNewJob{false};
+    bool working{false};
+    Sequence sequence{};
+    typename Driver::DataType backgroundValue{};
+    uint8_t currentActionIdx{0};
+    uint32_t actionProgress{0};
+    typename Driver::DataType prevActionValue{};
 };

@@ -213,5 +213,5 @@ public:
     }
 
 private:
-    std::unordered_map<std::string, std::function<JsonDocument(const JsonArray&)>> functions;
+    std::unordered_map<std::string, std::function<JsonDocument(const JsonArray&)>> functions{};
 };

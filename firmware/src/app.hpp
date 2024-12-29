@@ -56,25 +56,25 @@ class App : public etl::fsm {
 public:
     App();
 
-    HeaterMock heater;
-    Blinker<LedDriver> blinker;
-    ProfilesConfig profilesConfig;
+    HeaterMock heater{};
+    Blinker<LedDriver> blinker{};
+    ProfilesConfig profilesConfig{};
 
     void LogUnknownEvent(const etl::imessage& msg);
     void setup();
 
     void safe_receive(const etl::imessage& message) {
-        if (!mutex) mutex = xSemaphoreCreateMutex();
+        if (!mutex) { mutex = xSemaphoreCreateMutex(); }
         xSemaphoreTake(mutex, portMAX_DELAY);
         receive(message);
         xSemaphoreGive(mutex);
     }
 
-    float last_cmd_data = 0;
+    float last_cmd_data{0};
 
 private:
-    SemaphoreHandle_t mutex = nullptr;
-    Button<ButtonDriver> button;
+    SemaphoreHandle_t mutex{nullptr};
+    Button<ButtonDriver> button{};
     void handleButton(ButtonEventId event) { safe_receive(AppCmd::Button(event)); }
 };
 

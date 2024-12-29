@@ -23,7 +23,7 @@ public:
 
     bool get_secret(const BleAuthId& client_id, BleAuthSecret& secret_out) {
         auto idx = idxById(client_id);
-        if (idx == -1) return false;
+        if (idx == -1) { return false; }
 
         secret_out = clientsPref.get()[idx].secret;
         return true;
@@ -31,7 +31,7 @@ public:
 
     bool set_timestamp(const BleAuthId& client_id, uint64_t timestamp) {
         auto idx = idxById(client_id);
-        if (idx < 0) return false;
+        if (idx < 0) { return false; }
 
         auto& timestamps = timestampsPref.get();
 
@@ -59,7 +59,7 @@ public:
 
     bool create(const BleAuthId& client_id, const BleAuthSecret& secret) {
         auto idx = idxById(client_id);
-        if (idx < 0) idx = idxLRU();
+        if (idx < 0) { idx = idxLRU(); }
 
         clientsPref.valueUpdateBegin();
         timestampsPref.valueUpdateBegin();
@@ -78,14 +78,14 @@ private:
     AsyncPreference<std::array<uint64_t, MaxRecords>> timestampsPref;
 
     int8_t idxById(const BleAuthId& client_id) {
-        if (isIdProhibited(client_id)) return -1;
+        if (isIdProhibited(client_id)) { return -1; }
 
         auto& clients = clientsPref.get();
 
         auto it = std::find_if(clients.begin(), clients.end(), [&client_id](const Client& client) {
             return client.id == client_id;
         });
-        if (it == clients.end()) return -1;
+        if (it == clients.end()) { return -1; }
 
         return std::distance(clients.begin(), it);
     }

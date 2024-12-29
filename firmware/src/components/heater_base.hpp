@@ -10,25 +10,7 @@
 using HeaterTaskIteratorFn = std::function<void(uint32_t, uint32_t)>;
 
 class HeaterBase {
-private:
-    AsyncPreferenceMap<std::vector<uint8_t>> adrc_params;
-    AsyncPreferenceMap<std::vector<uint8_t>> sensor_params;
-
-protected:
-    ADRC adrc;
-    std::atomic<bool> temperature_control_flag;
-    std::atomic<float> power_setpoint;
-    std::atomic<float> temperature_setpoint;
-
 public:
-    HeaterBase()
-        : adrc_params(PrefsWriter::getInstance(), AsyncPreferenceKV::getInstance(), PREFS_NAMESPACE, "adrc", std::vector<uint8_t>{std::begin(DEFAULT_ADRC_PARAMS_PB), std::end(DEFAULT_ADRC_PARAMS_PB)})
-        , sensor_params(PrefsWriter::getInstance(), AsyncPreferenceKV::getInstance(), PREFS_NAMESPACE, "sensor", std::vector<uint8_t>{std::begin(DEFAULT_SENSOR_PARAMS_PB), std::end(DEFAULT_SENSOR_PARAMS_PB)})
-        , temperature_control_flag(false)
-        , power_setpoint(0)
-        , temperature_setpoint(0)
-    {};
-
     virtual bool is_hotplate_connected() { return true;};
     virtual uint8_t get_hotplate_id() { return 0; };
 
@@ -68,14 +50,34 @@ public:
     bool task_start(int32_t task_id, HeaterTaskIteratorFn task_iterator = nullptr);
     void task_stop();
 
+protected:
+    ADRC adrc{};
+    std::atomic<bool> temperature_control_flag{false};
+    std::atomic<float> power_setpoint{0};
+    std::atomic<float> temperature_setpoint{0};
+
 private:
-    std::atomic<bool> is_task_active = false;
-    HeaterTaskIteratorFn task_iterator = nullptr;
-    int32_t task_time_ms = 0;
-    History history;
-    int32_t history_version = 0;
-    int32_t history_task_id = 0;
-    int32_t history_last_recorded_ts = 0;
+    AsyncPreferenceMap<std::vector<uint8_t>> adrc_params{
+        PrefsWriter::getInstance(),
+        AsyncPreferenceKV::getInstance(),
+        PREFS_NAMESPACE,
+        "adrc",
+        std::vector<uint8_t>{std::begin(DEFAULT_ADRC_PARAMS_PB), std::end(DEFAULT_ADRC_PARAMS_PB)}
+    };
+    AsyncPreferenceMap<std::vector<uint8_t>> sensor_params{
+        PrefsWriter::getInstance(),
+        AsyncPreferenceKV::getInstance(),
+        PREFS_NAMESPACE,
+        "sensor",
+        std::vector<uint8_t>{std::begin(DEFAULT_SENSOR_PARAMS_PB), std::end(DEFAULT_SENSOR_PARAMS_PB)}
+    };
+    std::atomic<bool> is_task_active{false};
+    HeaterTaskIteratorFn task_iterator{nullptr};
+    int32_t task_time_ms{0};
+    History history{};
+    int32_t history_version{0};
+    int32_t history_task_id{0};
+    int32_t history_last_recorded_ts{0};
     static constexpr int32_t history_y_multiplier = 256;
     static constexpr float history_y_multiplier_inv = 1.0f / history_y_multiplier;
 };

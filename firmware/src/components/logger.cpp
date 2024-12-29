@@ -9,7 +9,7 @@ void logger_start() {
     xTaskCreate([](void* pvParameters) {
         Serial.begin(115200);
 
-        while (!Serial) vTaskDelay(pdMS_TO_TICKS(10));
+        while (!Serial) { vTaskDelay(pdMS_TO_TICKS(10)); }
 
         while (true) {
             while (logger.pull(outputBuffer, sizeof(outputBuffer))) {

@@ -15,7 +15,7 @@ public:
         log.clear();
         log.push_back({0, heater.get_temperature()});
 
-        if (!heater.task_start(HISTORY_ID_STEP_RESPONSE)) return DeviceState_Idle;
+        if (!heater.task_start(HISTORY_ID_STEP_RESPONSE)) { return DeviceState_Idle; }
         heater.set_power(app.last_cmd_data);
 
         return No_State_Change;
@@ -25,7 +25,7 @@ public:
 
     etl::fsm_state_id_t on_event(const AppCmd::Stop& event) { return DeviceState_Idle; }
     etl::fsm_state_id_t on_event(const AppCmd::Button& event) {
-        if (event.type == ButtonEventId::BUTTON_PRESSED_1X) return DeviceState_Idle;
+        if (event.type == ButtonEventId::BUTTON_PRESSED_1X) { return DeviceState_Idle; }
         return No_State_Change;
     }
 
@@ -35,10 +35,11 @@ public:
     }
 
 private:
-    std::vector<std::pair<float, float>> log;
+    std::vector<std::pair<float, float>> log{};
+
     void task_iterator(int32_t dt_ms, int32_t time_ms) {
         // log index = time in seconds
-        if (time_ms < log.size() * 1000) return;
+        if (time_ms < log.size() * 1000) { return; }
 
         auto& app = get_fsm_context();
         auto& heater = app.heater;
@@ -47,11 +48,11 @@ private:
         log.push_back({heater.get_temperature(), heater.get_power()});
 
         // Ignore transport delay at start, before start to analyze data
-        if (log.size() <= 10) return;
+        if (log.size() <= 10) { return; }
 
         // Wait for temperature to stabilize (until change is less than 1 degree
         // for 10 seconds)
-        if (std::abs(log.back().first - log[log.size()-10].first) > 1.0f) return;
+        if (std::abs(log.back().first - log[log.size()-10].first) > 1.0f) { return; }
 
         //
         // Analyze log to find response time & b0

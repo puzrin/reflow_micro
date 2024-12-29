@@ -84,7 +84,7 @@ class RpcCharacteristicCallbacks : public NimBLECharacteristicCallbacks {
 public:
     void onWrite(NimBLECharacteristic* pCharacteristic, ble_gap_conn_desc* desc) override {
         uint16_t conn_handle = desc->conn_handle;
-        if (!sessions.count(conn_handle)) return;
+        if (!sessions.count(conn_handle)) { return; }
         //DEBUG("BLE: Received chunk of length {}", uint32_t(pCharacteristic->getDataLength()));
 
         auto session = sessions[conn_handle];
@@ -93,7 +93,7 @@ public:
 
     void onRead(NimBLECharacteristic* pCharacteristic, ble_gap_conn_desc* desc) override {
         uint16_t conn_handle = desc->conn_handle;
-        if (!sessions.count(conn_handle)) return;
+        if (!sessions.count(conn_handle)) { return; }
         //DEBUG("BLE: Reading from characteristic, conn_handle {}", conn_handle);
         pCharacteristic->setValue(sessions[conn_handle]->rpcChunker.getResponseChunk());
     }
@@ -103,7 +103,7 @@ class AuthCharacteristicCallbacks : public NimBLECharacteristicCallbacks {
 public:
     void onWrite(NimBLECharacteristic* pCharacteristic, ble_gap_conn_desc* desc) override {
         uint16_t conn_handle = desc->conn_handle;
-        if (!sessions.count(conn_handle)) return;
+        if (!sessions.count(conn_handle)) { return; }
         DEBUG("BLE AUTH: Received chunk of length {}", uint32_t(pCharacteristic->getDataLength()));
         const auto& sec = desc->sec_state;
         DEBUG("BLE AUTH security state: encrypted {}, authenticated {}, bonded {}",
@@ -115,7 +115,7 @@ public:
 
     void onRead(NimBLECharacteristic* pCharacteristic, ble_gap_conn_desc* desc) override {
         auto conn_handle = desc->conn_handle;
-        if (!sessions.count(conn_handle)) return;
+        if (!sessions.count(conn_handle)) { return; }
         pCharacteristic->setValue(sessions[conn_handle]->authChunker.getResponseChunk());
     }
 };
@@ -245,13 +245,13 @@ bool authenticate(const std::string str_client_id, const std::string str_hmac, u
     auto random = session->random;
     session->random = create_secret(); // renew hmac msg every time!
 
-    if (!bleAuthStore.has(client_id)) return false;
+    if (!bleAuthStore.has(client_id)) { return false; }
 
     BleAuthSecret secret;
     bleAuthStore.get_secret(client_id, secret);
 
     auto hmac_expected = hmac_sha256(random, secret);
-    if (hmac_response != hmac_expected) return false;
+    if (hmac_response != hmac_expected) { return false; }
 
     session->authenticated = true;
     bleAuthStore.set_timestamp(client_id, timestamp);
@@ -259,7 +259,7 @@ bool authenticate(const std::string str_client_id, const std::string str_hmac, u
 }
 
 std::string pair(const std::string str_client_id) {
-    if (!is_pairing_enabled()) return "";
+    if (!is_pairing_enabled()) { return ""; }
 
     BleAuthId client_id;
     hex2bin(str_client_id, client_id.data(), client_id.size());

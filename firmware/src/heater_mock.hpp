@@ -12,7 +12,7 @@ public:
     bool is_useable(float R) const { return PPS ? true : (V / R) <= I; }
 
     float get_power(float R) const {
-        if (PPS) return pow(std::min(V, I * R), 2) / R;
+        if (PPS) { return pow(std::min(V, I * R), 2) / R; }
         return is_useable(R) ? pow(V, 2) / R : 0;
     };
 private:

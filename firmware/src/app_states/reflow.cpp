@@ -6,7 +6,7 @@ namespace {
 class Timeline {
 private:
     struct TimelinePoint { int32_t x; int32_t y; };
-    std::vector<TimelinePoint> profilePoints;
+    std::vector<TimelinePoint> profilePoints{};
 
     // Use integer math for speed
     // Time is in milliseconds, temperature is in 1/256 degrees
@@ -33,12 +33,12 @@ public:
     }
 
     int32_t get_max_time() const {
-        if (profilePoints.size() <= 1) return 0;
+        if (profilePoints.size() <= 1) { return 0; }
         return profilePoints.back().x;
     }
 
     float interpolate(int32_t offset) const {
-        if (offset < 0) return 0;
+        if (offset < 0) { return 0; }
 
         for (size_t i = 1; i < profilePoints.size(); ++i) {
             const auto& p0 = profilePoints[i - 1];
@@ -65,14 +65,14 @@ public:
 
         // Pick active profile, terminate on fail
         auto profile = std::make_unique<Profile>();
-        if (!app.profilesConfig.get_selected_profile(*profile)) return DeviceState_Idle;
+        if (!app.profilesConfig.get_selected_profile(*profile)) { return DeviceState_Idle; }
 
         // Load timeline and try to execute the task
         timeline.load(*profile);
         auto status = app.heater.task_start(profile->id, [this](int32_t dt_ms, int32_t time_ms) {
             task_iterator(dt_ms, time_ms);
         });
-        if (!status) return DeviceState_Idle;
+        if (!status) { return DeviceState_Idle; }
 
         // Enable ADRC & blink about success
         app.heater.temperature_control_on();
@@ -85,7 +85,7 @@ public:
 
     etl::fsm_state_id_t on_event(const AppCmd::Stop& event) { return DeviceState_Idle; }
     etl::fsm_state_id_t on_event(const AppCmd::Button& event) {
-        if (event.type == ButtonEventId::BUTTON_PRESSED_1X) return DeviceState_Idle;
+        if (event.type == ButtonEventId::BUTTON_PRESSED_1X) { return DeviceState_Idle; }
         return No_State_Change;
     }
 
@@ -95,7 +95,8 @@ public:
     }
 
 private:
-    Timeline timeline;
+    Timeline timeline{};
+
     void task_iterator(int32_t dt_ms, int32_t time_ms) {
         auto& app = get_fsm_context();
 

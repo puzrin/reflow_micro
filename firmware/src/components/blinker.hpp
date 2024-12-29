@@ -5,8 +5,6 @@
 
 class LedDriver : public IBlinkerLED<1> {
 public:
-    LedDriver() : initialized(false) {}
-
     void set(const DataType& value) override {
         if (!initialized) {
             initialized = true;
@@ -15,8 +13,8 @@ public:
         analogWrite(ledPin, 255 - value[0]);  // Write inverted PWM to GP8
     }
 private:
-    static constexpr uint8_t ledPin = 8;
-    bool initialized;
+    static constexpr uint8_t ledPin{8};
+    bool initialized{false};
 };
 
 template <typename Driver>
