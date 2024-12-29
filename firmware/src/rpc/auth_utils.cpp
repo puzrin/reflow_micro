@@ -16,9 +16,9 @@ auto bin2hex(const uint8_t* data, size_t length) -> std::string {
 }
 
 auto hexchar2num(char c) -> uint8_t {
-    if (c >= '0' && c <= '9') { return c - '0'; }
-    if (c >= 'A' && c <= 'F') { return c - 'A' + 10; }
-    if (c >= 'a' && c <= 'f') { return c - 'a' + 10; }
+    if (c >= '0' && c <= '9') { return static_cast<uint8_t>(c - '0'); }
+    if (c >= 'A' && c <= 'F') { return static_cast<uint8_t>(c - 'A' + 10); }
+    if (c >= 'a' && c <= 'f') { return static_cast<uint8_t>(c - 'a' + 10); }
     return 0;
 }
 
@@ -27,7 +27,7 @@ void hex2bin(const std::string& hex, uint8_t* out, size_t length) {
     uint8_t value = 0;
 
     for (size_t i = 0; i < hex.length() && out_index < length; ++i) {
-        value = value << 4 | hexchar2num(hex[i]);
+        value = static_cast<uint8_t>(value << 4 | hexchar2num(hex[i]));
         if (i % 2 != 0) {
             out[out_index++] = value;
             value = 0;

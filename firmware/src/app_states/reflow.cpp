@@ -13,7 +13,7 @@ private:
     static constexpr int32_t x_axis_multiplier = 1000;
     static constexpr int32_t y_axis_multiplier = 256;
     // Inverse multiplier for division
-    static constexpr float y_axis_multiplier_inv = 1.0f / y_axis_multiplier;
+    static constexpr float y_axis_multiplier_inv = 1.0F / y_axis_multiplier;
 
 public:
     void load(const Profile& profile) {

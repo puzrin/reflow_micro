@@ -138,8 +138,8 @@ void HeaterBase::temperature_control_off() {
 void HeaterBase::tick(int32_t dt_ms) {
     // If temperature controller active - use it to update power
     if (temperature_control_flag) {
-        static constexpr float dt_inv_multiplier = 1.0f / 1000;
-        float dt = dt_ms * dt_inv_multiplier;
+        static constexpr float dt_inv_multiplier = 1.0F / 1000;
+        float dt = static_cast<float>(dt_ms) * dt_inv_multiplier;
 
         float power = adrc.iterate(get_temperature(), temperature_setpoint, get_max_power(), dt);
         set_power(power);

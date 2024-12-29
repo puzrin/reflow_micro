@@ -168,7 +168,11 @@ private:
             chunk.reserve(BleChunkHead::SIZE + (end - i));
 
             // Insert the header
-            BleChunkHead head(currentMessageId, i / chunkSize, (end == totalSize) ? BleChunkHead::FINAL_CHUNK_FLAG : 0);
+            BleChunkHead head(
+                currentMessageId,
+                static_cast<uint16_t>(i / chunkSize),
+                (end == totalSize) ? BleChunkHead::FINAL_CHUNK_FLAG : 0
+            );
             chunk.resize(BleChunkHead::SIZE);
             head.fillTo(chunk);
 

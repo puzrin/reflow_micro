@@ -62,17 +62,17 @@ static auto make_charger_140w_with_pps() -> ChargerMock {
 
 HeaterMock::HeaterMock()
     : temperature{25.0f}
-    , size{0.08f, 0.07f, 0.0038f}
+    , size{0.08F, 0.07F, 0.0038F}
     , charger{make_charger_140w_with_pps()}
 {
-    calibrate_TR(25, 1.6f)
-        .calibrate_TWV(102, 11.63f, 5.0f)
-        .calibrate_TWV(146, 20.17f, 7.0f)
-        .calibrate_TWV(193, 29.85f, 9.0f)
-        .calibrate_TWV(220, 40.66f, 11.0f)
-        .calibrate_TWV(255, 52.06f, 13.0f)
-        .calibrate_TWV(286, 64.22f, 15.0f)
-        .calibrate_TWV(310, 77.55f, 17.0f);
+    calibrate_TR(25, 1.6F)
+        .calibrate_TWV(102, 11.63F, 5.0F)
+        .calibrate_TWV(146, 20.17F, 7.0F)
+        .calibrate_TWV(193, 29.85F, 9.0F)
+        .calibrate_TWV(220, 40.66F, 11.0F)
+        .calibrate_TWV(255, 52.06F, 13.0F)
+        .calibrate_TWV(286, 64.22F, 15.0F)
+        .calibrate_TWV(310, 77.55F, 17.0F);
 }
 
 void HeaterMock::validate_calibration_points() {
@@ -195,8 +195,8 @@ void HeaterMock::start() {
 
 void HeaterMock::tick(int32_t dt_ms) {
     // Iterate temperature
-    static constexpr float dt_inv_multiplier = 1.0f / 1000.0f;
-    float dt = dt_ms * dt_inv_multiplier;
+    static constexpr float dt_inv_multiplier = 1.0F / 1000.0F;
+    float dt = static_cast<float>(dt_ms) * dt_inv_multiplier;
 
     float curr_temp = temperature;
     float clamped_power = get_power();

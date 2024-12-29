@@ -87,13 +87,13 @@ private:
         });
         if (it == clients.end()) { return -1; }
 
-        return std::distance(clients.begin(), it);
+        return static_cast<int8_t>(std::distance(clients.begin(), it));
     }
 
     auto idxLRU() -> int8_t {
         auto& timestamps = timestampsPref.get();
         auto min_it = std::min_element(timestamps.begin(), timestamps.end());
-        return std::distance(timestamps.begin(), min_it);
+        return static_cast<int8_t>(std::distance(timestamps.begin(), min_it));
     }
 
     auto isIdProhibited(const BleAuthId& client_id) const -> bool {

@@ -14,7 +14,7 @@ void setup() {
     rpc.addMethod("devnull", [](const std::string msg)-> bool { return true; });
     rpc.addMethod("bintest", [](const std::vector<uint8_t> data) -> std::vector<uint8_t> {
         std::vector<uint8_t> result;
-        for(uint8_t byte : data) result.push_back(byte + 3);
+        for(uint8_t byte : data) result.push_back(static_cast<uint8_t>(byte + 3));
         return result;
     });
 

@@ -129,7 +129,7 @@ public:
                     int32_t from = prevActionValue[i];
                     int32_t to = action.value[i];
                     int32_t val = from + (to - from) * int32_t(actionProgress) / int32_t(action.period);
-                    value[i] = val < 0 ? 0 : (val > 255 ? 255 : val);
+                    value[i] = static_cast<uint8_t>(val < 0 ? 0 : (val > 255 ? 255 : val));
                 }
                 driver.set(value);
             } else {

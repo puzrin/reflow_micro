@@ -64,7 +64,7 @@ private:
         float t_final = log.back().first;
         float t_initial = log.front().first;
 
-        float temperature_63 = t_initial + (t_final - t_initial) * 0.63f;
+        float temperature_63 = t_initial + (t_final - t_initial) * 0.63F;
         float time_63 = 0;
 
         for (size_t i = 0; i < log.size(); ++i) {

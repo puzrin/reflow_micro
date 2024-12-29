@@ -5,12 +5,12 @@
 
 class ADRC {
 private:
-    float b0{0.0f};
-    float beta1{0.0f};
-    float beta2{0.0f};
-    float kp{0.0f};
-    float z1{0.0f};
-    float z2{0.0f};
+    float b0{0.0F};
+    float beta1{0.0F};
+    float beta2{0.0F};
+    float kp{0.0F};
+    float z1{0.0F};
+    float z2{0.0F};
 
 public:
     void set_params(float b0, float tau, float N, float M) {
@@ -23,7 +23,7 @@ public:
     void set_params_raw(float b0, float omega_o, float kp) {
         this->b0 = b0;
         this->beta1 = 2 * omega_o;
-        this->beta2 = std::pow(omega_o, 2);
+        this->beta2 = powf(omega_o, 2);
         this->kp = kp;
     }
 
@@ -32,7 +32,7 @@ public:
         float u = (kp * e - z2) / b0;
 
         // Anti-windup [0, u_max]
-        float u_output = std::max(0.0f, std::min(u, u_max));
+        float u_output = std::max(0.0F, std::min(u, u_max));
 
         // ESO update, with respect to real output
         float e_obs = y - z1;
@@ -44,6 +44,6 @@ public:
 
     void reset_to(float y) {
         z1 = y;
-        z2 = 0.0f;
+        z2 = 0.0F;
     }
 };

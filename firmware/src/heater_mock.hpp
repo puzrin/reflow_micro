@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <atomic>
+#include <cmath>
 #include "lib/adrc.hpp"
 #include "components/heater_base.hpp"
 
@@ -12,8 +13,8 @@ public:
     auto is_useable(float R) const -> bool { return PPS ? true : (V / R) <= I; }
 
     auto get_power(float R) const -> float {
-        if (PPS) { return pow(std::min(V, I * R), 2) / R; }
-        return is_useable(R) ? pow(V, 2) / R : 0;
+        if (PPS) { return powf(std::min(V, I * R), 2) / R; }
+        return is_useable(R) ? powf(V, 2) / R : 0;
     };
 private:
     float V;
@@ -45,7 +46,7 @@ private:
     struct Size { float x, y, z; };
     struct CalibrationPoint { float T, R, W; };
 
-    static constexpr float TUNGSTEN_TC = 0.0041f; // Temperature coefficient for tungsten
+    static constexpr float TUNGSTEN_TC = 0.0041F; // Temperature coefficient for tungsten
 
     Size size;
     std::vector<CalibrationPoint> calibration_points;

@@ -35,7 +35,7 @@ public:
     virtual auto get_power() -> float = 0;
     virtual auto get_volts() -> float = 0;
     virtual auto get_amperes() -> float = 0;
-    virtual auto get_duty_cycle() -> float { return 1.0f; }
+    virtual auto get_duty_cycle() -> float { return 1.0F; }
 
     virtual void set_power(float power) { power_setpoint = (power < 0 ? 0 : power); }
     virtual void set_temperature(float temp) { temperature_setpoint = temp; }
@@ -79,5 +79,5 @@ private:
     int32_t history_task_id{0};
     int32_t history_last_recorded_ts{0};
     static constexpr int32_t history_y_multiplier = 256;
-    static constexpr float history_y_multiplier_inv = 1.0f / history_y_multiplier;
+    static constexpr float history_y_multiplier_inv = 1.0F / history_y_multiplier;
 };
