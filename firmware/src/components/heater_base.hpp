@@ -22,8 +22,8 @@ protected:
 
 public:
     HeaterBase()
-        : adrc_params(PrefsWriter::getInstance(), prefsKV, PREFS_NAMESPACE, "adrc", std::vector<uint8_t>{std::begin(DEFAULT_ADRC_PARAMS_PB), std::end(DEFAULT_ADRC_PARAMS_PB)})
-        , sensor_params(PrefsWriter::getInstance(), prefsKV, PREFS_NAMESPACE, "sensor", std::vector<uint8_t>{std::begin(DEFAULT_SENSOR_PARAMS_PB), std::end(DEFAULT_SENSOR_PARAMS_PB)})
+        : adrc_params(PrefsWriter::getInstance(), AsyncPreferenceKV::getInstance(), PREFS_NAMESPACE, "adrc", std::vector<uint8_t>{std::begin(DEFAULT_ADRC_PARAMS_PB), std::end(DEFAULT_ADRC_PARAMS_PB)})
+        , sensor_params(PrefsWriter::getInstance(), AsyncPreferenceKV::getInstance(), PREFS_NAMESPACE, "sensor", std::vector<uint8_t>{std::begin(DEFAULT_SENSOR_PARAMS_PB), std::end(DEFAULT_SENSOR_PARAMS_PB)})
         , temperature_control_flag(false)
         , power_setpoint(0)
         , temperature_setpoint(0)

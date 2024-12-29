@@ -8,14 +8,16 @@ public:
     // Simulate actual storage
     std::map<std::string, std::vector<uint8_t>> storage;
 
-    void write(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) override {
+    bool write(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) override {
         std::vector<uint8_t> data(buffer, buffer + length);
         storage[ns + key] = data;
+        return true;
     }
 
-    void read(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) override {
+    bool read(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) override {
         const auto& data = storage[ns + key];
         std::memcpy(buffer, data.data(), length);
+        return true;
     }
 
     size_t length(const std::string& ns, const std::string& key) override {
@@ -42,11 +44,10 @@ TEST(AsyncPreferenceTest, TriviallyCopyable_Int32) {
     AsyncPreference<int32_t> pref2(Writer, kv, "ns", "key", -567);
     EXPECT_EQ(pref2.get(), 123);
 
-    // Edge case, write before read
-    AsyncPreference<int32_t> pref3(Writer, kv, "ns", "key");
-
-    pref3.valueUpdateBegin(); // Emulate write start
-    EXPECT_EQ(pref3.get(), 0); // Should not read from storage
+    // Edge case, write before read (not actual with forced preload)
+    //AsyncPreference<int32_t> pref3(Writer, kv, "ns", "key");
+    //pref3.valueUpdateBegin(); // Emulate write start
+    //EXPECT_EQ(pref3.get(), 0); // Should not read from storage
 }
 
 struct TestStruct {

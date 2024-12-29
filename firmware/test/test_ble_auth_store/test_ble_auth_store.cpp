@@ -8,14 +8,16 @@ public:
     // Simulate actual storage
     std::map<std::string, std::vector<uint8_t>> storage;
 
-    void write(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) override {
+    bool write(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) override {
         std::vector<uint8_t> data(buffer, buffer + length);
         storage[ns + key] = data;
+        return true;
     }
 
-    void read(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) override {
+    bool read(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) override {
         const auto& data = storage[ns + key];
         std::memcpy(buffer, data.data(), length);
+        return true;
     }
 
     size_t length(const std::string& ns, const std::string& key) override {

@@ -11,8 +11,8 @@
 // Interface for key-value storage
 class IAsyncPreferenceKV {
 public:
-    virtual void write(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) = 0;
-    virtual void read(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) = 0;
+    virtual bool write(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) = 0;
+    virtual bool read(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) = 0;
     virtual size_t length(const std::string& ns, const std::string& key) = 0;
 };
 
@@ -21,8 +21,8 @@ namespace async_preference_ns {
 // Serializer for trivially copyable types
 template <typename T>
 struct TrivialSerializer {
-    static void save(IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, const T& value) {
-        kv.write(ns, key, reinterpret_cast<uint8_t*>(const_cast<T*>(&value)), sizeof(T));
+    static bool save(IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, const T& value) {
+        return kv.write(ns, key, reinterpret_cast<uint8_t*>(const_cast<T*>(&value)), sizeof(T));
     }
 
     static void load(IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, T& value) {
@@ -39,8 +39,8 @@ struct TrivialSerializer {
 // Primary goal is to fit std::string and std::vector
 template <typename T>
 struct BufferSerializer {
-    static void save(IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, const T& value) {
-        kv.write(ns, key, reinterpret_cast<uint8_t*>(const_cast<typename T::value_type*>(value.data())), value.size() * sizeof(typename T::value_type));
+    static bool save(IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, const T& value) {
+        return kv.write(ns, key, reinterpret_cast<uint8_t*>(const_cast<typename T::value_type*>(value.data())), value.size() * sizeof(typename T::value_type));
     }
 
     static void load(IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, T& value) {
@@ -106,9 +106,14 @@ template <typename T, typename Serializer = void>
 class AsyncPreference : public AsyncPreferenceTickable {
 public:
     AsyncPreference(IAsyncPreferenceWriter& writer, IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, T initial = T()) :
-        databox{initial}, kv{kv}, ns(ns), key(key), is_preloaded(false), writer{writer}
+        databox{initial}, kv{kv}, ns(ns), key(key), is_preloaded(false), writer{writer}, has_pending_write{false}
     {
         writer.add(this);
+
+        // Force immediate preload on create.
+        // This will protect from collisions with writer, because such instances
+        // are created on program init, before writer starts.
+        preload();
     }
 
     T& get() {
@@ -144,20 +149,34 @@ public:
     void tick() override {
         using namespace async_preference_ns;
 
-        if (!databox.makeSnapshot()) return;
+        // Forcing preload in constructor helps to avoid writer collisions.
+        // But in theory, there can be different library, writing to nvs from
+        // another thread. For this case we check write status and flag repeat
+        // on fail.
 
-        // Save snapshot to storage
-        if constexpr (!std::is_void_v<Serializer>) {
-            // If custom serializer is provided, use it
-            Serializer::save(kv, ns, key, databox.snapshot);
-        } else if constexpr (HasBufferTraits<T>::value) {
-            // Use BufferSerializer if type has buffer-like traits
-            BufferSerializer<T>::save(kv, ns, key, databox.snapshot);
-        } else if constexpr (std::is_trivially_copyable_v<T>) {
-            // Use TrivialSerializer for trivially copyable types
-            TrivialSerializer<T>::save(kv, ns, key, databox.snapshot);
-        } else {
-            static_assert(dependent_false<T>::value, "No suitable serializer found for this type");
+        // IMPORTANT: don't make new snapshots on pending write. This can create
+        // garbage on fail. Instead, write old data first, and postpone snapshot
+        // to next call. A bit dirty, but simple and consistent.
+        if (has_pending_write || databox.makeSnapshot()) {
+
+            // Save snapshot to storage
+
+            bool succeeded = false;
+
+            if constexpr (!std::is_void_v<Serializer>) {
+                // If custom serializer is provided, use it
+                succeeded = Serializer::save(kv, ns, key, databox.snapshot);
+            } else if constexpr (HasBufferTraits<T>::value) {
+                // Use BufferSerializer if type has buffer-like traits
+                succeeded = BufferSerializer<T>::save(kv, ns, key, databox.snapshot);
+            } else if constexpr (std::is_trivially_copyable_v<T>) {
+                // Use TrivialSerializer for trivially copyable types
+                succeeded = TrivialSerializer<T>::save(kv, ns, key, databox.snapshot);
+            } else {
+                static_assert(dependent_false<T>::value, "No suitable serializer found for this type");
+            }
+
+            if (!succeeded) has_pending_write = true;
         }
     }
 
@@ -168,6 +187,7 @@ private:
     std::string key;
     bool is_preloaded;
     IAsyncPreferenceWriter& writer;
+    bool has_pending_write;
 
     // Fetch value from storage, if key exists. This is called only once in
     // life cycle. The next reads are always from memory only.
