@@ -29,8 +29,9 @@ enum class ButtonEventId {
 template <typename Driver>
 class ButtonEngine {
 public:
-    ButtonEngine() : driver(), state(START), unfilteredBtn(false), btnPressed(false),
-        unfilteredBtnTimestamp(0), btnToggleTimestamp(0), prevPeriod(0), currentPeriod(0) {}
+    ButtonEngine() : driver{}, state{START}, unfilteredBtn{false}, btnPressed{false},
+        unfilteredBtnTimestamp{0}, btnToggleTimestamp{0}, prevPeriod{0}, currentPeriod{0},
+        shortPressesCounter{0} {}
 
     template <typename Handler>
     void setEventHandler(Handler&& handler) {

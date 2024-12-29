@@ -4,7 +4,7 @@
 #include "heater_mock.hpp"
 #include "proto/generated/defaults.hpp"
 
-ChargerMock& ChargerMock::add(const Profile& profile) {
+ChargerMock& ChargerMock::add(const ChargerProfileMock& profile) {
     profiles.push_back(profile);
     return *this;
 }
@@ -51,21 +51,20 @@ static float interpolate(float x, const std::vector<std::pair<float, float>>& po
 
 static ChargerMock make_charger_140w_with_pps() {
     ChargerMock charger;
-    charger.add(ChargerMock::Profile(9, 3))
-           .add(ChargerMock::Profile(12, 3))
-           .add(ChargerMock::Profile(15, 3))
-           .add(ChargerMock::Profile(20, 5))
-           .add(ChargerMock::Profile(21, 5, true))
-           .add(ChargerMock::Profile(28, 5));
+    charger.add(ChargerProfileMock(9, 3))
+           .add(ChargerProfileMock(12, 3))
+           .add(ChargerProfileMock(15, 3))
+           .add(ChargerProfileMock(20, 5))
+           .add(ChargerProfileMock(21, 5, true))
+           .add(ChargerProfileMock(28, 5));
     return charger;
 }
 
 HeaterMock::HeaterMock()
     : temperature{25.0f}
     , size{0.08f, 0.07f, 0.0038f}
+    , charger{make_charger_140w_with_pps()}
 {
-    profiles = make_charger_140w_with_pps();
-
     calibrate_TR(25, 1.6f)
         .calibrate_TWV(102, 11.63f, 5.0f)
         .calibrate_TWV(146, 20.17f, 7.0f)

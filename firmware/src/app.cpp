@@ -3,7 +3,7 @@
 #include "blink_signals.hpp"
 
 static constexpr etl::message_router_id_t APP_FSM_ROUTER_ID = 0;
-App app;
+App application;
 
 App::App() : etl::fsm(APP_FSM_ROUTER_ID) {
     button.setEventHandler([this](ButtonEventId event) {
@@ -56,7 +56,7 @@ constexpr bool check_device_state_sequential() {
 
 void App::setup() {
     static_assert(check_device_state_sequential(), "DeviceState values must be sequential starting from 0");
-    app.set_states(stateList, DeviceState_NumberOfStates);
+    set_states(stateList, DeviceState_NumberOfStates);
     start();
 
     heater.start();

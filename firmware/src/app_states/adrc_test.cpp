@@ -6,7 +6,7 @@ namespace {
 class AdrcTest : public etl::fsm_state<App, AdrcTest, DeviceState_AdrcTest,
     AppCmd::Stop, AppCmd::Button, AppCmd::AdrcTest> {
 public:
-    etl::fsm_state_id_t on_enter_state() {
+    etl::fsm_state_id_t on_enter_state() override {
         DEBUG("State => AdrcTest");
 
         auto& app = get_fsm_context();
@@ -19,7 +19,7 @@ public:
         return No_State_Change;
     }
 
-    void on_exit_state() { get_fsm_context().heater.task_stop(); }
+    void on_exit_state() override { get_fsm_context().heater.task_stop(); }
 
     etl::fsm_state_id_t on_event(const AppCmd::Stop& event) { return DeviceState_Idle; }
     etl::fsm_state_id_t on_event(const AppCmd::Button& event) {

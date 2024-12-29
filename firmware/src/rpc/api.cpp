@@ -9,15 +9,15 @@ namespace {
 
 std::vector<uint8_t> get_status() {
     DeviceStatus status = {
-        .state = static_cast<DeviceState>(app.get_state_id()),
-        .hotplate_connected = app.heater.is_hotplate_connected(),
-        .hotplate_id = app.heater.get_hotplate_id(),
-        .temperature = app.heater.get_temperature(),
-        .watts = app.heater.get_power(),
-        .volts = app.heater.get_volts(),
-        .amperes = app.heater.get_amperes(),
-        .max_watts = app.heater.get_max_power(),
-        .duty_cycle = app.heater.get_duty_cycle()
+        .state = static_cast<DeviceState>(application.get_state_id()),
+        .hotplate_connected = application.heater.is_hotplate_connected(),
+        .hotplate_id = application.heater.get_hotplate_id(),
+        .temperature = application.heater.get_temperature(),
+        .watts = application.heater.get_power(),
+        .volts = application.heater.get_volts(),
+        .amperes = application.heater.get_amperes(),
+        .max_watts = application.heater.get_max_power(),
+        .duty_cycle = application.heater.get_duty_cycle()
     };
 
     std::vector<uint8_t> buffer(DeviceStatus_size);
@@ -32,49 +32,49 @@ std::vector<uint8_t> get_status() {
 std::vector<uint8_t> get_history_chunk(int32_t client_history_version, int32_t from) {
     std::vector<uint8_t> pb_data(HistoryChunk_size);
 
-    app.heater.get_history(client_history_version, from, pb_data);
+    application.heater.get_history(client_history_version, from, pb_data);
     return pb_data;
 }
 
 std::vector<uint8_t> get_profiles_data() {
     std::vector<uint8_t> pb_data(ProfilesData_size);
-    app.profilesConfig.get_profiles(pb_data);
+    application.profilesConfig.get_profiles(pb_data);
     return pb_data;
 }
 
 bool save_profiles_data(std::vector<uint8_t> pb_data) {
-    app.profilesConfig.set_profiles(pb_data);
+    application.profilesConfig.set_profiles(pb_data);
     return true;
 }
 
 bool stop() {
-    app.safe_receive(AppCmd::Stop());
-    return app.get_state_id() == DeviceState_Idle;
+    application.safe_receive(AppCmd::Stop());
+    return application.get_state_id() == DeviceState_Idle;
 }
 
 bool run_reflow() {
-    app.safe_receive(AppCmd::Reflow());
-    return app.get_state_id() == DeviceState_Reflow;
+    application.safe_receive(AppCmd::Reflow());
+    return application.get_state_id() == DeviceState_Reflow;
 }
 
 bool run_sensor_bake(float watts) {
-    app.safe_receive(AppCmd::SensorBake(watts));
-    return app.get_state_id() == DeviceState_SensorBake;
+    application.safe_receive(AppCmd::SensorBake(watts));
+    return application.get_state_id() == DeviceState_SensorBake;
 }
 
 bool run_adrc_test(float temperature) {
-    app.safe_receive(AppCmd::AdrcTest(temperature));
-    return app.get_state_id() == DeviceState_AdrcTest;
+    application.safe_receive(AppCmd::AdrcTest(temperature));
+    return application.get_state_id() == DeviceState_AdrcTest;
 }
 
 bool run_step_response(float watts) {
-    app.safe_receive(AppCmd::StepResponse(watts));
-    return app.get_state_id() == DeviceState_StepResponse;
+    application.safe_receive(AppCmd::StepResponse(watts));
+    return application.get_state_id() == DeviceState_StepResponse;
 }
 
 bool set_sensor_calibration_point(uint32_t point_id, float temperature) {
-    if (!app.heater.is_hotplate_connected() ||
-        !app.heater.set_sensor_calibration_point(point_id, temperature))
+    if (!application.heater.is_hotplate_connected() ||
+        !application.heater.set_sensor_calibration_point(point_id, temperature))
     {
         throw std::runtime_error("Hotplate is not connected");
     }
@@ -83,8 +83,8 @@ bool set_sensor_calibration_point(uint32_t point_id, float temperature) {
 
 std::vector<uint8_t> get_sensor_params() {
     std::vector<uint8_t> pb_data(SensorParams_size);
-    if (!app.heater.is_hotplate_connected() ||
-        !app.heater.get_sensor_params(pb_data))
+    if (!application.heater.is_hotplate_connected() ||
+        !application.heater.get_sensor_params(pb_data))
     {
         throw std::runtime_error("Hotplate is not connected");
     }
@@ -92,8 +92,8 @@ std::vector<uint8_t> get_sensor_params() {
 }
 
 bool set_adrc_params(std::vector<uint8_t> pb_data) {
-    if (!app.heater.is_hotplate_connected() ||
-        !app.heater.set_adrc_params(pb_data))
+    if (!application.heater.is_hotplate_connected() ||
+        !application.heater.set_adrc_params(pb_data))
     {
         throw std::runtime_error("Hotplate is not connected");
     }
@@ -102,8 +102,8 @@ bool set_adrc_params(std::vector<uint8_t> pb_data) {
 
 std::vector<uint8_t> get_adrc_params() {
     std::vector<uint8_t> pb_data(AdrcParams_size);
-    if (!app.heater.is_hotplate_connected() ||
-        !app.heater.get_adrc_params(pb_data))
+    if (!application.heater.is_hotplate_connected() ||
+        !application.heater.get_adrc_params(pb_data))
     {
         throw std::runtime_error("Hotplate is not connected");
     }

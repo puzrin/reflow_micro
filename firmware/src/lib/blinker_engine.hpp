@@ -71,13 +71,13 @@ public:
 
         Action() : value{}, period(0), isAnimated(false) {}
 
-        Action(typename Driver::DataType value, uint32_t period, bool isAnimated = false)
-            : value(value), period(period), isAnimated(isAnimated) {}
+        Action(typename Driver::DataType _value, uint32_t _period, bool _isAnimated = false)
+            : value{_value}, period{_period}, isAnimated{_isAnimated} {}
 
         // Sugar for single channel, to omit brackets
         template<int Channels = Driver::ChannelsCount, typename = std::enable_if_t<Channels == 1>>
-        Action(uint8_t singleValue, uint32_t period, bool isAnimated = false)
-            : value{std::array<uint8_t, 1>{singleValue}}, period(period), isAnimated(isAnimated) {}
+        Action(uint8_t _singleValue, uint32_t _period, bool _isAnimated = false)
+            : value{std::array<uint8_t, 1>{_singleValue}}, period{_period}, isAnimated{_isAnimated} {}
     };
 
     BlinkerEngine() : driver(), sequenceQueue{}, backgroundQueue{}, prevTickTs(0), hasNewJob(false), working(false),
@@ -135,7 +135,7 @@ public:
                     int32_t from = prevActionValue[i];
                     int32_t to = action.value[i];
                     int32_t val = from + (to - from) * int32_t(actionProgress) / int32_t(action.period);
-                    value[i] = val < 0 ? 0 : val > 255 ? 255 : val;
+                    value[i] = val < 0 ? 0 : (val > 255 ? 255 : val);
                 }
                 driver.set(value);
             } else {
@@ -167,12 +167,12 @@ private:
     };
 
     void updateSequence(const std::initializer_list<Action>& actionsList, bool looping) {
-        Sequence sequence;
-        sequence.looping = looping;
-        std::copy(actionsList.begin(), actionsList.end(), sequence.actions.begin());
-        sequence.length = actionsList.size();
+        Sequence seq;
+        seq.looping = looping;
+        std::copy(actionsList.begin(), actionsList.end(), seq.actions.begin());
+        seq.length = actionsList.size();
 
-        sequenceQueue.write(sequence);
+        sequenceQueue.write(seq);
     }
 
     Driver driver;

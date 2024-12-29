@@ -7,7 +7,7 @@
 template <typename T>
 class DataGuard {
 public:
-    DataGuard(const T& initial = T()) : value{initial}, snapshot{}, data_version(0), last_snapshot_version(0) {}
+    explicit DataGuard(const T& initial = T()) : value{initial}, snapshot{}, data_version(0), last_snapshot_version(0) {}
 
     T value;
     T snapshot;

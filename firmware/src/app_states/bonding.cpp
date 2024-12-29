@@ -9,14 +9,14 @@ class Bonding : public etl::fsm_state<App, Bonding, DeviceState_Bonding, AppCmd:
 public:
     static constexpr int32_t BONDING_PERIOD_MS = 15 * 1000;
 
-    etl::fsm_state_id_t on_enter_state() {
+    etl::fsm_state_id_t on_enter_state() override {
         DEBUG("State => Bonding");
 
         BLINK_BONDING_LOOP(get_fsm_context().blinker);
 
         // Enable bonding for 30 seconds
         xTimeoutTimer = xTimerCreate("BondingTimeout", pdMS_TO_TICKS(BONDING_PERIOD_MS), pdFALSE, (void *)0,
-            [](TimerHandle_t xTimer){ app.receive(AppCmd::BondOff()); });
+            [](TimerHandle_t xTimer){ application.receive(AppCmd::BondOff()); });
 
         // Ideally, we should check all returned statuses, but who cares...
         if (xTimeoutTimer) xTimerStart(xTimeoutTimer, 0);
@@ -25,7 +25,7 @@ public:
         return No_State_Change;
     }
 
-    void on_exit_state() {
+    void on_exit_state() override {
         if (xTimeoutTimer) {
             xTimerStop(xTimeoutTimer, 0);
             xTimerDelete(xTimeoutTimer, 0);

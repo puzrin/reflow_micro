@@ -7,7 +7,7 @@ void setup() {
     logger_start();
     PrefsWriter::getInstance().start();
 
-    app.setup();
+    application.setup();
 
     // Demo methods
     rpc.addMethod("echo", [](const std::string msg)-> std::string { return msg; });

@@ -268,7 +268,7 @@ std::string pair(const std::string str_client_id) {
     bleAuthStore.create(client_id, secret);
 
     // Exit pairing mode on success
-    app.receive(AppCmd::BondOff());
+    application.receive(AppCmd::BondOff());
 
     return bin2hex(secret.data(), secret.size());
 }

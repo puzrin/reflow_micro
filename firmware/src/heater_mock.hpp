@@ -5,28 +5,30 @@
 #include "lib/adrc.hpp"
 #include "components/heater_base.hpp"
 
+class ChargerProfileMock {
+public:
+    ChargerProfileMock(float _V, float _I, bool _PPS = false) : V{_V}, I{_I}, PPS{_PPS} {}
+
+    bool is_useable(float R) const { return PPS ? true : (V / R) <= I; }
+
+    float get_power(float R) const {
+        if (PPS) return pow(std::min(V, I * R), 2) / R;
+        return is_useable(R) ? pow(V, 2) / R : 0;
+    };
+private:
+    float V;
+    float I;
+    bool PPS;
+};
+
 class ChargerMock {
 public:
-    class Profile {
-        float V;
-        float I;
-        bool PPS;
-    public:
-        Profile(float V, float I, bool PPS = false) : V(V), I(I), PPS(PPS) {}
-
-        bool is_useable(float R) const { return PPS ? true : (V / R) <= I; }
-
-        float get_power(float R) const {
-            if (PPS) return pow(std::min(V, I * R), 2) / R;
-            return is_useable(R) ? pow(V, 2) / R : 0;
-        };
-    };
-
-    ChargerMock& add(const Profile& profile);
+    ChargerMock() : profiles{} {};
+    ChargerMock& add(const ChargerProfileMock& profile);
     float get_power(float R) const;
 
 private:
-    std::vector<Profile> profiles;
+    std::vector<ChargerProfileMock> profiles;
 };
 
 
@@ -47,14 +49,14 @@ private:
 
     Size size;
     std::vector<CalibrationPoint> calibration_points;
-    ChargerMock profiles;
+    ChargerMock charger;
 
 public:
     HeaterMock();
 
     float get_temperature() override { return temperature; }
     float get_resistance() override { return calculate_resistance(temperature); }
-    float get_max_power() override { return profiles.get_power(get_resistance()); }
+    float get_max_power() override { return charger.get_power(get_resistance()); }
     float get_power() override { return std::min(get_max_power(), power_setpoint.load(std::memory_order_relaxed)); }
     float get_volts() override { return std::sqrt(get_power() * get_resistance()); }
     float get_amperes() override {

@@ -105,7 +105,7 @@ private:
 template <typename T, typename Serializer = void>
 class AsyncPreference : public AsyncPreferenceTickable {
 public:
-    AsyncPreference(IAsyncPreferenceWriter& writer, IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, T initial = T()) :
+    AsyncPreference(IAsyncPreferenceWriter& writer, IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, const T& initial = T()) :
         databox{initial}, kv{kv}, ns(ns), key(key), is_preloaded(false), writer{writer}, has_pending_write{false}
     {
         writer.add(this);
@@ -136,7 +136,7 @@ public:
         // This should not usually happen, because user call .get() at the start
         // to restore persistance. But if write is called first, we should
         // disable persistance restore.
-        if (!is_preloaded) is_preloaded = true;
+        is_preloaded = true;
 
         databox.beginWrite();
     }
@@ -220,7 +220,7 @@ class AsyncPreferenceMap {
 public:
     AsyncPreferenceMap(IAsyncPreferenceWriter& writer, IAsyncPreferenceKV& kv,
                         const std::string& ns, const std::string& key,
-                        T default_value = T())
+                        const T& default_value = T())
         : writer(writer)
         , kv(kv)
         , ns(ns)

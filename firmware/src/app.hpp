@@ -26,19 +26,19 @@ class Reflow : public etl::message<_id::REFLOW> {};
 
 class SensorBake : public etl::message<_id::SENSOR_BAKE> {
 public:
-    SensorBake(float watts) : watts(watts) {}
+    explicit SensorBake(float watts) : watts(watts) {}
     float watts;
 };
 
 class AdrcTest : public etl::message<_id::ADRC_TEST> {
 public:
-    AdrcTest(float temperature) : temperature(temperature) {}
+    explicit AdrcTest(float temperature) : temperature(temperature) {}
     float temperature;
 };
 
 class StepResponse : public etl::message<_id::STEP_RESPONSE> {
 public:
-    StepResponse(float watts) : watts(watts) {}
+    explicit StepResponse(float watts) : watts(watts) {}
     float watts;
 };
 
@@ -46,7 +46,7 @@ class BondOff : public etl::message<_id::BOND_OFF> {};
 
 class Button : public etl::message<_id::BUTTON> {
 public:
-    Button(ButtonEventId type) : type(type) {}
+    explicit Button(ButtonEventId type) : type(type) {}
     ButtonEventId type;
 };
 
@@ -78,4 +78,4 @@ private:
     void handleButton(ButtonEventId event) { safe_receive(AppCmd::Button(event)); }
 };
 
-extern App app;
+extern App application;

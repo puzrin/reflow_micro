@@ -23,13 +23,13 @@ namespace ring_logger {
         };
 
         ArgVariant() : type(ArgTypeTag::INT8), int8Value(0) {}
-        ArgVariant(int8_t value) : type(ArgTypeTag::INT8), int8Value(value) {}
-        ArgVariant(int16_t value) : type(ArgTypeTag::INT16), int16Value(value) {}
-        ArgVariant(int32_t value) : type(ArgTypeTag::INT32), int32Value(value) {}
-        ArgVariant(uint8_t value) : type(ArgTypeTag::UINT8), uint8Value(value) {}
-        ArgVariant(uint16_t value) : type(ArgTypeTag::UINT16), uint16Value(value) {}
-        ArgVariant(uint32_t value) : type(ArgTypeTag::UINT32), uint32Value(value) {}
-        ArgVariant(const char* value) : type(ArgTypeTag::STRING), stringValue(value) {}
+        explicit ArgVariant(int8_t value) : type(ArgTypeTag::INT8), int8Value(value) {}
+        explicit ArgVariant(int16_t value) : type(ArgTypeTag::INT16), int16Value(value) {}
+        explicit ArgVariant(int32_t value) : type(ArgTypeTag::INT32), int32Value(value) {}
+        explicit ArgVariant(uint8_t value) : type(ArgTypeTag::UINT8), uint8Value(value) {}
+        explicit ArgVariant(uint16_t value) : type(ArgTypeTag::UINT16), uint16Value(value) {}
+        explicit ArgVariant(uint32_t value) : type(ArgTypeTag::UINT32), uint32Value(value) {}
+        explicit ArgVariant(const char* value) : type(ArgTypeTag::STRING), stringValue(value) {}
     };
 
     constexpr bool _is_whitespace(char c) {

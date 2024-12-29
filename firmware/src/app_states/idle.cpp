@@ -7,7 +7,7 @@ namespace {
 class Idle : public etl::fsm_state<App, Idle, DeviceState_Idle,
     AppCmd::Reflow, AppCmd::SensorBake, AppCmd::AdrcTest, AppCmd::StepResponse, AppCmd::Button> {
 public:
-    etl::fsm_state_id_t on_enter_state() {
+    etl::fsm_state_id_t on_enter_state() override {
         DEBUG("State => Idle");
         return No_State_Change;
     }
