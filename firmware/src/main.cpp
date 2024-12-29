@@ -5,7 +5,7 @@
 
 void setup() {
     logger_start();
-    prefsWriter.start();
+    PrefsWriter::getInstance().start();
 
     app.setup();
 

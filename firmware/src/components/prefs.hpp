@@ -38,7 +38,11 @@ public:
             }
         }, "prefs", 1024*4, this, 0, NULL);
     }
+
+    static PrefsWriter& getInstance() {
+        static PrefsWriter instance;
+        return instance;
+    }
 };
 
 inline AsyncPreferenceKV prefsKV;
-inline PrefsWriter prefsWriter;

@@ -8,7 +8,7 @@ using BleAuthSecret = std::array<uint8_t, 32>;
 template<size_t MaxRecords = 4>
 class BleAuthStore {
 public:
-    BleAuthStore(AsyncPreferenceWriter* writer, IAsyncPreferenceKV& kv) :
+    BleAuthStore(IAsyncPreferenceWriter& writer, IAsyncPreferenceKV& kv) :
         clientsPref(writer, kv, "ble_auth", "clients"),
         timestampsPref(writer, kv, "ble_auth", "timestamps") {}
 
