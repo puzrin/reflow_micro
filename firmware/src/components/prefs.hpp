@@ -45,4 +45,6 @@ public:
     }
 };
 
+#define PREFS_NAMESPACE "reflow"
+
 inline AsyncPreferenceKV prefsKV;

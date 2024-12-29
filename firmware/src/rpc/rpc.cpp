@@ -25,8 +25,8 @@ const char* SERVICE_UUID = "5f524546-4c4f-575f-5250-435f5356435f"; // _REFLOW_RP
 const char* RPC_CHARACTERISTIC_UUID = "5f524546-4c4f-575f-5250-435f494f5f5f"; // _REFLOW_RPC_IO__
 const char* AUTH_CHARACTERISTIC_UUID = "5f524546-4c4f-575f-5250-435f41555448"; // _REFLOW_RPC_AUTH
 
-auto bleAuthStore = BleAuthStore<4>(PrefsWriter::getInstance(), prefsKV);
-auto bleNameStore = AsyncPreference<std::string>(PrefsWriter::getInstance(), prefsKV, "settings", "ble_name", "Reflow Table");
+auto bleAuthStore = BleAuthStore<4>(PrefsWriter::getInstance(), prefsKV, PREFS_NAMESPACE);
+auto bleNameStore = AsyncPreference<std::string>(PrefsWriter::getInstance(), prefsKV, PREFS_NAMESPACE, "ble_name", "Reflow Table");
 
 class Session;
 

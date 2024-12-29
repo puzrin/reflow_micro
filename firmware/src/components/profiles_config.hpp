@@ -5,9 +5,9 @@
 class ProfilesConfig {
 public:
     ProfilesConfig()
-        : unselected_profiles_store(PrefsWriter::getInstance(), prefsKV, "profiles", "unselected_data",
+        : unselected_profiles_store(PrefsWriter::getInstance(), prefsKV, PREFS_NAMESPACE, "prf_unselected",
             std::vector<uint8_t>{std::begin(DEFAULT_PROFILES_DATA_UNSELECTED_PB), std::end(DEFAULT_PROFILES_DATA_UNSELECTED_PB)})
-        , selection_store(PrefsWriter::getInstance(), prefsKV, "profiles", "selection",
+        , selection_store(PrefsWriter::getInstance(), prefsKV, PREFS_NAMESPACE, "prf_selection",
             DEFAULT_PROFILES_SELECTION)
     {};
 

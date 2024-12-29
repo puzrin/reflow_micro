@@ -31,7 +31,7 @@ TEST(BleAuthStoreTest, AddAndRetrieveClient) {
     MockAsyncPreferenceKV kv;
     AsyncPreferenceWriter writer;
 
-    BleAuthStore<4> store(writer, kv);
+    BleAuthStore<4> store(writer, kv, "test");
 
     // Test that initially client is not present
     EXPECT_FALSE(store.has(default_client_id));
@@ -53,7 +53,7 @@ TEST(BleAuthStoreTest, UpdateTimestamps) {
     MockAsyncPreferenceKV kv;
     AsyncPreferenceWriter writer;
 
-    BleAuthStore<4> store(writer, kv);
+    BleAuthStore<4> store(writer, kv, "test");
 
     // Add the client
     store.create(default_client_id, default_secret);
@@ -64,7 +64,7 @@ TEST(BleAuthStoreTest, UpdateTimestamps) {
     writer.tick(); // Trigger snapshot
 
     // Test that timestamp was set correctly
-    AsyncPreference<std::array<uint64_t, 4>> timestampsPref(writer, kv, "ble_auth", "timestamps");
+    AsyncPreference<std::array<uint64_t, 4>> timestampsPref(writer, kv, "test", "ble_timestamps");
     EXPECT_EQ(timestampsPref.get()[0], timestamp);
 }
 
@@ -73,7 +73,7 @@ TEST(BleAuthStoreTest, LRUReplacement) {
     MockAsyncPreferenceKV kv;
     AsyncPreferenceWriter writer;
 
-    BleAuthStore<4> store(writer, kv);
+    BleAuthStore<4> store(writer, kv, "test");
 
     BleAuthId client_id1 = { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
     BleAuthId client_id2 = { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2 };
