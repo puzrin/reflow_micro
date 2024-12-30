@@ -21,7 +21,10 @@ public:
 
     void on_exit_state() override { get_fsm_context().heater.task_stop(); }
 
-    auto on_event(const AppCmd::Stop& event) -> etl::fsm_state_id_t { return DeviceState_Idle; }
+    auto on_event(const AppCmd::Stop& event) -> etl::fsm_state_id_t {
+        (void)event;
+        return DeviceState_Idle;
+    }
     auto on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
         if (event.type == ButtonEventId::BUTTON_PRESSED_1X) { return DeviceState_Idle; }
         return No_State_Change;

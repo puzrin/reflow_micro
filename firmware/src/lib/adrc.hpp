@@ -14,9 +14,9 @@ private:
 
 public:
     void set_params(float b0, float tau, float N, float M) {
-        float omega_o = N / tau;
-        float omega_c = omega_o / M;
-        float Kp = omega_c / b0;
+        const float omega_o = N / tau;
+        const float omega_c = omega_o / M;
+        const float Kp = omega_c / b0;
         set_params_raw(b0, omega_o, Kp);
     }
 
@@ -28,14 +28,14 @@ public:
     }
 
     auto iterate(float y, float y_ref, float u_max, float dt) -> float {
-        float e = y_ref - z1;
-        float u = (kp * e - z2) / b0;
+        const float e = y_ref - z1;
+        const float u = (kp * e - z2) / b0;
 
         // Anti-windup [0, u_max]
-        float u_output = std::max(0.0F, std::min(u, u_max));
+        const float u_output = std::max(0.0F, std::min(u, u_max));
 
         // ESO update, with respect to real output
-        float e_obs = y - z1;
+        const float e_obs = y - z1;
         z1 += dt * (b0 * u_output + z2 + beta1 * e_obs);
         z2 += dt * (beta2 * e_obs);
 

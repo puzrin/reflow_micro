@@ -3,13 +3,14 @@
 
 using namespace ring_logger;
 
-RingBuffer<10000> ringBuffer;
+static RingBuffer<10000> ringBuffer;
 Logger logger(ringBuffer);
 
-char outputBuffer[1024];
+static char outputBuffer[1024];
 
 void logger_start() {
     xTaskCreate([](void* pvParameters) {
+        (void)pvParameters;
         Serial.begin(115200);
 
         while (!Serial) { vTaskDelay(pdMS_TO_TICKS(10)); }

@@ -63,8 +63,8 @@ auto HeaterBase::set_sensor_params(const SensorParams& params) -> bool {
 }
 
 void HeaterBase::get_history(int32_t client_history_version, int32_t from, std::vector<uint8_t>& pb_data) {
-    size_t from_idx = 0;
-    size_t chunk_length;
+    size_t from_idx{0};
+    size_t chunk_length{0};
     auto history_chunk = new HistoryChunk();
     auto& data = history.data;
 
@@ -139,9 +139,9 @@ void HeaterBase::tick(int32_t dt_ms) {
     // If temperature controller active - use it to update power
     if (temperature_control_flag) {
         static constexpr float dt_inv_multiplier = 1.0F / 1000;
-        float dt = static_cast<float>(dt_ms) * dt_inv_multiplier;
+        const float dt = static_cast<float>(dt_ms) * dt_inv_multiplier;
 
-        float power = adrc.iterate(get_temperature(), temperature_setpoint, get_max_power(), dt);
+        const float power = adrc.iterate(get_temperature(), temperature_setpoint, get_max_power(), dt);
         set_power(power);
     }
 

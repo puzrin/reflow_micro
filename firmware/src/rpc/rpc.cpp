@@ -273,7 +273,7 @@ auto pair(const std::string str_client_id) -> std::string {
     return bin2hex(secret.data(), secret.size());
 }
 
-}
+} // namespace
 
 void pairing_enable() { pairing_enabled_flag = true; }
 void pairing_disable() { pairing_enabled_flag = false; }

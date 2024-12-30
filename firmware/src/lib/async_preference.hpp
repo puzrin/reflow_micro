@@ -44,7 +44,7 @@ struct BufferSerializer {
     }
 
     static void load(IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, T& value) {
-        size_t size = kv.length(ns, key);
+        const size_t size = kv.length(ns, key);
 
         if (size == 0) { return; } // Key not exists => nothing to load
         if (size % sizeof(typename T::value_type) != 0) { return; } // Wrong size => broken data, ignore it
@@ -67,7 +67,7 @@ struct HasBufferTraits<T, std::void_t<decltype(std::declval<T>().data()),
 template <typename T>
 struct dependent_false : std::false_type {};
 
-}
+} // namespace async_preference_ns
 
 // Internal interface for AsyncPreference
 class AsyncPreferenceTickable {

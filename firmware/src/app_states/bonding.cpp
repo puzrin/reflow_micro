@@ -16,7 +16,10 @@ public:
 
         // Enable bonding for 30 seconds
         xTimeoutTimer = xTimerCreate("BondingTimeout", pdMS_TO_TICKS(BONDING_PERIOD_MS), pdFALSE, (void *)0,
-            [](TimerHandle_t xTimer){ application.receive(AppCmd::BondOff()); });
+            [](TimerHandle_t xTimer){
+                (void)xTimer;
+                application.receive(AppCmd::BondOff());
+            });
 
         // Ideally, we should check all returned statuses, but who cares...
         if (xTimeoutTimer) { xTimerStart(xTimeoutTimer, 0); }
@@ -35,7 +38,10 @@ public:
         get_fsm_context().blinker.off();
     }
 
-    auto on_event(const AppCmd::BondOff& event) -> etl::fsm_state_id_t { return DeviceState_Idle; }
+    auto on_event(const AppCmd::BondOff& event) -> etl::fsm_state_id_t {
+        (void)event;
+        return DeviceState_Idle;
+    }
 
     auto on_event_unknown(const etl::imessage& event) -> etl::fsm_state_id_t {
         get_fsm_context().LogUnknownEvent(event);

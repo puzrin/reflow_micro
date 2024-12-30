@@ -26,28 +26,28 @@ class Reflow : public etl::message<_id::REFLOW> {};
 
 class SensorBake : public etl::message<_id::SENSOR_BAKE> {
 public:
-    explicit SensorBake(float watts) : watts(watts) {}
-    float watts;
+    explicit SensorBake(float watts) : watts{watts} {}
+    const float watts;
 };
 
 class AdrcTest : public etl::message<_id::ADRC_TEST> {
 public:
-    explicit AdrcTest(float temperature) : temperature(temperature) {}
-    float temperature;
+    explicit AdrcTest(float temperature) : temperature{temperature} {}
+    const float temperature;
 };
 
 class StepResponse : public etl::message<_id::STEP_RESPONSE> {
 public:
-    explicit StepResponse(float watts) : watts(watts) {}
-    float watts;
+    explicit StepResponse(float watts) : watts{watts} {}
+    const float watts;
 };
 
 class BondOff : public etl::message<_id::BOND_OFF> {};
 
 class Button : public etl::message<_id::BUTTON> {
 public:
-    explicit Button(ButtonEventId type) : type(type) {}
-    ButtonEventId type;
+    explicit Button(ButtonEventId type) : type{type} {}
+    const ButtonEventId type;
 };
 
 } // namespace AppCmd

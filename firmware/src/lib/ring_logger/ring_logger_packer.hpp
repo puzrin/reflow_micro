@@ -125,7 +125,7 @@ private:
 
     static void serialize(uint8_t* buffer, size_t& offset, const char* value) {
         buffer[offset++] = static_cast<uint8_t>(ArgTypeTag::STRING);
-        size_t length = std::strlen(value) + 1; // Include trailing zero
+        const size_t length = std::strlen(value) + 1; // Include trailing zero
         uint16_t length16 = static_cast<uint16_t>(length);
         std::memcpy(buffer + offset, &length16, sizeof(length16));
         offset += sizeof(length16);

@@ -54,7 +54,7 @@ public:
             return;
         }
 
-        BleChunkHead head(chunk);
+        const BleChunkHead head(chunk);
 
         if (skipTail && head.messageId == currentMessageId) {
             // Discard chunks until a new message ID is received
@@ -69,7 +69,7 @@ public:
             resetState();
         }
 
-        size_t newMessageSize = messageSize + (length - BleChunkHead::SIZE);
+        const size_t newMessageSize = messageSize + (length - BleChunkHead::SIZE);
 
         // Check message size overflow
         if (newMessageSize > maxMessageSize) {
@@ -149,26 +149,26 @@ private:
     std::vector<std::vector<uint8_t>> splitMessageToChunks(const std::vector<uint8_t>& message) {
         std::vector<std::vector<uint8_t>> chunks;
         size_t totalSize = message.size();
-        size_t chunkSize = MAX_CHUNK_SIZE - BleChunkHead::SIZE;
+        const size_t chunkSize = MAX_CHUNK_SIZE - BleChunkHead::SIZE;
 
         if (totalSize == 0) {
             // Handle case when message is empty, send only the header with FINAL_CHUNK_FLAG
             std::vector<uint8_t> emptyChunk(BleChunkHead::SIZE);
-            BleChunkHead head(currentMessageId, 0, BleChunkHead::FINAL_CHUNK_FLAG);
+            const BleChunkHead head(currentMessageId, 0, BleChunkHead::FINAL_CHUNK_FLAG);
             head.fillTo(emptyChunk);
             chunks.push_back(emptyChunk);
             return chunks;
         }
 
         for (size_t i = 0; i < totalSize; i += chunkSize) {
-            size_t end = (i + chunkSize > totalSize) ? totalSize : i + chunkSize;
+            const size_t end = (i + chunkSize > totalSize) ? totalSize : i + chunkSize;
 
             // Reserve space for the header and data
             std::vector<uint8_t> chunk;
             chunk.reserve(BleChunkHead::SIZE + (end - i));
 
             // Insert the header
-            BleChunkHead head(
+            const BleChunkHead head(
                 currentMessageId,
                 static_cast<uint16_t>(i / chunkSize),
                 (end == totalSize) ? BleChunkHead::FINAL_CHUNK_FLAG : 0
@@ -187,7 +187,7 @@ private:
 
     void sendErrorResponse(uint8_t errorFlag) {
         std::vector<uint8_t> errorChunk(BleChunkHead::SIZE);
-        BleChunkHead errorHead(currentMessageId, 0, errorFlag | BleChunkHead::FINAL_CHUNK_FLAG);
+        const BleChunkHead errorHead(currentMessageId, 0, errorFlag | BleChunkHead::FINAL_CHUNK_FLAG);
         errorHead.fillTo(errorChunk);
 
         response = {errorChunk};

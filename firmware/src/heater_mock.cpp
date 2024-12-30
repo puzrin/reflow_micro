@@ -61,8 +61,7 @@ static auto make_charger_140w_with_pps() -> ChargerMock {
 }
 
 HeaterMock::HeaterMock()
-    : temperature{25.0f}
-    , size{0.08F, 0.07F, 0.0038F}
+    : size{0.08F, 0.07F, 0.0038F}
     , charger{make_charger_140w_with_pps()}
 {
     calibrate_TR(25, 1.6F)
@@ -73,6 +72,8 @@ HeaterMock::HeaterMock()
         .calibrate_TWV(255, 52.06F, 13.0F)
         .calibrate_TWV(286, 64.22F, 15.0F)
         .calibrate_TWV(310, 77.55F, 17.0F);
+
+    temperature = get_room_temp();
 }
 
 void HeaterMock::validate_calibration_points() {
@@ -130,7 +131,7 @@ auto HeaterMock::calculate_heat_transfer_coefficient() const -> float {
 
     std::vector<std::pair<float, float>> points;
     points.reserve(points_with_power.size());
-    float room_t = get_room_temp();
+    const float room_t = get_room_temp();
     for (const auto& p : points_with_power) {
         points.emplace_back(p.T, p.W / (p.T - room_t));
     }
@@ -163,7 +164,7 @@ auto HeaterMock::calibrate_TR(float T, float R) -> HeaterMock& {
 }
 
 auto HeaterMock::calibrate_TWV(float T, float W, float V) -> HeaterMock& {
-    float R = (V * V) / W;
+    const float R = (V * V) / W;
     calibration_points.push_back({T, R, W});
     validate_calibration_points();
     return *this;
@@ -196,14 +197,14 @@ void HeaterMock::start() {
 void HeaterMock::tick(int32_t dt_ms) {
     // Iterate temperature
     static constexpr float dt_inv_multiplier = 1.0F / 1000.0F;
-    float dt = static_cast<float>(dt_ms) * dt_inv_multiplier;
+    const float dt = static_cast<float>(dt_ms) * dt_inv_multiplier;
 
-    float curr_temp = temperature;
-    float clamped_power = get_power();
+    const float curr_temp = temperature;
+    const float clamped_power = get_power();
 
-    float heat_capacity = calculate_heat_capacity();
-    float heat_transfer_coeff = calculate_heat_transfer_coefficient();
-    float temp_change = ((clamped_power - heat_transfer_coeff * (curr_temp - get_room_temp())) * dt) / heat_capacity;
+    const float heat_capacity = calculate_heat_capacity();
+    const float heat_transfer_coeff = calculate_heat_transfer_coefficient();
+    const float temp_change = ((clamped_power - heat_transfer_coeff * (curr_temp - get_room_temp())) * dt) / heat_capacity;
 
     temperature = curr_temp + temp_change;
 

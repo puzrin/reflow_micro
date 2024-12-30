@@ -12,7 +12,9 @@ public:
         return No_State_Change;
     }
 
-    auto on_event(const AppCmd::Reflow& event) -> etl::fsm_state_id_t { return DeviceState_Reflow; }
+    auto on_event(const AppCmd::Reflow& event) -> etl::fsm_state_id_t {
+        (void)event;
+        return DeviceState_Reflow; }
     auto on_event(const AppCmd::SensorBake& event) -> etl::fsm_state_id_t {
         get_fsm_context().last_cmd_data = event.watts;
         return DeviceState_SensorBake;

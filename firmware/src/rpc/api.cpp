@@ -111,7 +111,7 @@ std::vector<uint8_t> get_adrc_params() {
     return pb_data;
 }
 
-}
+} // namespace
 
 void api_methods_create() {
     rpc.addMethod("get_status", get_status);

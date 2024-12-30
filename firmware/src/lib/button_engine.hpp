@@ -4,10 +4,12 @@
 #include <functional>
 
 namespace ButtonConstants {
-    static constexpr uint32_t JITTER_THRESHOLD = 50;
-    static constexpr uint32_t SHORT_PRESS_THRESHOLD = 500;
-    static constexpr uint32_t LONG_PRESS_THRESHOLD = 2000;
-}
+
+static constexpr uint32_t JITTER_THRESHOLD = 50;
+static constexpr uint32_t SHORT_PRESS_THRESHOLD = 500;
+static constexpr uint32_t LONG_PRESS_THRESHOLD = 2000;
+
+} // namespace ButtonConstants
 
 class IButtonDriver {
     virtual auto get() -> bool = 0;

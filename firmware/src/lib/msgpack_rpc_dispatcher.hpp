@@ -152,7 +152,7 @@ auto runtime_type_check(const JsonArray& args) -> bool {
     }(std::make_index_sequence<std::tuple_size_v<ArgsTuple>>{});
 }
 
-} // namespace jrcpd
+} // namespace msgpack_rpc_dispatcher
 
 class MsgpackRpcDispatcher {
 public:

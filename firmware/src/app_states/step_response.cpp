@@ -23,7 +23,10 @@ public:
 
     void on_exit_state() override { get_fsm_context().heater.task_stop(); }
 
-    auto on_event(const AppCmd::Stop& event) -> etl::fsm_state_id_t { return DeviceState_Idle; }
+    auto on_event(const AppCmd::Stop& event) -> etl::fsm_state_id_t {
+        (void)event;
+        return DeviceState_Idle;
+    }
     auto on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
         if (event.type == ButtonEventId::BUTTON_PRESSED_1X) { return DeviceState_Idle; }
         return No_State_Change;
@@ -38,6 +41,7 @@ private:
     std::vector<std::pair<float, float>> log{};
 
     void task_iterator(int32_t dt_ms, int32_t time_ms) {
+        (void)dt_ms;
         // log index = time in seconds
         if (time_ms < log.size() * 1000) { return; }
 
@@ -64,7 +68,7 @@ private:
         float t_final = log.back().first;
         float t_initial = log.front().first;
 
-        float temperature_63 = t_initial + (t_final - t_initial) * 0.63F;
+        const float temperature_63 = t_initial + (t_final - t_initial) * 0.63F;
         float time_63 = 0;
 
         for (size_t i = 0; i < log.size(); ++i) {
@@ -74,9 +78,9 @@ private:
             }
         }
 
-        float b0 = (temperature_63 - t_initial) / time_63 / max_power;
+        const float b0 = (temperature_63 - t_initial) / time_63 / max_power;
 
-        std::string b0_str = std::to_string(b0);
+        const std::string b0_str = std::to_string(b0);
         DEBUG("Temperature = {}, time = {}, b0 = {}",
             static_cast<int>(temperature_63),
             static_cast<int>(time_63),

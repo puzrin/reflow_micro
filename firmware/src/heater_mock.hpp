@@ -8,7 +8,7 @@
 
 class ChargerProfileMock {
 public:
-    ChargerProfileMock(float _V, float _I, bool _PPS = false) : V{_V}, I{_I}, PPS{_PPS} {}
+    ChargerProfileMock(float V, float I, bool PPS = false) : V{V}, I{I}, PPS{PPS} {}
 
     auto is_useable(float R) const -> bool { return PPS ? true : (V / R) <= I; }
 
@@ -61,7 +61,7 @@ public:
     auto get_power() -> float override { return std::min(get_max_power(), power_setpoint.load(std::memory_order_relaxed)); }
     auto get_volts() -> float override { return std::sqrt(get_power() * get_resistance()); }
     auto get_amperes() -> float override {
-        float r = get_resistance();
+        const float r = get_resistance();
         return r > 0 ? std::sqrt(get_power() / r) : 0;
     }
 

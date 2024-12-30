@@ -33,10 +33,10 @@ public:
 
         std::size_t out_index = 0;
         std::size_t arg_index = 0;
-        std::size_t available_length = max_length - 1;
+        const std::size_t available_length = max_length - 1;
 
         while (*message && out_index < available_length) {
-            FormatPlaceholder placeholder = get_next_placeholder(message);
+            const FormatPlaceholder placeholder = get_next_placeholder(message);
 
             if (placeholder.start && arg_index < num_args) {
                 if (!copy(message, output, out_index, placeholder.start - message, available_length)) { break; }
@@ -93,7 +93,7 @@ private:
 
     static auto copy(const char* src, char* dest, std::size_t& out_index, std::size_t size, std::size_t max_allowed) -> bool {
         if (size == 0) { return true; } // If string to copy is empty, consider it successful.
-        std::size_t copy_size = (out_index + size > max_allowed) ? max_allowed - out_index : size;
+        const std::size_t copy_size = (out_index + size > max_allowed) ? max_allowed - out_index : size;
         if (copy_size == 0) { return false; }
         std::memcpy(dest + out_index, src, copy_size);
         out_index += copy_size;
