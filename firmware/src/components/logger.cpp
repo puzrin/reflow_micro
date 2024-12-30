@@ -1,7 +1,10 @@
 #include <Arduino.h>
 #include "logger.hpp"
 
-Logger logger;
+using namespace ring_logger;
+
+RingBuffer<10000> ringBuffer;
+Logger logger(ringBuffer);
 
 char outputBuffer[1024];
 

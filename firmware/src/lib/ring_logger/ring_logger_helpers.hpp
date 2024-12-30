@@ -32,41 +32,6 @@ namespace ring_logger {
         explicit ArgVariant(const char* value) : type(ArgTypeTag::STRING), stringValue(value) {}
     };
 
-    constexpr bool _is_whitespace(char c) {
-        return c == ' ';
-    }
-
-    constexpr const char* _skip_whitespace(const char* str) {
-        return *str == ' ' ? _skip_whitespace(str + 1) : str;
-    }
-
-    constexpr const char* _find_comma_or_end(const char* str) {
-        return *str == '\0' || *str == ',' ? str : _find_comma_or_end(str + 1);
-    }
-
-    constexpr const char* _rtrim_whitespace(const char* start, const char* end) {
-        return end > start && *(end - 1) == ' ' ? _rtrim_whitespace(start, end - 1) : end;
-    }
-
-    constexpr bool _compare_strings(const char* a, const char* b, std::size_t len) {
-        return len == 0 ? true : (*a == *b && _compare_strings(a + 1, b + 1, len - 1));
-    }
-
-    constexpr bool _is_label_equal(const char* label, const char* start, const char* end) {
-        return _compare_strings(label, start, end - start) && label[end - start] == '\0';
-    }
-
-    constexpr bool _is_label_in_list_impl(const char* label, const char* label_list) {
-        return *label_list == '\0' ? false : (
-            _is_label_equal(label, _skip_whitespace(label_list), _rtrim_whitespace(_skip_whitespace(label_list), _find_comma_or_end(_skip_whitespace(label_list)))) ? true :
-            (*_find_comma_or_end(_skip_whitespace(label_list)) == '\0' ? false : _is_label_in_list_impl(label, _find_comma_or_end(_skip_whitespace(label_list)) + 1))
-        );
-    }
-
-    constexpr bool is_label_in_list(const char* label, const char* label_list) {
-        return label_list == nullptr ? false : _is_label_in_list_impl(label, label_list);
-    }
-
     template<typename T>
     struct is_diverged_int : std::integral_constant<bool, std::is_same<T, int>::value && !std::is_same<int, int32_t>::value && sizeof(int) == sizeof(int32_t)> {};
 

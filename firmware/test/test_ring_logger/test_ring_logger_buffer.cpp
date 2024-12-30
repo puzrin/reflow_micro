@@ -1,8 +1,10 @@
 #include <gtest/gtest.h>
 #include "lib/ring_logger/ring_logger_buffer.hpp"
 
+using namespace ring_logger;
+
 TEST(RingLoggerBufferTest, WriteAndReadSingleRecord) {
-    ring_logger::RingBuffer<1024> buffer;
+    RingBuffer<1024> buffer;
     const uint8_t data[13] = {0};
     size_t dataSize = sizeof(data);
 

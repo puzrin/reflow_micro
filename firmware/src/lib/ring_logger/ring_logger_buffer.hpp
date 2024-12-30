@@ -5,14 +5,22 @@
 
 namespace ring_logger {
 
+
+class IRingBuffer {
+public:
+    virtual auto writeRecord(const uint8_t* data, size_t size) -> bool = 0;
+    virtual auto readRecord(uint8_t* data, size_t& size) -> bool = 0;
+};
+
+
 template <size_t BufferSize>
-class RingBuffer {
+class RingBuffer : public IRingBuffer {
 public:
     struct RecordHeader {
         uint16_t size;
     };
 
-    auto writeRecord(const uint8_t* data, size_t size) -> bool {
+    auto writeRecord(const uint8_t* data, size_t size) -> bool override {
         size_t record_size = sizeof(RecordHeader) + size; // Include size header
         size_t head, next_head;
 
@@ -36,7 +44,7 @@ public:
         return true;
     }
 
-    auto readRecord(uint8_t* data, size_t& size) -> bool {
+    auto readRecord(uint8_t* data, size_t& size) -> bool override {
         while (true) {
             size_t tail = this->tail_idx.load(std::memory_order_acquire);
             size_t head = this->head_idx.load(std::memory_order_acquire);

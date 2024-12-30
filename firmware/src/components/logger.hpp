@@ -7,4 +7,4 @@ using Logger = RingLogger<>;
 extern Logger logger;
 void logger_start();
 
-#define DEBUG(...) logger.push_info(__VA_ARGS__)
+#define DEBUG(...) logger.push(RingLoggerLevelInfo, __VA_ARGS__)
