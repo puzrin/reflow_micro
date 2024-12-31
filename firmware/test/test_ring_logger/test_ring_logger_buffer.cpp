@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <algorithm>
 #include "lib/ring_logger/ring_logger_buffer.hpp"
 
 using namespace ring_logger;
@@ -18,7 +19,7 @@ TEST(RingLoggerBufferTest, WriteAndReadSingleRecord) {
 
     // Validate record
     ASSERT_EQ(readSize, dataSize);
-    ASSERT_EQ(std::memcmp(data, readData, dataSize), 0);
+    ASSERT_TRUE(std::equal(data, data + dataSize, readData));
 }
 
 TEST(RingLoggerBufferTest, OverflowOnRecordHeader) {
@@ -41,11 +42,11 @@ TEST(RingLoggerBufferTest, OverflowOnRecordHeader) {
     size_t readSize = 0;
     ASSERT_TRUE(buffer.readRecord(readData, readSize));
     ASSERT_EQ(readSize, dataSize2);
-    ASSERT_EQ(std::memcmp(data2, readData, dataSize2), 0);
+    ASSERT_TRUE(std::equal(data2, data2 + dataSize2, readData));
 
     ASSERT_TRUE(buffer.readRecord(readData, readSize));
     ASSERT_EQ(readSize, dataSize3);
-    ASSERT_EQ(std::memcmp(data3, readData, dataSize3), 0);
+    ASSERT_TRUE(std::equal(data3, data3 + dataSize3, readData));
 }
 
 TEST(RingLoggerBufferTest, OverflowOnRecordData) {
@@ -68,11 +69,11 @@ TEST(RingLoggerBufferTest, OverflowOnRecordData) {
     size_t readSize = 0;
     ASSERT_TRUE(buffer.readRecord(readData, readSize));
     ASSERT_EQ(readSize, dataSize2);
-    ASSERT_EQ(std::memcmp(data2, readData, dataSize2), 0);
+    ASSERT_TRUE(std::equal(data2, data2 + dataSize2, readData));
 
     ASSERT_TRUE(buffer.readRecord(readData, readSize));
     ASSERT_EQ(readSize, dataSize3);
-    ASSERT_EQ(std::memcmp(data3, readData, dataSize3), 0);
+    ASSERT_TRUE(std::equal(data3, data3 + dataSize3, readData));
 }
 
 TEST(RingLoggerBufferTest, ReadFromEmptyBuffer) {
