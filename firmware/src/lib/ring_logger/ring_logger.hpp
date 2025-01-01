@@ -1,76 +1,84 @@
 #pragma once
 
-#include <vector>
-#include <cstddef>
-#include <cstdio>
-#include <cstring>
-#include <cstdint>
-#include <iostream>
-#include "ring_logger_helpers.hpp"
 #include "ring_logger_buffer.hpp"
-#include "ring_logger_packer.hpp"
-#include "ring_logger_formatter.hpp"
+#include "ring_logger_typelists.hpp"
+#include "ring_logger_tokenizer.hpp"
 
 constexpr int8_t RingLoggerLevelError = 0;
 constexpr int8_t RingLoggerLevelInfo = 1;
 constexpr int8_t RingLoggerLevelDebug = 2;
 
-template<size_t MaxRecordSize = 512, size_t MaxArgs = 10>
+namespace ring_logger {
+
+template<typename T>
+auto decayLiteralArg(T&& x) {
+    if constexpr (std::is_array_v<std::remove_reference_t<T>> &&
+                  std::is_same_v<std::remove_extent_t<std::remove_reference_t<T>>, char>) {
+        return static_cast<const char*>(x);
+    } else {
+        return std::forward<T>(x);
+    }
+}
+
+} // namespace ring_logger
+
+
+template <
+    size_t MaxRecordSize = 512,
+    typename Encoders = ring_logger::ParamEncoders_32_And_Float,
+    typename Decoders = ring_logger::ParamDecoders_32_And_Float
+>
 class RingLogger {
 public:
-    RingLogger(ring_logger::IRingBuffer &buf) : ringBuffer{buf} {}
+    explicit RingLogger(ring_logger::IRingBuffer& buf) : ringBuffer{buf} {}
 
     template<typename... Args>
     auto push(uint8_t level, const char* message, const Args&... msgArgs) -> void {
-        static_assert(ring_logger::are_supported_types<typename std::decay<Args>::type...>::value, "Unsupported argument type");
-        static_assert(sizeof...(msgArgs) <= MaxArgs, "Too many arguments for logging");
+        using namespace ring_logger;
+        ring_logger::BinVector record;
 
-        uint32_t timestamp = 0;
-        size_t packedSize = packer.getPackedSize(timestamp, level, message, msgArgs...);
+        Encoders::write(level, record);
+        Encoders::write(message, record);
+        (Encoders::write(decayLiteralArg(msgArgs), record), ...);
 
-        if (packedSize > MaxRecordSize) {
-            auto packedData = packer.pack(timestamp, level, "[TOO BIG]");
-            ringBuffer.writeRecord(packedData.data, packedData.size);
-            return;
-        }
-
-        auto packedData = packer.pack(timestamp, level, message, msgArgs...);
-        ringBuffer.writeRecord(packedData.data, packedData.size);
+        ringBuffer.writeRecord(record);
     }
 
-    auto pull(char* outputBuffer, size_t bufferSize) -> bool {
-        uint8_t recordData[MaxRecordSize];
-        size_t recordSize = MaxRecordSize;
+    auto pull(std::string& output) -> bool {
+        using namespace ring_logger;
 
-        if (!ringBuffer.readRecord(recordData, recordSize)) {
-            return false; // No records available
+        ring_logger::BinVector record;
+        if (!ringBuffer.readRecord(record)) { return false; }
+
+        int32_t offset = 0;
+
+        if (!IDecoder::isAvailableAt(record, offset)) return false;
+        auto level = IDecoder::getAsNum<uint8_t>(record, offset);
+        offset = IDecoder::getNextOffset(record, offset);
+
+        if (!IDecoder::isAvailableAt(record, offset)) return false;
+        auto tokenizer = StringTokenizer(IDecoder::getAsStringView(record, offset));
+        offset = IDecoder::getNextOffset(record, offset);
+
+        writeLogHeader(output, level);
+
+        for (const auto token : tokenizer) {
+            if (token.is_placeholder) {
+                if (Decoders::format(record, offset, output, token.text)) {
+                    offset = IDecoder::getNextOffset(record, offset);
+                } else {
+                    // no params left => write placeholder source
+                    output.append(token.text);
+                }
+            } else {
+                output.append(token.text);
+            }
         }
 
-        typename ring_logger::Packer<MaxRecordSize, MaxArgs + 3>::UnpackedData unpackedData;
-        typename ring_logger::Packer<MaxRecordSize, MaxArgs + 3>::PackedData packedData = {{0}, 0};
-        std::memcpy(packedData.data, recordData, recordSize);
-        packedData.size = recordSize;
-
-        if (!packer.unpack(packedData, unpackedData)) {
-            return false; // Failed to unpack
-        }
-
-        uint32_t timestamp = unpackedData.data[0].uint32Value;
-        uint8_t level = unpackedData.data[1].uint8Value;
-        const char* message = unpackedData.data[2].stringValue;
-
-        size_t offset = writeLogHeader(outputBuffer, bufferSize, timestamp, level);
-
-        ring_logger::Formatter::print(outputBuffer + offset, bufferSize - offset, message, unpackedData.data + 3, unpackedData.size - 3);
-
-        return std::strlen(outputBuffer);
+        return true;
     }
 
-private:
-    ring_logger::Packer<MaxRecordSize, MaxArgs + 3> packer;
-    ring_logger::IRingBuffer& ringBuffer;
-
-    auto writeLogHeader(char* outputBuffer, size_t bufferSize, uint32_t /*timestamp*/, uint8_t level) -> size_t {
+    void writeLogHeader(std::string& output, uint8_t level) {
         using namespace ring_logger;
 
         const char* levelStr = nullptr;
@@ -81,8 +89,9 @@ private:
             default: levelStr = "UNKNOWN"; break;
         }
 
-        Formatter::print(outputBuffer, bufferSize, "[{}]: ", ArgVariant(levelStr));
-
-        return std::strlen(outputBuffer);
+        output.append("[").append(levelStr).append("]: ");
     }
+
+private:
+    ring_logger::IRingBuffer& ringBuffer;
 };

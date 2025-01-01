@@ -6,18 +6,22 @@ using namespace ring_logger;
 static RingBuffer<10000> ringBuffer;
 Logger logger(ringBuffer);
 
-static char outputBuffer[1024];
-
 void logger_start() {
     xTaskCreate([](void* pvParameters) {
         (void)pvParameters;
+
+        std::string outputBuffer;
+        outputBuffer.reserve(1024);
+        outputBuffer.clear();
+
         Serial.begin(115200);
 
         while (!Serial) { vTaskDelay(pdMS_TO_TICKS(10)); }
 
         while (true) {
-            while (logger.pull(outputBuffer, sizeof(outputBuffer))) {
-                Serial.println(outputBuffer);
+            while (logger.pull(outputBuffer)) {
+                Serial.println(outputBuffer.c_str());
+                outputBuffer.clear();
             }
             vTaskDelay(pdMS_TO_TICKS(10));
         }

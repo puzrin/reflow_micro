@@ -5,45 +5,31 @@ using namespace ring_logger;
 
 constexpr auto info = RingLoggerLevelInfo;
 
-// Define test labels
-constexpr const char foo_label[] = "foo";
-constexpr const char bar_label[] = "bar";
-constexpr const char garbage_label[] = "garbage";
-constexpr const char whitelisted_labels_list[] = "foo,bar";
-constexpr const char ignored_labels_list[] = "garbage";
-
-TEST(RingLoggerTest, BasicPushAndLpush) {
+TEST(RingLoggerTest, BasicPush) {
     RingBuffer<10000> ringBuffer;
     RingLogger<> logger(ringBuffer);
-    char buffer[1024] = {0};
+    std::string output;
 
     logger.push(RingLoggerLevelInfo, "Hello, {}!", "World");
-    ASSERT_TRUE(logger.pull(buffer, sizeof(buffer)));
-    EXPECT_STREQ(buffer, "[INFO]: Hello, World!");
+    ASSERT_TRUE(logger.pull(output));
+    EXPECT_EQ(output, "[INFO]: Hello, World!");
 
+    output.clear();
     logger.push(RingLoggerLevelDebug, "Debug message: {}", 123);
-    ASSERT_TRUE(logger.pull(buffer, sizeof(buffer)));
-    EXPECT_STREQ(buffer, "[DEBUG]: Debug message: 123");
+    ASSERT_TRUE(logger.pull(output));
+    EXPECT_EQ(output, "[DEBUG]: Debug message: 123");
 
+    output.clear();
     logger.push(RingLoggerLevelError, "Error message: {}", 456);
-    ASSERT_TRUE(logger.pull(buffer, sizeof(buffer)));
-    EXPECT_STREQ(buffer, "[ERROR]: Error message: 456");
+    ASSERT_TRUE(logger.pull(output));
+    EXPECT_EQ(output, "[ERROR]: Error message: 456");
 }
 
-TEST(RingLoggerTest, TooBigMessage) {
-    RingBuffer<10000> ringBuffer;
-    RingLogger<> logger(ringBuffer);
-    char buffer[1024] = {0};
-    std::string bigMessage(600, 'A'); // Create a big message
-    logger.push(info, "{}", bigMessage.c_str());
-    ASSERT_TRUE(logger.pull(buffer, sizeof(buffer)));
-    EXPECT_STREQ(buffer, "[INFO]: [TOO BIG]");
-}
 
 TEST(RingLoggerTest, SupportedArgTypes) {
     RingBuffer<10000> ringBuffer;
     RingLogger<> logger(ringBuffer);
-    char buffer[1024] = {0};
+    std::string output;
 
     int8_t int8_val = -8;
     uint8_t uint8_val = 8;
@@ -54,19 +40,11 @@ TEST(RingLoggerTest, SupportedArgTypes) {
     const char* str_val = "test";
     char* mutable_str_val = const_cast<char*>("mutable");
 
-    logger.push(info, "Test values: {}, {}, {}, {}, {}, {}, {}, {}", int8_val, uint8_val, int16_val, uint16_val, int32_val, uint32_val, str_val, mutable_str_val);
-    ASSERT_TRUE(logger.pull(buffer, sizeof(buffer)));
-    EXPECT_STREQ(buffer, "[INFO]: Test values: -8, 8, -16, 16, -32, 32, test, mutable");
-}
-
-TEST(RingLoggerTest, MaxArgs) {
-    RingBuffer<10000> ringBuffer;
-    RingLogger<> logger(ringBuffer);
-    char buffer[1024] = {0};
-
-    logger.push(info, "Test max args: {}, {}, {}, {}, {}, {}, {}, {}, {}, {}", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-    ASSERT_TRUE(logger.pull(buffer, sizeof(buffer)));
-    EXPECT_STREQ(buffer, "[INFO]: Test max args: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10");
+    logger.push(info, "Test values: {}, {}, {}, {}, {}, {}, {}, {}",
+        int8_val, uint8_val, int16_val, uint16_val,
+        int32_val, uint32_val, str_val, mutable_str_val);
+    ASSERT_TRUE(logger.pull(output));
+    EXPECT_EQ(output, "[INFO]: Test values: -8, 8, -16, 16, -32, 32, test, mutable");
 }
 
 int main(int argc, char **argv) {

@@ -2,14 +2,15 @@
 
 #include <atomic>
 #include <array>
-#include <algorithm>  // For std::copy_n
+#include <vector>
+#include <algorithm>
 
 namespace ring_logger {
 
 class IRingBuffer {
 public:
-    virtual auto writeRecord(const uint8_t* data, size_t size) -> bool = 0;
-    virtual auto readRecord(uint8_t* data, size_t& size) -> bool = 0;
+    virtual auto writeRecord(const std::vector<uint8_t>& data) -> bool = 0;
+    virtual auto readRecord(std::vector<uint8_t>& data) -> bool = 0;
 };
 
 template <size_t BufferSize>
@@ -19,61 +20,55 @@ public:
         uint16_t size;
     };
 
-    auto writeRecord(const uint8_t* data, size_t size) -> bool override {
-        size_t record_size = sizeof(RecordHeader) + size; // Include size header
+    auto writeRecord(const std::vector<uint8_t>& data) -> bool override {
+        const size_t size = data.size();
+        size_t record_size = sizeof(RecordHeader) + size;
         size_t head, next_head;
 
         do {
             head = head_idx.load(std::memory_order_acquire);
             next_head = (head + record_size) % BufferSize;
 
-            // Ensure enough space is available
             freeSpace(record_size);
 
-            // Re-check head to ensure space is still valid
-        } while (!head_idx.compare_exchange_weak(head, next_head, std::memory_order_release, std::memory_order_relaxed));
+        } while (!head_idx.compare_exchange_weak(head, next_head,
+                 std::memory_order_release, std::memory_order_relaxed));
 
-        // Write record header (size)
         RecordHeader header = { static_cast<uint16_t>(size) };
         setRecordHeader(head, header);
-
-        // Write record data
-        writeBuffer((head + sizeof(RecordHeader)) % BufferSize, data, size);
+        writeBuffer((head + sizeof(RecordHeader)) % BufferSize, data.data(), size);
 
         return true;
     }
 
-    auto readRecord(uint8_t* data, size_t& size) -> bool override {
+    auto readRecord(std::vector<uint8_t>& data) -> bool override {
         while (true) {
             size_t tail = tail_idx.load(std::memory_order_acquire);
             size_t head = head_idx.load(std::memory_order_acquire);
 
-            // No data records
             if (tail == head) {
-                size = 0;
+                data.clear();
                 return false;
             }
 
-            // Read record header (size)
             RecordHeader header;
             getRecordHeader(tail, header);
-            size = header.size;
+            size_t size = header.size;
 
-            // Make sure data was not corrupted, tail should not be changed.
-            // Start from the beginning on fail.
-            if (tail_idx.load(std::memory_order_acquire) != tail) { continue; }
+            if (tail_idx.load(std::memory_order_acquire) != tail) {
+                continue;
+            }
 
+            data.resize(size);
             size_t next_tail = (tail + sizeof(RecordHeader) + size) % BufferSize;
 
-            // Extract record data. It can become corrupted,
-            // so checked in the next step.
-            readBuffer((tail + sizeof(RecordHeader)) % BufferSize, data, size);
+            readBuffer((tail + sizeof(RecordHeader)) % BufferSize, data.data(), size);
 
-            // Check tail was not changed from outside, update and finish on success
-            if (tail_idx.compare_exchange_weak(tail, next_tail, std::memory_order_release, std::memory_order_relaxed)) { break; }
+            if (tail_idx.compare_exchange_weak(tail, next_tail,
+                std::memory_order_release, std::memory_order_relaxed)) {
+                return true;
+            }
         }
-
-        return true;
     }
 
 private:
@@ -84,27 +79,25 @@ private:
 
             size_t space_available = head >= tail ? (BufferSize - head + tail) : (tail - head);
 
-            // Exit if enough space
             if (space_available >= required_space) { return; }
 
-            // Release a single record
-            // Content can be invalid at this moment if tail changed.
-            // But this is safe for calculation and bad new_tail value will not be stored.
             RecordHeader header;
             getRecordHeader(tail, header);
             size_t new_tail = (tail + sizeof(RecordHeader) + header.size) % BufferSize;
 
-            // Update tail pointer atomically
-            tail_idx.compare_exchange_weak(tail, new_tail, std::memory_order_release, std::memory_order_relaxed);
+            tail_idx.compare_exchange_weak(tail, new_tail,
+                std::memory_order_release, std::memory_order_relaxed);
         }
     }
 
     inline void getRecordHeader(size_t index, RecordHeader& header) const {
         if (index + sizeof(RecordHeader) <= BufferSize) {
-            std::copy_n(&buffer[index], sizeof(RecordHeader), reinterpret_cast<uint8_t*>(&header));
+            std::copy_n(&buffer[index], sizeof(RecordHeader),
+                       reinterpret_cast<uint8_t*>(&header));
         } else {
             size_t first_part = BufferSize - index;
-            std::copy_n(&buffer[index], first_part, reinterpret_cast<uint8_t*>(&header));
+            std::copy_n(&buffer[index], first_part,
+                       reinterpret_cast<uint8_t*>(&header));
             std::copy_n(&buffer[0], sizeof(RecordHeader) - first_part,
                        reinterpret_cast<uint8_t*>(&header) + first_part);
         }
@@ -112,10 +105,12 @@ private:
 
     inline void setRecordHeader(size_t index, const RecordHeader& header) {
         if (index + sizeof(RecordHeader) <= BufferSize) {
-            std::copy_n(reinterpret_cast<const uint8_t*>(&header), sizeof(RecordHeader), &buffer[index]);
+            std::copy_n(reinterpret_cast<const uint8_t*>(&header),
+                       sizeof(RecordHeader), &buffer[index]);
         } else {
             size_t first_part = BufferSize - index;
-            std::copy_n(reinterpret_cast<const uint8_t*>(&header), first_part, &buffer[index]);
+            std::copy_n(reinterpret_cast<const uint8_t*>(&header),
+                       first_part, &buffer[index]);
             std::copy_n(reinterpret_cast<const uint8_t*>(&header) + first_part,
                        sizeof(RecordHeader) - first_part, &buffer[0]);
         }
