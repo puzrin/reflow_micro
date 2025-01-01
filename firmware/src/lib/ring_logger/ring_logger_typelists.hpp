@@ -31,7 +31,7 @@ struct DecoderList {
         }
 
         bool decoded = ([&]() {
-            if (Ds::matchTypeTag(IDecoder::pickTypeID(data, offset))) {
+            if (Ds::matchTypeTag(IDecoder::readHeader(data, offset).typeId)) {
                 Ds(data, offset).format(output, fmt);
                 return true;
             }

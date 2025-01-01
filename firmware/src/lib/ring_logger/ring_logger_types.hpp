@@ -9,9 +9,15 @@
 namespace ring_logger {
 
 using BinVector = std::vector<uint8_t>;
-constexpr uint8_t ParamRecordHeaderSize = 3;
 
-enum class ParamType {
+constexpr uint8_t DataHeaderSize = 3;
+
+struct DataHeader {
+    uint16_t size;
+    uint8_t typeId;
+};
+
+enum class DataType {
     I8, U8, I16, U16, I32, U32, I64, U64, Flt, Dbl, Str, LAST
 };
 
@@ -39,7 +45,7 @@ T byteswap(T value) {
 
 class EncoderHelpers {
 protected:
-    static void write_header(uint32_t paramTypeID, uint32_t size, BinVector& out) {
+    static void writeHeader(uint32_t paramTypeID, uint32_t size, BinVector& out) {
         uint32_t headerValue = (paramTypeID << 16) | size;
         out.push_back(static_cast<uint8_t>(headerValue));
         out.push_back(static_cast<uint8_t>(headerValue >> 8));
@@ -48,7 +54,7 @@ protected:
 };
 
 // Helper to define encoders
-template <typename T, typename BaseType, ParamType TypeId, bool IsSigned>
+template <typename T, typename BaseType, DataType TypeId, bool IsSigned>
 class EncoderNumeric : public EncoderHelpers {
 public:
     static constexpr bool matchType = sizeof(T) == sizeof(BaseType)
@@ -58,7 +64,7 @@ public:
     static void write(const T& value, BinVector& out) {
         T val = value;
 
-        write_header(static_cast<uint8_t>(TypeId), sizeof(BaseType), out);
+        writeHeader(static_cast<uint8_t>(TypeId), sizeof(BaseType), out);
 
         for (size_t i{0}; i < sizeof(BaseType); i++) {
             out.push_back(static_cast<uint8_t>(val & 0xFF));
@@ -69,28 +75,28 @@ public:
 
 
 template <typename T>
-using EncoderI8 = EncoderNumeric<T, int8_t, ParamType::I8, true>;
+using EncoderI8 = EncoderNumeric<T, int8_t, DataType::I8, true>;
 
 template <typename T>
-using EncoderI16 = EncoderNumeric<T, int16_t, ParamType::I16, true>;
+using EncoderI16 = EncoderNumeric<T, int16_t, DataType::I16, true>;
 
 template <typename T>
-using EncoderI32 = EncoderNumeric<T, int32_t, ParamType::I32, true>;
+using EncoderI32 = EncoderNumeric<T, int32_t, DataType::I32, true>;
 
 template <typename T>
-using EncoderI64 = EncoderNumeric<T, int64_t, ParamType::I64, true>;
+using EncoderI64 = EncoderNumeric<T, int64_t, DataType::I64, true>;
 
 template <typename T>
-using EncoderU8 = EncoderNumeric<T, uint8_t, ParamType::U8, false>;
+using EncoderU8 = EncoderNumeric<T, uint8_t, DataType::U8, false>;
 
 template <typename T>
-using EncoderU16 = EncoderNumeric<T, uint16_t, ParamType::U16, false>;
+using EncoderU16 = EncoderNumeric<T, uint16_t, DataType::U16, false>;
 
 template <typename T>
-using EncoderU32 = EncoderNumeric<T, uint32_t, ParamType::U32, false>;
+using EncoderU32 = EncoderNumeric<T, uint32_t, DataType::U32, false>;
 
 template <typename T>
-using EncoderU64 = EncoderNumeric<T, uint64_t, ParamType::U64, false>;
+using EncoderU64 = EncoderNumeric<T, uint64_t, DataType::U64, false>;
 
 
 template <typename T>
@@ -108,7 +114,7 @@ public:
             result = byteswap(result);
         #endif
 
-        write_header(static_cast<uint8_t>(ParamType::Flt), sizeof(result), out);
+        writeHeader(static_cast<uint8_t>(DataType::Flt), sizeof(result), out);
 
         for (size_t i{0}; i < sizeof(result); i++) {
             out.push_back(static_cast<uint8_t>(result & 0xFF));
@@ -132,7 +138,7 @@ public:
             byteswap(result);
         #endif
 
-        write_header(static_cast<uint8_t>(ParamType::Dbl), sizeof(result), out);
+        writeHeader(static_cast<uint8_t>(DataType::Dbl), sizeof(result), out);
 
         for (size_t i{0}; i < sizeof(result); i++) {
             out.push_back(static_cast<uint8_t>(result & 0xFF));
@@ -150,7 +156,7 @@ public:
         std::is_convertible_v<T, std::string_view>;
 
     static void write(const T& value, BinVector& out) {
-        write_header(static_cast<uint8_t>(ParamType::Str), value.length(), out);
+        writeHeader(static_cast<uint8_t>(DataType::Str), value.length(), out);
         out.insert(out.end(), value.begin(), value.end());
     }
 };
@@ -166,7 +172,7 @@ public:
 
     static void write(const char* value, BinVector& out) {
         size_t length = std::strlen(value);
-        write_header(static_cast<uint8_t>(ParamType::Str), length, out);
+        writeHeader(static_cast<uint8_t>(DataType::Str), length, out);
         out.insert(out.end(), value, value + length);
     }
 };
@@ -181,8 +187,8 @@ public:
 
     explicit IDecoder(const BinVector& in, uint32_t recordOffset)
         : input{in}
-        , dataOffset{recordOffset + ParamRecordHeaderSize}
-        , dataSize{pickSize(in, recordOffset)}
+        , dataOffset{recordOffset + DataHeaderSize}
+        , dataSize{readHeader(in, recordOffset).size}
     {}
 
     void format(std::string& out, std::string_view fmt = {}) {
@@ -191,8 +197,8 @@ public:
     }
 
     static auto isAvailableAt(const BinVector& in, uint32_t recordOffset) -> bool {
-        return (recordOffset + ParamRecordHeaderSize <= in.size()) &&
-            (recordOffset + ParamRecordHeaderSize + pickSize(in, recordOffset) <= in.size());
+        return (recordOffset + DataHeaderSize <= in.size()) &&
+            (recordOffset + DataHeaderSize + readHeader(in, recordOffset).size <= in.size());
     }
 
     template<typename T>
@@ -201,8 +207,8 @@ public:
 
         if (!isAvailableAt(in, recordOffset)) return T{0};
 
-        uint32_t dataOffset = recordOffset + ParamRecordHeaderSize;
-        uint32_t dataSize = pickSize(in, recordOffset);
+        uint32_t dataOffset = recordOffset + DataHeaderSize;
+        uint32_t dataSize = readHeader(in, recordOffset).size;
 
         T result = 0;
         for (size_t i = 0; i < sizeof(T) && i < dataSize; ++i) {
@@ -214,10 +220,10 @@ public:
     static auto getAsStringView(const BinVector& in, uint32_t recordOffset) -> std::string_view {
         if (!isAvailableAt(in, recordOffset)) return std::string_view();
 
-        uint32_t dataSize = pickSize(in, recordOffset);
+        uint32_t dataSize = readHeader(in, recordOffset).size;
         if (dataSize == 0) return std::string_view();
 
-        uint32_t dataOffset = recordOffset + ParamRecordHeaderSize;
+        uint32_t dataOffset = recordOffset + DataHeaderSize;
 
         return std::string_view(
             reinterpret_cast<const char*>(&in[dataOffset]),
@@ -226,36 +232,27 @@ public:
     }
 
     static auto getNextOffset(const BinVector& in, uint32_t recordOffset) -> uint32_t {
-        if (recordOffset + ParamRecordHeaderSize >= in.size()) { return in.size(); }
+        if (recordOffset + DataHeaderSize >= in.size()) { return in.size(); }
 
-        return recordOffset + ParamRecordHeaderSize + pickSize(in, recordOffset);
+        return recordOffset + DataHeaderSize + readHeader(in, recordOffset).size;
     }
 
-    static uint8_t pickTypeID(const BinVector& in, uint32_t recordOffset) {
-        auto header = pickHeaderData(in, recordOffset);
-        return (header >> 16) & 0xFF;
+    static DataHeader readHeader(const BinVector& in, uint32_t recordOffset) {
+        return {
+            static_cast<uint16_t>(in[recordOffset] | (static_cast<uint16_t>(in[recordOffset + 1]) << 8)),
+            static_cast<uint8_t>(in[recordOffset + 2])
+        };
     }
 
-    static uint32_t pickSize(const BinVector& in, uint32_t recordOffset) {
-        auto header = pickHeaderData(in, recordOffset);
-        return header & 0xFFFF;
-    }
 
 protected:
     const BinVector& input;
     uint32_t dataOffset;
     uint32_t dataSize;
-
-    // Helpers
-    static uint32_t pickHeaderData(const BinVector& in, uint32_t recordOffset) {
-        return in[recordOffset] |
-            (static_cast<uint32_t>(in[recordOffset + 1]) << 8) |
-            (static_cast<uint32_t>(in[recordOffset + 2]) << 16);
-    }
 };
 
 // Helper to define decoders
-template <typename T, ParamType TypeId>
+template <typename T, DataType TypeId>
 class DecoderNumeric : public IDecoder {
 public:
     explicit DecoderNumeric(const BinVector& in, uint32_t recordOffset) : IDecoder(in, recordOffset) {}
@@ -279,27 +276,27 @@ protected:
 };
 
 
-using DecoderI8 = DecoderNumeric<int8_t, ParamType::I8>;
+using DecoderI8 = DecoderNumeric<int8_t, DataType::I8>;
 
-using DecoderI16 = DecoderNumeric<int16_t, ParamType::I16>;
+using DecoderI16 = DecoderNumeric<int16_t, DataType::I16>;
 
-using DecoderI32 = DecoderNumeric<int32_t, ParamType::I32>;
+using DecoderI32 = DecoderNumeric<int32_t, DataType::I32>;
 
-using DecoderI64 = DecoderNumeric<int64_t, ParamType::I64>;
+using DecoderI64 = DecoderNumeric<int64_t, DataType::I64>;
 
-using DecoderU8 = DecoderNumeric<uint8_t, ParamType::U8>;
+using DecoderU8 = DecoderNumeric<uint8_t, DataType::U8>;
 
-using DecoderU16 = DecoderNumeric<uint16_t, ParamType::U16>;
+using DecoderU16 = DecoderNumeric<uint16_t, DataType::U16>;
 
-using DecoderU32 = DecoderNumeric<uint32_t, ParamType::U32>;
+using DecoderU32 = DecoderNumeric<uint32_t, DataType::U32>;
 
-using DecoderU64 = DecoderNumeric<uint64_t, ParamType::U64>;
+using DecoderU64 = DecoderNumeric<uint64_t, DataType::U64>;
 
 class DecoderFlt : public IDecoder {
 public:
     explicit DecoderFlt(const BinVector& in, uint32_t recordOffset) : IDecoder(in, recordOffset) {}
 
-    static bool matchTypeTag(uint8_t ttag) { return ttag == static_cast<uint8_t>(ParamType::Flt); }
+    static bool matchTypeTag(uint8_t ttag) { return ttag == static_cast<uint8_t>(DataType::Flt); }
 
     void format(std::string& out, std::string_view fmt = {}) {
         (void)fmt;
@@ -329,7 +326,7 @@ class DecoderDbl : public IDecoder {
 public:
     explicit DecoderDbl(const BinVector& in, uint32_t recordOffset) : IDecoder(in, recordOffset) {}
 
-    static bool matchTypeTag(uint8_t ttag) { return ttag == static_cast<uint8_t>(ParamType::Dbl); }
+    static bool matchTypeTag(uint8_t ttag) { return ttag == static_cast<uint8_t>(DataType::Dbl); }
 
     void format(std::string& out, std::string_view fmt = {}) {
         (void)fmt;
@@ -361,7 +358,7 @@ public:
     explicit DecoderStr(const BinVector& in, uint32_t recordOffset)
         : IDecoder(in, recordOffset) {}
 
-    static bool matchTypeTag(uint8_t ttag) { return ttag == static_cast<uint8_t>(ParamType::Str); }
+    static bool matchTypeTag(uint8_t ttag) { return ttag == static_cast<uint8_t>(DataType::Str); }
 
     void format(std::string& out, std::string_view fmt = {}) {
         (void)fmt;
