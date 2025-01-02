@@ -7,28 +7,30 @@ constexpr auto info = RingLoggerLevelInfo;
 
 TEST(RingLoggerTest, BasicPush) {
     RingBuffer<10000> ringBuffer;
-    RingLogger<> logger(ringBuffer);
+    RingLoggerWriter<> logWriter(ringBuffer);
+    RingLoggerReader<> logReader(ringBuffer);
     std::string output;
 
-    logger.push(RingLoggerLevelInfo, "Hello, {}!", "World");
-    ASSERT_TRUE(logger.pull(output));
+    logWriter.push(RingLoggerLevelInfo, "Hello, {}!", "World");
+    ASSERT_TRUE(logReader.pull(output));
     EXPECT_EQ(output, "[INFO]: Hello, World!");
 
     output.clear();
-    logger.push(RingLoggerLevelDebug, "Debug message: {}", 123);
-    ASSERT_TRUE(logger.pull(output));
+    logWriter.push(RingLoggerLevelDebug, "Debug message: {}", 123);
+    ASSERT_TRUE(logReader.pull(output));
     EXPECT_EQ(output, "[DEBUG]: Debug message: 123");
 
     output.clear();
-    logger.push(RingLoggerLevelError, "Error message: {}", 456);
-    ASSERT_TRUE(logger.pull(output));
+    logWriter.push(RingLoggerLevelError, "Error message: {}", 456);
+    ASSERT_TRUE(logReader.pull(output));
     EXPECT_EQ(output, "[ERROR]: Error message: 456");
 }
 
 
 TEST(RingLoggerTest, SupportedArgTypes) {
     RingBuffer<10000> ringBuffer;
-    RingLogger<> logger(ringBuffer);
+    RingLoggerWriter<> logWriter(ringBuffer);
+    RingLoggerReader<> logReader(ringBuffer);
     std::string output;
 
     int8_t int8_val = -8;
@@ -40,10 +42,10 @@ TEST(RingLoggerTest, SupportedArgTypes) {
     const char* str_val = "test";
     char* mutable_str_val = const_cast<char*>("mutable");
 
-    logger.push(info, "Test values: {}, {}, {}, {}, {}, {}, {}, {}",
+    logWriter.push(info, "Test values: {}, {}, {}, {}, {}, {}, {}, {}",
         int8_val, uint8_val, int16_val, uint16_val,
         int32_val, uint32_val, str_val, mutable_str_val);
-    ASSERT_TRUE(logger.pull(output));
+    ASSERT_TRUE(logReader.pull(output));
     EXPECT_EQ(output, "[INFO]: Test values: -8, 8, -16, 16, -32, 32, test, mutable");
 }
 

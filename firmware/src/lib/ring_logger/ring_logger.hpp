@@ -24,30 +24,65 @@ auto decayLiteralArg(T&& x) {
 
 
 template <
+    // This does not restrict the size in current implementation, but reserves memory
+    // to avoid reallocations.
     size_t MaxRecordSize = 512,
-    typename Encoders = ring_logger::ParamEncoders_32_And_Float,
-    typename Decoders = ring_logger::ParamDecoders_32_And_Float
+    typename Encoders = ring_logger::ParamEncoders_32_And_Float
 >
-class RingLogger {
+class RingLoggerWriter {
 public:
-    explicit RingLogger(ring_logger::IRingBuffer& buf) : ringBuffer{buf} {}
+    explicit RingLoggerWriter(ring_logger::IRingBuffer& buf) : ringBuffer{buf} {
+        record.reserve(MaxRecordSize);
+    }
 
     template<typename... Args>
     auto push(uint8_t level, const char* message, const Args&... msgArgs) -> void {
-        using namespace ring_logger;
-        ring_logger::BinVector record;
+        record.clear();
 
+        lock();
         Encoders::write(level, record);
         Encoders::write(message, record);
-        (Encoders::write(decayLiteralArg(msgArgs), record), ...);
+        (Encoders::write(ring_logger::decayLiteralArg(msgArgs), record), ...);
 
         ringBuffer.writeRecord(record);
+        unlock();
+    }
+
+protected:
+    // RingBufer is thread-safe. But writer has buffer to compose message before
+    // writing to RingBufer. So, you have 2 choices:
+    //
+    // 1. Use separate instance for every thread.
+    // 2. Use the same instance but implement lock/unlock.
+    //
+    // The first approach will use more memory. The second approach will be slower
+    // for intensive writes.
+    //
+    virtual void lock() {}
+    virtual void unlock() {}
+
+private:
+    ring_logger::IRingBuffer& ringBuffer;
+    ring_logger::BinVector record;
+};
+
+
+template <
+    // This does not restrict the size in current implementation, but reserves memory
+    // to avoid reallocations.
+    size_t MaxRecordSize = 512,
+    typename Decoders = ring_logger::ParamDecoders_32_And_Float
+>
+class RingLoggerReader {
+public:
+    explicit RingLoggerReader(ring_logger::IRingBuffer& buf) : ringBuffer{buf} {
+        record.reserve(MaxRecordSize);
     }
 
     auto pull(std::string& output) -> bool {
         using namespace ring_logger;
 
-        ring_logger::BinVector record;
+        record.clear();
         if (!ringBuffer.readRecord(record)) { return false; }
 
         int32_t offset = 0;
@@ -94,4 +129,5 @@ public:
 
 private:
     ring_logger::IRingBuffer& ringBuffer;
+    ring_logger::BinVector record;
 };

@@ -4,7 +4,8 @@
 using namespace ring_logger;
 
 static RingBuffer<10000> ringBuffer;
-Logger logger(ringBuffer);
+GuardedLogWriter logger(ringBuffer);
+RingLoggerReader<> logReader(ringBuffer);
 
 void logger_start() {
     xTaskCreate([](void* pvParameters) {
@@ -19,7 +20,7 @@ void logger_start() {
         while (!Serial) { vTaskDelay(pdMS_TO_TICKS(10)); }
 
         while (true) {
-            while (logger.pull(outputBuffer)) {
+            while (logReader.pull(outputBuffer)) {
                 Serial.println(outputBuffer.c_str());
                 outputBuffer.clear();
             }
