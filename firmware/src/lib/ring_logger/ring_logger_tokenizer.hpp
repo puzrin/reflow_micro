@@ -2,6 +2,7 @@
 
 #include <string>
 #include <string_view>
+#include "format_parser.hpp"
 
 namespace ring_logger {
 
@@ -65,17 +66,19 @@ public:
                 return;
             }
 
-            if (source.substr(current_pos, 2) == "{}") {
-                current_token = Token{source.substr(current_pos, 2), true};
+            if (source[current_pos] == '{') {
+                size_t len = FormatParser::get_placeholder_length(source, current_pos);
+                if (len > 0) {
+                    current_token = Token{source.substr(current_pos, len), true};
+                } else {
+                    current_token = Token{source.substr(current_pos, 1), false};
+                }
             } else {
-                size_t next_placeholder = source.find("{}", current_pos);
-                if (next_placeholder == std::string::npos) {
+                size_t next_pos = source.find('{', current_pos);
+                if (next_pos == std::string::npos) {
                     current_token = Token{source.substr(current_pos), false};
                 } else {
-                    current_token = Token{
-                        source.substr(current_pos, next_placeholder - current_pos),
-                        false
-                    };
+                    current_token = Token{source.substr(current_pos, next_pos - current_pos), false};
                 }
             }
         }

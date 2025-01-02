@@ -26,7 +26,6 @@ TEST(RingLoggerTest, BasicPush) {
     EXPECT_EQ(output, "[ERROR]: Error message: 456");
 }
 
-
 TEST(RingLoggerTest, SupportedArgTypes) {
     RingBuffer<10000> ringBuffer;
     RingLoggerWriter<> logWriter(ringBuffer);

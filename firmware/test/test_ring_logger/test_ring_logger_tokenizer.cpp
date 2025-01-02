@@ -104,7 +104,11 @@ TEST_F(StringTokenizerTest, RangeBasedFor) {
 // Test incorrect placehoder
 TEST_F(StringTokenizerTest, Incomplete_Placeholders) {
     verify_tokens("text { text", {
-        {"text { text", false}
+        //{"text { text", false}
+        // Text splitted to several tokens, due simplified scanner
+        {"text ", false},
+        {"{", false},
+        {" text", false}
     });
 
     verify_tokens("text } text", {

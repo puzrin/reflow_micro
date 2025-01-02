@@ -5,6 +5,8 @@
 #include <vector>
 #include <type_traits>
 #include <cstring>
+#include "format_parser.hpp"
+#include <etl/to_string.h>
 
 namespace ring_logger {
 
@@ -260,9 +262,16 @@ public:
     static bool matchTypeTag(uint8_t ttag) { return ttag == static_cast<uint8_t>(TypeId); }
 
     void format(std::string& out, std::string_view fmt = {}) {
-        (void)fmt;
+        // 0bXXX... for uint64_t - max possible lendth 64+2
+        etl::string<66> buf;
+        etl::format_spec spec;
+
+        FormatParser::parse_format(fmt, 0, spec);
+        etl::to_string(pickValue(), buf, spec);
+        out.append(buf.c_str());
+        /*(void)fmt;
         try { out.append(std::to_string(pickValue())); }
-        catch (...) { out.append("[ERROR]"); }
+        catch (...) { out.append("[ERROR]"); }*/
     }
 
 protected:
