@@ -102,8 +102,8 @@ void HeaterBase::get_history(int32_t client_history_version, int32_t from, std::
     history_chunk->data_count = chunk_length;
 
     for (size_t i = 0; i < chunk_length; ++i) {
-        history_chunk->data[i].x = data[from_idx + i].x;
-        history_chunk->data[i].y = data[from_idx + i].y;
+        history_chunk->data[i].x = static_cast<float>(data[from_idx + i].x);
+        history_chunk->data[i].y = static_cast<float>(data[from_idx + i].y) * history_y_multiplier_inv;
     }
 
     history.unlock();

@@ -76,8 +76,8 @@ typedef struct _ProfilesData {
 } ProfilesData;
 
 typedef struct _Point {
-    int32_t x;
-    int32_t y;
+    float x;
+    float y;
 } Point;
 
 typedef struct _HistoryChunk {
@@ -224,8 +224,8 @@ X(a, STATIC,   SINGULAR, INT32,    selectedId,        2)
 #define ProfilesData_items_MSGTYPE Profile
 
 #define Point_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, INT32,    x,                 1) \
-X(a, STATIC,   SINGULAR, INT32,    y,                 2)
+X(a, STATIC,   SINGULAR, FLOAT,    x,                 1) \
+X(a, STATIC,   SINGULAR, FLOAT,    y,                 2)
 #define Point_CALLBACK NULL
 #define Point_DEFAULT NULL
 
@@ -275,8 +275,8 @@ extern const pb_msgdesc_t SensorParams_msg;
 /* Maximum encoded size of messages (where known) */
 #define AdrcParams_size                          20
 #define DeviceStatus_size                        40
-#define HistoryChunk_size                        2422
-#define Point_size                               22
+#define HistoryChunk_size                        1222
+#define Point_size                               10
 #define Profile_size                             303
 #define ProfilesData_size                        3071
 #define Segment_size                             22

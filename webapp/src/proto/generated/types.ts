@@ -672,10 +672,10 @@ function createBasePoint(): Point {
 export const Point: MessageFns<Point> = {
   encode(message: Point, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.x !== 0) {
-      writer.uint32(8).int32(message.x);
+      writer.uint32(13).float(message.x);
     }
     if (message.y !== 0) {
-      writer.uint32(16).int32(message.y);
+      writer.uint32(21).float(message.y);
     }
     return writer;
   },
@@ -688,19 +688,19 @@ export const Point: MessageFns<Point> = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1: {
-          if (tag !== 8) {
+          if (tag !== 13) {
             break;
           }
 
-          message.x = reader.int32();
+          message.x = reader.float();
           continue;
         }
         case 2: {
-          if (tag !== 16) {
+          if (tag !== 21) {
             break;
           }
 
-          message.y = reader.int32();
+          message.y = reader.float();
           continue;
         }
       }
@@ -722,10 +722,10 @@ export const Point: MessageFns<Point> = {
   toJSON(message: Point): unknown {
     const obj: any = {};
     if (message.x !== 0) {
-      obj.x = Math.round(message.x);
+      obj.x = message.x;
     }
     if (message.y !== 0) {
-      obj.y = Math.round(message.y);
+      obj.y = message.y;
     }
     return obj;
   },
