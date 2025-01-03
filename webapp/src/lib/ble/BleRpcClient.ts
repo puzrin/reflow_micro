@@ -4,8 +4,8 @@ import { AuthStorage } from './AuthStorage'
 import { decode as msgpack_decode } from '@msgpack/msgpack'
 
 interface AuthInfo {
-    id: string;
-    hmac_msg: string;
+    id: Uint8Array;
+    hmac_msg: Uint8Array;
     pairable: boolean;
 }
 
@@ -166,24 +166,26 @@ export class BleRpcClient {
 
     private async authenticate(): Promise<boolean> {
         try {
-            const client_id = this.authStorage.getClientId();
+            const client_id: Uint8Array = this.authStorage.getClientId();
 
             let auth_info : AuthInfo = msgpack_decode(await this.authCaller.invoke('auth_info') as Uint8Array) as AuthInfo
             const device_id = auth_info.id;
-            let secret = this.authStorage.getSecret(device_id);
+            let secret: Uint8Array;
 
-            if (!secret) {
+            if (!this.authStorage.hasSecret(device_id)) {
                 if (!auth_info.pairable) return false;
 
                 this.log('Try to pair...');
 
-                const new_secret  = await this.authCaller.invoke('pair', client_id) as string;
+                const new_secret  = await this.authCaller.invoke('pair', client_id) as Uint8Array;
                 this.authStorage.setSecret(device_id, new_secret);
                 secret = new_secret;
                 // Re-fetch new hmac message value
                 auth_info = msgpack_decode(await this.authCaller.invoke('auth_info') as Uint8Array) as AuthInfo;
 
                 this.log('Paired!');
+            } else {
+                secret = this.authStorage.getSecret(device_id);
             }
 
             this.log('Authenticating...');
@@ -195,7 +197,7 @@ export class BleRpcClient {
                 // Wrong key. Drop it.
                 this.log('Wrong auth key. Clearing...');
 
-                this.authStorage.setSecret(device_id, '');
+                this.authStorage.setSecret(device_id, null);
                 return false;
             }
 

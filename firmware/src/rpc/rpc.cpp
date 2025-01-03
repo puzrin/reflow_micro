@@ -223,8 +223,8 @@ std::vector<uint8_t> auth_info() {
 
     JsonDocument doc;
     auto mac = get_own_mac();
-    doc["id"] = bin2hex(mac.data(), mac.size());
-    doc["hmac_msg"] = bin2hex(session->random.data(), session->random.size());
+    doc["id"] = MsgPackBinary(mac.data(), mac.size());
+    doc["hmac_msg"] = MsgPackBinary(session->random.data(), session->random.size());
     doc["pairable"] = is_pairing_enabled();
 
     size_t size = measureMsgPack(doc);
@@ -233,44 +233,46 @@ std::vector<uint8_t> auth_info() {
     return output;
 }
 
-auto authenticate(const std::string str_client_id, const std::string str_hmac, uint64_t timestamp) -> bool {
+auto authenticate(const std::vector<uint8_t> client_id,
+                 const std::vector<uint8_t> hmac,
+                 uint64_t timestamp) -> bool {
     auto session = get_context();
 
-    BleAuthId client_id;
-    hex2bin(str_client_id, client_id.data(), client_id.size());
-
-    std::array<uint8_t, 32> hmac_response;
-    hex2bin(str_hmac, hmac_response.data(), hmac_response.size());
+    BleAuthId auth_id;
+    std::copy(client_id.begin(), client_id.end(), auth_id.data());
 
     auto random = session->random;
-    session->random = create_secret(); // renew hmac msg every time!
+    session->random = create_secret();
 
-    if (!bleAuthStore.has(client_id)) { return false; }
+    if (!bleAuthStore.has(auth_id)) { return false; }
 
     BleAuthSecret secret;
-    bleAuthStore.get_secret(client_id, secret);
+    bleAuthStore.get_secret(auth_id, secret);
 
     auto hmac_expected = hmac_sha256(random, secret);
-    if (hmac_response != hmac_expected) { return false; }
+    if (!std::equal(hmac.begin(), hmac.end(), hmac_expected.begin(), hmac_expected.end())) {
+        return false;
+    }
 
     session->authenticated = true;
-    bleAuthStore.set_timestamp(client_id, timestamp);
+    bleAuthStore.set_timestamp(auth_id, timestamp);
     return true;
 }
 
-auto pair(const std::string str_client_id) -> std::string {
-    if (!is_pairing_enabled()) { return ""; }
+auto pair(const std::vector<uint8_t> client_id) -> std::vector<uint8_t> {
+    if (!is_pairing_enabled()) {
+        return std::vector<uint8_t>{};
+    }
 
-    BleAuthId client_id;
-    hex2bin(str_client_id, client_id.data(), client_id.size());
+    BleAuthId auth_id;
+    std::copy(client_id.begin(), client_id.end(), auth_id.data());
 
     auto secret = create_secret();
-    bleAuthStore.create(client_id, secret);
+    bleAuthStore.create(auth_id, secret);
 
-    // Exit pairing mode on success
     application.receive(AppCmd::BondOff());
 
-    return bin2hex(secret.data(), secret.size());
+    return std::vector<uint8_t>(secret.begin(), secret.end());
 }
 
 } // namespace
