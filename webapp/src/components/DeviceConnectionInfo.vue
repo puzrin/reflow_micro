@@ -1,24 +1,31 @@
 <script setup lang="ts">
 import { inject, ref } from 'vue'
 import { Device } from '@/device'
-import ButtonNormal from './buttons/ButtonNormal.vue';
+import { VirtualBackend } from '@/device/virtual_backend'
+import { BleBackend } from '@/device/ble_backend'
+import ButtonNormal from './buttons/ButtonNormal.vue'
 
 const device: Device = inject('device')!
-const has_bluetooth = ref(!!navigator.bluetooth);
+const has_bluetooth = ref(!!navigator.bluetooth)
 </script>
 
 <template>
-    <div v-if="device.is_ready.value && device.is_virtual.value" class="fixed bottom-1 right-2">
+    <div v-if="device.is_ready.value && (device.backend_id.value === VirtualBackend.id)" class="fixed bottom-1 right-2">
         <button
             type="button"
             class="text-white border border-red-700 bg-red-700 font-medium rounded-lg text-xs px-3 py-1.5 text-center me-2 mb-2"
+            @click="device.selectBackend(BleBackend.id)"
         >
             Exit Demo Mode
         </button>
     </div>
 
     <div v-if="!device.is_ready.value" class="absolute w-full h-full px-4 py-4 bg-white text-slate-700">
-        <button type="button" class="text-blue-900 bg-blue-200 underline font-medium text-xs w-full px-3 py-1.5 text-center mb-8">
+        <button
+            type="button"
+            class="text-blue-900 bg-blue-200 underline font-medium text-xs w-full px-3 py-1.5 text-center mb-8"
+            @click="device.selectBackend(VirtualBackend.id)"
+        >
             Switch to Demo Mode
         </button>
 

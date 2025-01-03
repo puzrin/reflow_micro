@@ -4,6 +4,9 @@ import { BleBackend } from "./ble_backend"
 import { useProfilesStore } from '@/stores/profiles'
 import { ProfilesData, Point, AdrcParams, SensorParams, DeviceStatus } from '@/proto/generated/types'
 import { SparseHistory } from './sparse_history'
+import { useLocalSettingsStore } from "@/stores/localSettings"
+
+export type backendIdType = typeof VirtualBackend.id | typeof BleBackend.id
 
 export interface IBackend {
   // init
@@ -44,9 +47,8 @@ export class Device {
   // wrapper to aggregate this.history data
   sparseHistory: SparseHistory = SparseHistory.from(this.history.value)
 
-  is_virtual: Ref<boolean> = ref(true)
   private backend: IBackend | null = null
-  private backend_id: string = ''
+  backend_id = ref('')
   private unsubscribeProfilesStore: (() => void) | null = null
 
   private available_backends = {
@@ -100,17 +102,23 @@ export class Device {
 
   // Control
   // id: computed(() => driverKey.value);
-  async selectBackend(id: typeof VirtualBackend.id | typeof BleBackend.id) {
+  async selectBackend(id: backendIdType) {
     // Don't reselect the same backend
-    if (this.backend_id === id) return;
+    if (this.backend_id.value === id) return;
     // Detach old one if exists
     if (this.backend) await this.backend.detach();
 
+    // On wrong value restore from localStore - adjust to default
+    if (!this.available_backends[id]) id = BleBackend.id;
+
     // Attach new one
-    this.is_virtual.value = id === VirtualBackend.id;
     this.backend = this.available_backends[id];
-    this.backend_id = id;
+    this.backend_id.value = id;
     await this.backend.attach();
+
+    // Remember selection
+    const localStore = useLocalSettingsStore()
+    localStore.backend = id
   };
 
   async loadProfilesData(reset: boolean = false) {
@@ -130,11 +138,12 @@ export class Device {
   }
 }
 
-const device = new Device()
-
 export default {
   install: (app: App) => {
+    const device = new Device()
+
     app.provide('device', device)
-    device.selectBackend('virtual')
+    const localStore = useLocalSettingsStore()
+    device.selectBackend(localStore.backend)
   }
 }
