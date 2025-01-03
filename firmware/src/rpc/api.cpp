@@ -36,7 +36,9 @@ std::vector<uint8_t> get_history_chunk(int32_t client_history_version, int32_t f
     return pb_data;
 }
 
-std::vector<uint8_t> get_profiles_data() {
+std::vector<uint8_t> get_profiles_data(bool reset) {
+    if (reset) { application.profilesConfig.reset_profiles(); }
+
     std::vector<uint8_t> pb_data(ProfilesData_size);
     application.profilesConfig.get_profiles(pb_data);
     return pb_data;

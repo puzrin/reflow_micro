@@ -20,6 +20,9 @@ export class BleBackend implements IBackend {
   constructor(device: Device) {
     this.device = device
     this.bleRpcClient.on('status_changed', () => this.pick_connector_status())
+    this.bleRpcClient.log = (...data) => { console.log(...data); };
+    this.bleRpcClient.log_error = (...data) => { console.error(...data); };
+
   }
 
   async fetch_status(): Promise<void> {

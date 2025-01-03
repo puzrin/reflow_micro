@@ -10,6 +10,7 @@ public:
     auto set_profiles(const ProfilesData& profiles) -> bool;
 
     auto get_selected_profile(Profile& profile) -> bool;
+    auto reset_profiles() -> void;
 
 private:
     AsyncPreference<std::vector<uint8_t>> unselected_profiles_store{

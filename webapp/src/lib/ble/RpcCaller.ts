@@ -25,6 +25,7 @@ export class RpcCaller {
             const response = decode(responseData) as { ok: boolean, result: RpcResult }
 
             if (response.ok !== true) {
+                console.error('RPC invoke error =>', method, ...args, '=>', response.result);
                 throw new Error(`RPC Error: ${response.result}`);
             }
 

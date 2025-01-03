@@ -65,3 +65,8 @@ auto ProfilesConfig::get_selected_profile(Profile& profile) -> bool {
     }
     return false;
 }
+
+auto ProfilesConfig::reset_profiles() -> void {
+    unselected_profiles_store.set({std::begin(DEFAULT_PROFILES_DATA_UNSELECTED_PB), std::end(DEFAULT_PROFILES_DATA_UNSELECTED_PB)});
+    selection_store.set(DEFAULT_PROFILES_SELECTION);
+}

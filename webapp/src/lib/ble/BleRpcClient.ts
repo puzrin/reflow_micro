@@ -201,7 +201,7 @@ export class BleRpcClient {
                 return false;
             }
 
-            this.log('Ready!');
+            this.log('RPC ready!');
             return true;
         } catch (error) {
             this.log_error('Error:', error);
