@@ -1,7 +1,8 @@
 #include <string>
 #include <array>
 #include <mbedtls/md.h>
-#include "esp_system.h"
+#include "esp_random.h"
+#include "esp_mac.h"
 
 auto hmac_sha256(const std::array<uint8_t, 32>& message, const std::array<uint8_t, 32>& key) -> std::array<uint8_t, 32> {
     std::array<uint8_t, 32> output = {0};
