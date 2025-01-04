@@ -184,10 +184,9 @@ public:
                 }
 
                 auto tpl_args = rpc_ns::from_msgp<ArgsTuple>(args);
-                //Ret result = std::apply(func, tpl_args);
-                Ret result = std::apply([&func](auto&&... args) {
+                auto result = std::forward<Ret>(std::apply([&func](auto&&... args) {
                     return func(std::forward<decltype(args)>(args)...);
-                }, std::move(tpl_args));
+                }, std::move(tpl_args)));
 
                 return rpc_ns::create_response(true, result);
             } catch (const std::exception& e) {

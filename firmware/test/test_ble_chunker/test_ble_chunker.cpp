@@ -3,7 +3,7 @@
 
 class BleChunkerTest : public ::testing::Test {
 protected:
-    BleChunker* chunker;
+    std::unique_ptr<BleChunker> chunker;
 
     bool onMessageCalled;
     std::vector<uint8_t> lastReceivedMessage;
@@ -18,17 +18,15 @@ protected:
     }
 
     virtual void SetUp() override {
-        chunker = new BleChunker();
+        chunker = std::make_unique<BleChunker>();
 
-        chunker->onMessage = [this](const std::vector<uint8_t>& message) { return onMessageHandler(message); };
+        chunker->onMessage = [this](const std::vector<uint8_t>& message) {
+            return onMessageHandler(message);
+        };
 
         onMessageCalled = false;
         lastReceivedMessage.clear();
         chunker->response.clear();
-    }
-
-    virtual void TearDown() override {
-        delete chunker;
     }
 
     std::vector<uint8_t> createChunk(uint8_t messageId, uint16_t sequenceNumber, uint8_t flags, const std::vector<uint8_t>& data) {

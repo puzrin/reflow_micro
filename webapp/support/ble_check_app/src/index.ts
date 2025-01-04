@@ -41,10 +41,11 @@ document.getElementById('bigUploadButton')?.addEventListener('click', async () =
 
     const startTime = Date.now()
 
-    for (let i = 0; i < total_size; i += block_size) {
-        const block = 'A'.repeat(block_size)
+    for (let i = 0; i < total_size;) {
+        const block = new Uint8Array(block_size)
         await rpcClient.invoke('devnull', block)
-        console.log(`${new Date().toLocaleTimeString()} Sent ${i + block_size} bytes`)
+        i += block_size
+        console.log(`${new Date().toLocaleTimeString()} Sent ${i} bytes`)
     }
 
     const endTime = Date.now()
@@ -52,16 +53,15 @@ document.getElementById('bigUploadButton')?.addEventListener('click', async () =
     console.log(`Done (${(endTime - startTime)/1000} seconds)`)
 });
 
-document.getElementById('bigEchoButton')?.addEventListener('click', async () => {
+document.getElementById('bigDownloadButton')?.addEventListener('click', async () => {
     const total_size = 1024 * 1024
-    const block_size = 16 * 1024
 
     const startTime = Date.now()
 
-    for (let i = 0; i < total_size; i += block_size) {
-        const block = new Uint8Array(block_size)
-        await rpcClient.invoke('echobin', block)
-        console.log(`${new Date().toLocaleTimeString()} Sent ${i + block_size} bytes`)
+    for (let i = 0; i < total_size;) {
+        const block: Uint8Array = await rpcClient.invoke('get16K') as Uint8Array
+        i += block.length
+        console.log(`${new Date().toLocaleTimeString()} Downloaded ${i} bytes`)
     }
 
     const endTime = Date.now();
