@@ -24,7 +24,7 @@ public:
     auto set_sensor_params(const std::vector<uint8_t>& pb_data) -> bool;
     auto set_sensor_params(const SensorParams& params) -> bool;
 
-    void get_history(int32_t client_history_version, int32_t from, std::vector<uint8_t>& pb_data);
+    void get_history(int32_t client_history_version, float from, std::vector<uint8_t>& pb_data);
 
     virtual void start() = 0;
     virtual auto load_all_params() -> bool;

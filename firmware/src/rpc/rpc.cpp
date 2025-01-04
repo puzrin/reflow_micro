@@ -42,11 +42,12 @@ public:
         : rpcChunker(16*1024 + 500), authChunker(1*1024), authenticated(false)
     {
         rpcChunker.onMessage = [this](const std::vector<uint8_t>& message) {
-            size_t freeMemory = heap_caps_get_free_size(MALLOC_CAP_8BIT);
-            size_t minimumFreeMemory = heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT);
-            DEBUG("Free memory: {} Minimum free memory: {}", uint32_t(freeMemory), uint32_t(minimumFreeMemory));
+            DEBUG("Free memory: {}; Minimum free memory: {}; Max free block: {}",
+                heap_caps_get_free_size(MALLOC_CAP_8BIT),
+                heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT),
+                heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
 
-            DEBUG("BLE: Received message of length {}", uint32_t(message.size()));
+            DEBUG("BLE: Received message of length {}", message.size());
 
             if (authenticated) {
                 std::vector<uint8_t> response;
@@ -73,6 +74,7 @@ public:
         // No default value allowed!
         random = create_secret();
     }
+    ~Session() { DEBUG("BLE: Session destroyed"); }
 
     BleChunker rpcChunker;
     BleChunker authChunker;
@@ -85,7 +87,6 @@ public:
     void onWrite(NimBLECharacteristic* pCharacteristic, ble_gap_conn_desc* desc) override {
         uint16_t conn_handle = desc->conn_handle;
         if (!sessions.count(conn_handle)) { return; }
-        //DEBUG("BLE: Received chunk of length {}", uint32_t(pCharacteristic->getDataLength()));
 
         auto session = sessions[conn_handle];
         session->rpcChunker.consumeChunk(pCharacteristic->getValue(), pCharacteristic->getDataLength());
@@ -94,7 +95,6 @@ public:
     void onRead(NimBLECharacteristic* pCharacteristic, ble_gap_conn_desc* desc) override {
         uint16_t conn_handle = desc->conn_handle;
         if (!sessions.count(conn_handle)) { return; }
-        //DEBUG("BLE: Reading from characteristic, conn_handle {}", conn_handle);
         pCharacteristic->setValue(sessions[conn_handle]->rpcChunker.getResponseChunk());
     }
 };
@@ -104,10 +104,10 @@ public:
     void onWrite(NimBLECharacteristic* pCharacteristic, ble_gap_conn_desc* desc) override {
         uint16_t conn_handle = desc->conn_handle;
         if (!sessions.count(conn_handle)) { return; }
-        DEBUG("BLE AUTH: Received chunk of length {}", uint32_t(pCharacteristic->getDataLength()));
+        DEBUG("BLE AUTH: Received chunk of length {}", pCharacteristic->getDataLength());
         const auto& sec = desc->sec_state;
         DEBUG("BLE AUTH security state: encrypted {}, authenticated {}, bonded {}",
-            (uint8_t)sec.encrypted, (uint8_t)sec.authenticated, (uint8_t)sec.bonded);
+            sec.encrypted, sec.authenticated, sec.bonded);
 
         auto session = sessions[conn_handle];
         session->authChunker.consumeChunk(pCharacteristic->getValue(), pCharacteristic->getDataLength());
@@ -152,7 +152,7 @@ public:
     void onAuthenticationComplete(ble_gap_conn_desc* desc) override {
         const auto& sec = desc->sec_state;
         DEBUG("BLE: Authentication complete, conn_handle {}, encrypted {}, authenticated {}, bonded {}",
-            desc->conn_handle, (uint8_t)sec.encrypted, (uint8_t)sec.authenticated, (uint8_t)sec.bonded);
+            desc->conn_handle, sec.encrypted, sec.authenticated, sec.bonded);
     }
 };
 

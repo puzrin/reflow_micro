@@ -29,7 +29,7 @@ std::vector<uint8_t> get_status() {
     return buffer;
 }
 
-std::vector<uint8_t> get_history_chunk(int32_t client_history_version, int32_t from) {
+std::vector<uint8_t> get_history_chunk(int32_t client_history_version, float from) {
     std::vector<uint8_t> pb_data(HistoryChunk_size);
 
     application.heater.get_history(client_history_version, from, pb_data);

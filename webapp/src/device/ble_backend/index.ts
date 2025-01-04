@@ -2,10 +2,6 @@ import { Device, type IBackend } from '@/device'
 import { ProfilesData, AdrcParams, SensorParams, HistoryChunk, DeviceStatus, Constants } from '@/proto/generated/types'
 import { BleRpcClient } from '../../../src/lib/ble/BleRpcClient';
 
-// Tick step in ms, 10Hz.
-// The real timer interval can be faster, to increase simulation speed.
-export const TICK_PERIOD_MS = 100
-
 export class BleBackend implements IBackend {
   static id: string = 'ble' as const
 
@@ -71,10 +67,10 @@ export class BleBackend implements IBackend {
 
     if (this.bleRpcClient.isReady()) {
       if (this.config_data_loaded) return
-      await this.load_profiles_data()
-      await this.fetch_status()
+      await this.device.loadProfilesData()
       this.config_data_loaded = true
       this.device.is_ready.value = true
+      await this.fetch_status()
     } else {
       this.config_data_loaded = false
       this.device.is_ready.value = false

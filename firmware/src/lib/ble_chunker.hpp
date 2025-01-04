@@ -50,7 +50,6 @@ public:
 
     void consumeChunk(const uint8_t* chunk, size_t length) {
         if (length < BleChunkHead::SIZE) {
-            //DEBUG("BLE Chunker: received chunk is too small, ignoring");
             return;
         }
 
@@ -58,13 +57,11 @@ public:
 
         if (skipTail && head.messageId == currentMessageId) {
             // Discard chunks until a new message ID is received
-            //DEBUG("BLE Chunker: chunk discarded");
             return;
         }
 
         if (firstMessage || head.messageId != currentMessageId) {
             // New message, discard old data and reset state
-            //DEBUG("BLE Chunker: new message (id = {}), reset state to initial", head.messageId);
             currentMessageId = head.messageId;
             resetState();
         }
@@ -73,7 +70,6 @@ public:
 
         // Check message size overflow
         if (newMessageSize > maxMessageSize) {
-            //DEBUG("BLE Chunker: size overflow");
             skipTail = true;
             sendErrorResponse(BleChunkHead::SIZE_OVERFLOW_FLAG);
             return;
@@ -81,7 +77,6 @@ public:
 
         // Check for missed chunks
         if (head.sequenceNumber != expectedSequenceNumber) {
-            //DEBUG("BLE Chunker: bad sequence number, expected {}, got {}", expectedSequenceNumber, head.sequenceNumber);
             skipTail = true;
             sendErrorResponse(BleChunkHead::MISSED_CHUNKS_FLAG);
             return;
@@ -93,7 +88,6 @@ public:
         expectedSequenceNumber++;
 
         if (head.flags & BleChunkHead::FINAL_CHUNK_FLAG) {
-            //DEBUG("BLE Chunker: got final chunk");
             // Set skipTail to true to prevent processing further chunks for this message
             skipTail = true;
 

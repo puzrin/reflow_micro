@@ -12,7 +12,7 @@ App::App() : etl::fsm(APP_FSM_ROUTER_ID) {
 }
 
 void App::LogUnknownEvent(const etl::imessage& msg) {
-    DEBUG("APP: Unknown event! msg id [{}], state id [{}]", int(msg.get_message_id()), int(get_state_id()));
+    DEBUG("APP: Unknown event! msg id [{}], state id [{}]", msg.get_message_id(), get_state_id());
 }
 
 extern etl::ifsm_state& state_init;

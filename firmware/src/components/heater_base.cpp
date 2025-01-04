@@ -2,6 +2,7 @@
 #include "components/pb2struct.hpp"
 #include <cmath>
 #include <algorithm>
+#include <memory>
 
 auto HeaterBase::get_adrc_params(std::vector<uint8_t>& pb_data) -> bool {
     if (!is_hotplate_connected()) { return false; }
@@ -62,11 +63,12 @@ auto HeaterBase::set_sensor_params(const SensorParams& params) -> bool {
     return true;
 }
 
-void HeaterBase::get_history(int32_t client_history_version, int32_t from, std::vector<uint8_t>& pb_data) {
+void HeaterBase::get_history(int32_t client_history_version, float from, std::vector<uint8_t>& pb_data) {
     size_t from_idx{0};
     size_t chunk_length{0};
-    auto history_chunk = new HistoryChunk();
+    auto history_chunk = std::make_unique<HistoryChunk>();
     auto& data = history.data;
+    int32_t int_from = static_cast<int32_t>(from);
 
     history.lock();
 
@@ -75,18 +77,18 @@ void HeaterBase::get_history(int32_t client_history_version, int32_t from, std::
         from_idx = 0;
         chunk_length = std::min(data.size(), static_cast<size_t>(MAX_HISTORY_CHUNK));
     } else {
-        if (data.empty() || data.back().x < from) {
+        if (data.empty() || data.back().x < int_from) {
             // If no data - send empty
             from_idx = 0;
             chunk_length = 0;
         } else {
             // Search from the back, that's usually faster
-            if (data.front().x >= from) {
+            if (data.front().x >= int_from) {
                 // Special case, nothing to skip
                 from_idx = 0;
             } else {
                 for (int32_t i = data.size() - 1; i >= 0; --i) {
-                    if (data[i].x < from) {
+                    if (data[i].x < int_from) {
                         from_idx = i + 1;
                         break;
                     }
@@ -110,7 +112,7 @@ void HeaterBase::get_history(int32_t client_history_version, int32_t from, std::
 
     pb_data.resize(HistoryChunk_size);
     pb_ostream_t stream = pb_ostream_from_buffer(pb_data.data(), pb_data.size());
-    pb_encode(&stream, HistoryChunk_fields, history_chunk);
+    pb_encode(&stream, HistoryChunk_fields, &history_chunk);
     pb_data.resize(stream.bytes_written);
 }
 
