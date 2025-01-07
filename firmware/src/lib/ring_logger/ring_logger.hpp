@@ -31,39 +31,22 @@ template <
 >
 class RingLoggerWriter {
 public:
-    explicit RingLoggerWriter(ring_logger::IRingBuffer& buf) : ringBuffer{buf} {
-        record.reserve(MaxRecordSize);
-    }
+    explicit RingLoggerWriter(ring_logger::IRingBuffer& buf) : ringBuffer{buf} {}
 
     template<typename... Args>
     auto push(uint8_t level, const char* message, const Args&... msgArgs) -> void {
-        record.clear();
+        ring_logger::BinVector record;
+        record.reserve(MaxRecordSize);
 
-        lock();
         Encoders::write(level, record);
         Encoders::write(message, record);
         (Encoders::write(ring_logger::decayLiteralArg(msgArgs), record), ...);
 
         ringBuffer.writeRecord(record);
-        unlock();
     }
-
-protected:
-    // RingBufer is thread-safe. But writer has buffer to compose message before
-    // writing to RingBufer. So, you have 2 choices:
-    //
-    // 1. Use separate instance for every thread.
-    // 2. Use the same instance but implement lock/unlock.
-    //
-    // The first approach will use more memory. The second approach will be slower
-    // for intensive writes.
-    //
-    virtual void lock() {}
-    virtual void unlock() {}
 
 private:
     ring_logger::IRingBuffer& ringBuffer;
-    ring_logger::BinVector record;
 };
 
 
@@ -75,14 +58,12 @@ template <
 >
 class RingLoggerReader {
 public:
-    explicit RingLoggerReader(ring_logger::IRingBuffer& buf) : ringBuffer{buf} {
-        record.reserve(MaxRecordSize);
-    }
+    explicit RingLoggerReader(ring_logger::IRingBuffer& buf) : ringBuffer{buf} {}
 
     auto pull(std::string& output) -> bool {
         using namespace ring_logger;
 
-        record.clear();
+        ring_logger::BinVector record;
         if (!ringBuffer.readRecord(record)) { return false; }
 
         int32_t offset = 0;
@@ -129,5 +110,4 @@ public:
 
 private:
     ring_logger::IRingBuffer& ringBuffer;
-    ring_logger::BinVector record;
 };

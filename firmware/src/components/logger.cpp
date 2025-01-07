@@ -4,7 +4,7 @@
 using namespace ring_logger;
 
 static RingBuffer<10000> ringBuffer;
-GuardedLogWriter logger(ringBuffer);
+Logger logger(ringBuffer);
 RingLoggerReader<> logReader(ringBuffer);
 
 void logger_start() {
