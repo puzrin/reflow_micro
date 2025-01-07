@@ -84,46 +84,49 @@ public:
 
 class RpcCharacteristicCallbacks : public NimBLECharacteristicCallbacks {
 public:
-    void onWrite(NimBLECharacteristic* pCharacteristic, ble_gap_conn_desc* desc) override {
-        uint16_t conn_handle = desc->conn_handle;
+    void onWrite(NimBLECharacteristic* pCharacteristic, NimBLEConnInfo& connInfo) override {
+        uint16_t conn_handle = connInfo.getConnHandle();
         if (!sessions.count(conn_handle)) { return; }
 
         auto session = sessions[conn_handle];
-        session->rpcChunker.consumeChunk(pCharacteristic->getValue(), pCharacteristic->getDataLength());
+        const std::vector<uint8_t> chunk = pCharacteristic->getValue();
+        session->rpcChunker.consumeChunk(chunk.data(), chunk.size());
     }
 
-    void onRead(NimBLECharacteristic* pCharacteristic, ble_gap_conn_desc* desc) override {
-        uint16_t conn_handle = desc->conn_handle;
+    void onRead(NimBLECharacteristic* pCharacteristic, NimBLEConnInfo& connInfo) override {
+        uint16_t conn_handle = connInfo.getConnHandle();
         if (!sessions.count(conn_handle)) { return; }
-        pCharacteristic->setValue(sessions[conn_handle]->rpcChunker.getResponseChunk());
+
+        const auto chunk = sessions[conn_handle]->rpcChunker.getResponseChunk();
+        pCharacteristic->setValue(chunk);
     }
 };
 
 class AuthCharacteristicCallbacks : public NimBLECharacteristicCallbacks {
 public:
-    void onWrite(NimBLECharacteristic* pCharacteristic, ble_gap_conn_desc* desc) override {
-        uint16_t conn_handle = desc->conn_handle;
+    void onWrite(NimBLECharacteristic* pCharacteristic, NimBLEConnInfo& connInfo) override {
+        uint16_t conn_handle = connInfo.getConnHandle();
         if (!sessions.count(conn_handle)) { return; }
-        DEBUG("BLE AUTH: Received chunk of length {}", pCharacteristic->getDataLength());
-        const auto& sec = desc->sec_state;
-        DEBUG("BLE AUTH security state: encrypted {}, authenticated {}, bonded {}",
-            sec.encrypted, sec.authenticated, sec.bonded);
 
         auto session = sessions[conn_handle];
-        session->authChunker.consumeChunk(pCharacteristic->getValue(), pCharacteristic->getDataLength());
+        const std::vector<uint8_t> chunk = pCharacteristic->getValue();
+        DEBUG("BLE AUTH: Received chunk of length {}", pCharacteristic->getLength());
+        session->authChunker.consumeChunk(chunk.data(), chunk.size());
     }
 
-    void onRead(NimBLECharacteristic* pCharacteristic, ble_gap_conn_desc* desc) override {
-        auto conn_handle = desc->conn_handle;
+    void onRead(NimBLECharacteristic* pCharacteristic, NimBLEConnInfo& connInfo) override {
+        auto conn_handle = connInfo.getConnHandle();
         if (!sessions.count(conn_handle)) { return; }
-        pCharacteristic->setValue(sessions[conn_handle]->authChunker.getResponseChunk());
+
+        const auto chunk = sessions[conn_handle]->authChunker.getResponseChunk();
+        pCharacteristic->setValue(chunk);
     }
 };
 
 class ServerCallbacks : public NimBLEServerCallbacks {
 public:
-    void onConnect(NimBLEServer* pServer, ble_gap_conn_desc* desc) override {
-        auto conn_handle = desc->conn_handle;
+    void onConnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo) override {
+        auto conn_handle = connInfo.getConnHandle();
         sessions[conn_handle] = std::make_shared<Session>();
         DEBUG("BLE: Device connected, conn_handle {}", conn_handle);
 
@@ -138,21 +141,21 @@ public:
         pServer->updateConnParams(conn_handle, 0x06, 0x06, 0, 200);
     }
 
-    void onDisconnect(NimBLEServer* pServer, ble_gap_conn_desc* desc) override {
-        auto conn_handle = desc->conn_handle;
+    void onDisconnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo, int reason) override {
+        auto conn_handle = connInfo.getConnHandle();
         DEBUG("BLE: Device disconnected, conn_handle {}", conn_handle);
         sessions.erase(conn_handle);
     }
 
-    void onMTUChange(uint16_t mtu, ble_gap_conn_desc* desc) override {
-        DEBUG("BLE: MTU updated to {}, conn_handle {}", mtu, desc->conn_handle);
+    void onMTUChange(uint16_t mtu, NimBLEConnInfo& connInfo) override {
+        DEBUG("BLE: MTU updated to {}, conn_handle {}", mtu, connInfo.getConnHandle());
     }
 
     // Used for testing purposes, to check if encryption is working
-    void onAuthenticationComplete(ble_gap_conn_desc* desc) override {
-        const auto& sec = desc->sec_state;
+    void onAuthenticationComplete(NimBLEConnInfo& connInfo) override {
         DEBUG("BLE: Authentication complete, conn_handle {}, encrypted {}, authenticated {}, bonded {}",
-            desc->conn_handle, sec.encrypted, sec.authenticated, sec.bonded);
+            connInfo.getConnHandle(), connInfo.isEncrypted(),
+            connInfo.isEncrypted(), connInfo.isBonded());
     }
 };
 
@@ -160,7 +163,7 @@ public:
 void ble_init() {
     const std::string name = bleNameStore.get().substr(0, 20); // Limit name length
     NimBLEDevice::init(name);
-    NimBLEDevice::setPower(ESP_PWR_LVL_P9); // Set the power level to maximum
+    NimBLEDevice::setPower(9); // Set the power level to maximum, 9dbm for esp32-c3
     // By default NimBLE already set MTU tu 255. No need to tune it manually.
     // That's enough for 244 bytes read/write to long characteristics.
     // 244 bytes "chunk" - optimal to fit into 1 DLE data packet (251 bytes max).
@@ -184,6 +187,7 @@ void ble_init() {
 
     NimBLEServer* server = NimBLEDevice::createServer();
     server->setCallbacks(new ServerCallbacks());
+    server->advertiseOnDisconnect(true);
 
     // Setup RPC service and characteristic.
     NimBLEService* service = server->createService(SERVICE_UUID);
@@ -209,8 +213,8 @@ void ble_init() {
     // Configure advertising
     NimBLEAdvertising *pAdvertising = NimBLEDevice::getAdvertising();
     pAdvertising->addServiceUUID(SERVICE_UUID);
-    pAdvertising->setScanResponse(true);
-    pAdvertising->setMinPreferred(0x06);
+    pAdvertising->enableScanResponse(true);
+    pAdvertising->setPreferredParams(0x06, 0x06);
     NimBLEDevice::startAdvertising();
 
     DEBUG("BLE initialized");
