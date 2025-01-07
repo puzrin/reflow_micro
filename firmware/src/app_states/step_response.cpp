@@ -15,7 +15,11 @@ public:
         log.clear();
         log.push_back({0, heater.get_temperature()});
 
-        if (!heater.task_start(HISTORY_ID_STEP_RESPONSE)) { return DeviceState_Idle; }
+        auto status = app.heater.task_start(HISTORY_ID_STEP_RESPONSE, [this](int32_t dt_ms, int32_t time_ms) {
+            task_iterator(dt_ms, time_ms);
+        });
+        if (!status) { return DeviceState_Idle; }
+
         heater.set_power(app.last_cmd_data);
 
         return No_State_Change;
