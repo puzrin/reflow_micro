@@ -44,7 +44,7 @@ onBeforeRouteLeave(async () => {
 
 // Update power "on the fly" (only when baking on progress)
 watchDebounced(power, async () => {
-  if (status.value.state === DeviceState.SensorBake) await device.run_sensor_bake(power.value)
+  if (status.value.state === DeviceState.SensorBake) await device.run_sensor_bake(toNumber(power.value))
 }, { debounce: 500 })
 
 function isNumberLike(val: string | number): boolean {
@@ -144,7 +144,7 @@ async function save_p1() {
       <div class="mb-8">
         <div class="flex gap-2 flex-nowrap w-full">
           <input v-model="power" type="range" min="20" max="100" class="w-full" />
-          <ButtonNormal @click="device.run_sensor_bake(power)" :disabled="!is_idle">Bake</ButtonNormal>
+          <ButtonNormal @click="device.run_sensor_bake(toNumber(power))" :disabled="!is_idle">Bake</ButtonNormal>
           <ButtonNormal @click="device.stop()" :disabled="!is_baking">Stop</ButtonNormal>
         </div>
         <div class="text-xs text-slate-400 mt-0.5">Power {{power}}W</div>

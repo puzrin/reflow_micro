@@ -58,7 +58,7 @@ onBeforeRouteLeave(async () => {
 
 // Update temperature "on the fly" (only when testing active)
 watchDebounced(test_temperature, async () => {
-  if (status.value.state === DeviceState.AdrcTest) await device.run_adrc_test(test_temperature.value)
+  if (status.value.state === DeviceState.AdrcTest) await device.run_adrc_test(toNumber(test_temperature.value))
 }, { debounce: 500 })
 
 // Reload ADRC settings when finish any task
@@ -191,7 +191,7 @@ async function default_adrc_params() {
       <div class="mb-8">
         <div class="flex gap-2 flex-nowrap w-full">
           <input v-model="step_response_power" type="number" min="0" max="100" class="w-full" />
-          <ButtonNormal @click="device.run_step_response(step_response_power)" :disabled="!is_idle">Run</ButtonNormal>
+          <ButtonNormal @click="device.run_step_response(toNumber(step_response_power))" :disabled="!is_idle">Run</ButtonNormal>
           <ButtonNormal @click="device.stop()" :disabled="!is_step_response">Stop</ButtonNormal>
         </div>
         <div class="text-xs text-slate-400 mt-0.5">Power {{step_response_power}}W</div>
@@ -202,7 +202,7 @@ async function default_adrc_params() {
       <div class="mb-2">
         <div class="flex gap-2 flex-nowrap w-full">
           <input v-model="test_temperature" type="range" min="25" max="300" class="w-full" />
-          <ButtonNormal @click="device.run_adrc_test(test_temperature)" :disabled="!is_idle">Run</ButtonNormal>
+          <ButtonNormal @click="device.run_adrc_test(toNumber(test_temperature))" :disabled="!is_idle">Run</ButtonNormal>
           <ButtonNormal @click="device.stop()" :disabled="!is_testing">Stop</ButtonNormal>
         </div>
         <div class="text-xs text-slate-400 mt-0.5">Temperature {{test_temperature}}°C</div>
