@@ -46,7 +46,7 @@ public:
 
             if (p0.x <= offset && p1.x >= offset) {
                 int32_t scaled_y = p0.y + (p1.y - p0.y) * (offset - p0.x) / (p1.x - p0.x);
-                return scaled_y * y_axis_multiplier_inv;
+                return static_cast<float>(scaled_y) * y_axis_multiplier_inv;
             }
         }
 

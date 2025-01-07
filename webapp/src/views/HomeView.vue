@@ -56,6 +56,7 @@ async function stop() {
         <div><span class="font-mono">max {{ Math.round(status.max_watts) }}</span> W</div>
         <div><span class="font-mono">{{ status.volts.toFixed(1) }}</span> V</div>
         <div><span class="font-mono">{{ status.amperes.toFixed(2) }}</span> A</div>
+        <div><span class="font-mono">{{ status.resistance.toFixed(2) }}</span> Ω</div>
       </div>
       <div class="absolute bottom-[20%] ">
         <ButtonPrimary

@@ -163,6 +163,7 @@ export interface DeviceStatus {
   max_watts: number;
   /** 0..1 */
   duty_cycle: number;
+  resistance: number;
 }
 
 export interface Segment {
@@ -234,6 +235,7 @@ function createBaseDeviceStatus(): DeviceStatus {
     amperes: 0,
     max_watts: 0,
     duty_cycle: 0,
+    resistance: 0,
   };
 }
 
@@ -265,6 +267,9 @@ export const DeviceStatus: MessageFns<DeviceStatus> = {
     }
     if (message.duty_cycle !== 0) {
       writer.uint32(77).float(message.duty_cycle);
+    }
+    if (message.resistance !== 0) {
+      writer.uint32(85).float(message.resistance);
     }
     return writer;
   },
@@ -348,6 +353,14 @@ export const DeviceStatus: MessageFns<DeviceStatus> = {
           message.duty_cycle = reader.float();
           continue;
         }
+        case 10: {
+          if (tag !== 85) {
+            break;
+          }
+
+          message.resistance = reader.float();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -368,6 +381,7 @@ export const DeviceStatus: MessageFns<DeviceStatus> = {
       amperes: isSet(object.amperes) ? globalThis.Number(object.amperes) : 0,
       max_watts: isSet(object.max_watts) ? globalThis.Number(object.max_watts) : 0,
       duty_cycle: isSet(object.duty_cycle) ? globalThis.Number(object.duty_cycle) : 0,
+      resistance: isSet(object.resistance) ? globalThis.Number(object.resistance) : 0,
     };
   },
 
@@ -400,6 +414,9 @@ export const DeviceStatus: MessageFns<DeviceStatus> = {
     if (message.duty_cycle !== 0) {
       obj.duty_cycle = message.duty_cycle;
     }
+    if (message.resistance !== 0) {
+      obj.resistance = message.resistance;
+    }
     return obj;
   },
 
@@ -417,6 +434,7 @@ export const DeviceStatus: MessageFns<DeviceStatus> = {
     message.amperes = object.amperes ?? 0;
     message.max_watts = object.max_watts ?? 0;
     message.duty_cycle = object.duty_cycle ?? 0;
+    message.resistance = object.resistance ?? 0;
     return message;
   },
 };

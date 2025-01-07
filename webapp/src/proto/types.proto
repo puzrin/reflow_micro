@@ -39,6 +39,7 @@ message DeviceStatus {
   float amperes = 7;
   float max_watts = 8;
   float duty_cycle = 9; // 0..1
+  float resistance = 10;
 }
 
 message Segment {

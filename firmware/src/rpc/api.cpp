@@ -17,7 +17,8 @@ std::vector<uint8_t> get_status() {
         .volts = application.heater.get_volts(),
         .amperes = application.heater.get_amperes(),
         .max_watts = application.heater.get_max_power(),
-        .duty_cycle = application.heater.get_duty_cycle()
+        .duty_cycle = application.heater.get_duty_cycle(),
+        .resistance = application.heater.get_resistance()
     };
 
     std::vector<uint8_t> buffer(DeviceStatus_size);

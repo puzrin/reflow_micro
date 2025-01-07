@@ -55,7 +55,8 @@ export class VirtualBackend implements IBackend {
       volts: this.heater.get_volts(),
       amperes: this.heater.get_amperes(),
       max_watts: this.heater.get_max_power(),
-      duty_cycle: 1
+      duty_cycle: 1,
+      resistance: this.heater.get_resistance()
     }
   }
 

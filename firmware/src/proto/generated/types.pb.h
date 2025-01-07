@@ -48,6 +48,7 @@ typedef struct _DeviceStatus {
     float amperes;
     float max_watts;
     float duty_cycle; /* 0..1 */
+    float resistance;
 } DeviceStatus;
 
 typedef struct _Segment {
@@ -140,7 +141,7 @@ extern "C" {
 
 
 /* Initializer values for message structs */
-#define DeviceStatus_init_default                {_DeviceState_MIN, 0, 0, 0, 0, 0, 0, 0, 0}
+#define DeviceStatus_init_default                {_DeviceState_MIN, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define Segment_init_default                     {0, 0}
 #define Profile_init_default                     {0, "", 0, {Segment_init_default, Segment_init_default, Segment_init_default, Segment_init_default, Segment_init_default, Segment_init_default, Segment_init_default, Segment_init_default, Segment_init_default, Segment_init_default}}
 #define ProfilesData_init_default                {0, {Profile_init_default, Profile_init_default, Profile_init_default, Profile_init_default, Profile_init_default, Profile_init_default, Profile_init_default, Profile_init_default, Profile_init_default, Profile_init_default}, 0}
@@ -148,7 +149,7 @@ extern "C" {
 #define HistoryChunk_init_default                {0, 0, 0, {Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default}}
 #define AdrcParams_init_default                  {0, 0, 0, 0}
 #define SensorParams_init_default                {0, 0, 0, 0}
-#define DeviceStatus_init_zero                   {_DeviceState_MIN, 0, 0, 0, 0, 0, 0, 0, 0}
+#define DeviceStatus_init_zero                   {_DeviceState_MIN, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define Segment_init_zero                        {0, 0}
 #define Profile_init_zero                        {0, "", 0, {Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero}}
 #define ProfilesData_init_zero                   {0, {Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero}, 0}
@@ -167,6 +168,7 @@ extern "C" {
 #define DeviceStatus_amperes_tag                 7
 #define DeviceStatus_max_watts_tag               8
 #define DeviceStatus_duty_cycle_tag              9
+#define DeviceStatus_resistance_tag              10
 #define Segment_target_tag                       1
 #define Segment_duration_tag                     2
 #define Profile_id_tag                           1
@@ -198,7 +200,8 @@ X(a, STATIC,   SINGULAR, FLOAT,    watts,             5) \
 X(a, STATIC,   SINGULAR, FLOAT,    volts,             6) \
 X(a, STATIC,   SINGULAR, FLOAT,    amperes,           7) \
 X(a, STATIC,   SINGULAR, FLOAT,    max_watts,         8) \
-X(a, STATIC,   SINGULAR, FLOAT,    duty_cycle,        9)
+X(a, STATIC,   SINGULAR, FLOAT,    duty_cycle,        9) \
+X(a, STATIC,   SINGULAR, FLOAT,    resistance,       10)
 #define DeviceStatus_CALLBACK NULL
 #define DeviceStatus_DEFAULT NULL
 
@@ -274,7 +277,7 @@ extern const pb_msgdesc_t SensorParams_msg;
 
 /* Maximum encoded size of messages (where known) */
 #define AdrcParams_size                          20
-#define DeviceStatus_size                        40
+#define DeviceStatus_size                        45
 #define HistoryChunk_size                        1222
 #define Point_size                               10
 #define Profile_size                             303
