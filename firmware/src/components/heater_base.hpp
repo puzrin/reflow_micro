@@ -78,6 +78,6 @@ private:
     int32_t history_version{0};
     int32_t history_task_id{0};
     int32_t history_last_recorded_ts{0};
-    static constexpr int32_t history_y_multiplier = 256;
+    static constexpr int32_t history_y_multiplier = 100;
     static constexpr float history_y_multiplier_inv = 1.0F / history_y_multiplier;
 };

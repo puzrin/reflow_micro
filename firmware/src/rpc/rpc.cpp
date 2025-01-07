@@ -42,12 +42,12 @@ public:
         : rpcChunker(16*1024 + 500), authChunker(1*1024), authenticated(false)
     {
         rpcChunker.onMessage = [this](const std::vector<uint8_t>& message) {
-            DEBUG("Free memory: {}; Minimum free memory: {}; Max free block: {}",
+            /*DEBUG("Free memory: {}; Minimum free memory: {}; Max free block: {}",
                 heap_caps_get_free_size(MALLOC_CAP_8BIT),
                 heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT),
                 heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
 
-            DEBUG("BLE: Received message of length {}", message.size());
+            DEBUG("BLE: Received message of length {}", message.size());*/
 
             if (authenticated) {
                 std::vector<uint8_t> response;

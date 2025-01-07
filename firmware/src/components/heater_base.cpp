@@ -68,11 +68,11 @@ void HeaterBase::get_history(int32_t client_history_version, float from, std::ve
     size_t chunk_length{0};
     auto history_chunk = std::make_unique<HistoryChunk>();
     auto& data = history.data;
-    int32_t int_from = static_cast<int32_t>(from);
+    int32_t int_from = lround(from);
 
     history.lock();
 
-    if (history_version == client_history_version) {
+    if (history_version != client_history_version) {
         // If client version mismatch - send from the beginning
         from_idx = 0;
         chunk_length = std::min(data.size(), static_cast<size_t>(MAX_HISTORY_CHUNK));
@@ -110,10 +110,7 @@ void HeaterBase::get_history(int32_t client_history_version, float from, std::ve
 
     history.unlock();
 
-    pb_data.resize(HistoryChunk_size);
-    pb_ostream_t stream = pb_ostream_from_buffer(pb_data.data(), pb_data.size());
-    pb_encode(&stream, HistoryChunk_fields, &history_chunk);
-    pb_data.resize(stream.bytes_written);
+    struct2pb(*history_chunk, pb_data, HistoryChunk_fields, HistoryChunk_size);
 }
 
 
