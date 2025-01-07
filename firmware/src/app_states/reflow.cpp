@@ -9,9 +9,9 @@ private:
     std::vector<TimelinePoint> profilePoints{};
 
     // Use integer math for speed
-    // Time is in milliseconds, temperature is in 1/256 degrees
+    // Time is in milliseconds, temperature is in 1/100 degrees
     static constexpr int32_t x_axis_multiplier = 1000;
-    static constexpr int32_t y_axis_multiplier = 256;
+    static constexpr int32_t y_axis_multiplier = 100;
     // Inverse multiplier for division
     static constexpr float y_axis_multiplier_inv = 1.0F / y_axis_multiplier;
 
@@ -45,7 +45,7 @@ public:
             const auto& p1 = profilePoints[i];
 
             if (p0.x <= offset && p1.x >= offset) {
-                int32_t scaled_y = p0.y + (p1.y - p0.y) / (p1.x - p0.x) * (offset - p0.x);
+                int32_t scaled_y = p0.y + (p1.y - p0.y) * (offset - p0.x) / (p1.x - p0.x);
                 return scaled_y * y_axis_multiplier_inv;
             }
         }
@@ -103,6 +103,10 @@ private:
     void task_iterator(int32_t dt_ms, int32_t time_ms) {
         (void)dt_ms;
         auto& app = get_fsm_context();
+
+        //if (time_ms % 1000 == 0) {
+        //    DEBUG("Reflow: time={}ms, temp={}", time_ms, timeline.interpolate(time_ms));
+        //}
 
         if (time_ms >= timeline.get_max_time()) {
             app.heater.task_stop();
