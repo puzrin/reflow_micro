@@ -71,7 +71,11 @@ HeaterMock::HeaterMock()
         .calibrate_TWV(220, 40.66F, 11.0F)
         .calibrate_TWV(255, 52.06F, 13.0F)
         .calibrate_TWV(286, 64.22F, 15.0F)
-        .calibrate_TWV(310, 77.55F, 17.0F);
+        .calibrate_TWV(310, 77.55F, 17.0F)
+        // Transform resistance/size from calibrated heater to actual one,
+        // until we have real data
+        .scale_r_to(4.0F)
+        .set_size(0.08F, 0.07F, 0.0028F);
 
     temperature = get_room_temp();
 }
