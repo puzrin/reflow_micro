@@ -2,6 +2,8 @@
 #include "driver/ledc.h"
 #include "driver/periph_ctrl.h"
 #include "esp_timer.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/timers.h"
 #include "lib/blinker_engine.hpp"
 
 class LedDriver : public IBlinkerLED<1> {

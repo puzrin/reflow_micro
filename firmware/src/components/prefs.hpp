@@ -1,47 +1,24 @@
 #pragma once
 
-#include <cstdint>
-#include "Preferences.h"
+#include <string>
 #include "lib/async_preference.hpp"
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
 class AsyncPreferenceKV : public IAsyncPreferenceKV {
 public:
-    auto write(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) -> bool override {
-        bool succeeded = prefs.begin(ns.c_str(), false);
-        if (succeeded) {
-            succeeded = prefs.putBytes(key.c_str(), buffer, length);
-        }
-        prefs.end();
-        return succeeded;
-    }
+    bool write(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) override;
+    bool read(const std::string& ns, const std::string& key, uint8_t* buffer, size_t max_length) override;
+    size_t length(const std::string& ns, const std::string& key) override;
 
-    auto read(const std::string& ns, const std::string& key, uint8_t* buffer, size_t max_length) -> bool override {
-        bool succeeded = prefs.begin(ns.c_str(), true);
-        if (succeeded) {
-            succeeded = prefs.getBytes(key.c_str(), buffer, max_length);
-        }
-        prefs.end();
-        return succeeded;
-    }
-
-    auto length(const std::string& ns, const std::string& key) -> size_t override {
-        size_t len = 0;
-        if (prefs.begin(ns.c_str(), true)) {
-            len = prefs.isKey(key.c_str()) ? prefs.getBytesLength(key.c_str()) : 0;
-        }
-        prefs.end();
-        return len;
-    }
-
-    static auto getInstance() -> AsyncPreferenceKV& {
+    static AsyncPreferenceKV& getInstance() {
         static AsyncPreferenceKV instance;
         return instance;
     }
-
 private:
-    AsyncPreferenceKV() {} // Prohibit direct call
-    Preferences prefs{};
+    AsyncPreferenceKV() {} // Prevent direct instantiation
 };
+
 
 class PrefsWriter : public AsyncPreferenceWriter {
 public:

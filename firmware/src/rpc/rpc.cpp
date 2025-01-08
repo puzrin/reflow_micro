@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include <NimBLEDevice.h>
 #include <map>
 #include <memory>
