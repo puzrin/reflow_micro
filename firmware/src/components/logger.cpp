@@ -1,4 +1,6 @@
-#include <Arduino.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include "esp_rom_sys.h"
 #include "logger.hpp"
 
 using namespace ring_logger;
@@ -15,13 +17,13 @@ void logger_start() {
         outputBuffer.reserve(1024);
         outputBuffer.clear();
 
-        Serial.begin(115200);
-
-        while (!Serial) { vTaskDelay(pdMS_TO_TICKS(10)); }
+        // Wait for JTAG to be ready. This is a workaround for the issue when
+        // the first messages are lost.
+        esp_rom_delay_us(100 * 1000);
 
         while (true) {
             while (logReader.pull(outputBuffer)) {
-                Serial.println(outputBuffer.c_str());
+                ets_printf("%s\n", outputBuffer.c_str());
                 outputBuffer.clear();
             }
             vTaskDelay(pdMS_TO_TICKS(10));
