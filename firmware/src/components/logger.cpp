@@ -1,7 +1,8 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include "esp_rom_sys.h"
+#include "rom/ets_sys.h"
 #include "logger.hpp"
+#include "hal/usb_serial_jtag_ll.h"
 
 using namespace ring_logger;
 
@@ -17,9 +18,10 @@ void logger_start() {
         outputBuffer.reserve(1024);
         outputBuffer.clear();
 
-        // Wait for JTAG to be ready. This is a workaround for the issue when
-        // the first messages are lost.
-        esp_rom_delay_us(100 * 1000);
+        // Wait until usb serial ready, or startup messages will be lost
+        while(!usb_serial_jtag_ll_txfifo_writable()) {
+            vTaskDelay(pdMS_TO_TICKS(10));
+        }
 
         while (true) {
             while (logReader.pull(outputBuffer)) {

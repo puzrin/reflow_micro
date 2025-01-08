@@ -1,6 +1,5 @@
 #pragma once
 #include "driver/ledc.h"
-#include "driver/periph_ctrl.h"
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h"
@@ -9,14 +8,13 @@
 class LedDriver : public IBlinkerLED<1> {
 public:
     LedDriver() {
-        periph_module_enable(PERIPH_LEDC_MODULE);
-
         ledc_timer_config_t timer_conf = {
             .speed_mode = LEDC_LOW_SPEED_MODE,
             .duty_resolution = LEDC_TIMER_8_BIT,
             .timer_num = timerNum,
             .freq_hz = 5000,
-            .clk_cfg = LEDC_AUTO_CLK
+            .clk_cfg = LEDC_AUTO_CLK,
+            .deconfigure = false
         };
         ledc_timer_config(&timer_conf);
 
@@ -29,7 +27,7 @@ public:
             .duty = 0,
             .hpoint = 0,
             .flags = {
-                // Output should be inverted, because of the way the LED is connected
+                // LED output should be inverted
                 .output_invert = 1
             }
         };

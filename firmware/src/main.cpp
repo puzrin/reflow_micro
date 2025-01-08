@@ -3,7 +3,11 @@
 #include "components/prefs.hpp"
 #include "app.hpp"
 
-void setup() {
+extern "C" {
+    void app_main(void);
+}
+
+extern "C" void app_main() {
     logger_start();
     PrefsWriter::getInstance().start();
 
@@ -24,5 +28,3 @@ void setup() {
 
     rpc_start();
 }
-
-void loop() {}
