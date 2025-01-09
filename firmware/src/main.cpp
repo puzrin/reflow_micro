@@ -1,6 +1,7 @@
 #include "logger.hpp"
 #include "rpc/rpc.hpp"
 #include "components/prefs.hpp"
+#include "components/stack_monitor.hpp"
 #include "app.hpp"
 
 extern "C" {
@@ -27,4 +28,6 @@ extern "C" void app_main() {
     });
 
     rpc_start();
+
+    stack_monitor_start();
 }
