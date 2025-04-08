@@ -75,6 +75,13 @@ module top () {
 
             // mounting
             rcube([6, 32, wall_base], r=3);
+            
+            // orientation key
+            tr_x(-x/2 - wall)
+            linear_extrude(top_h) hull() {
+                square([wall, wall], center = true);
+                tr_x(-1.5 + wall/2) circle(d = wall);
+            }
         }
 
         // inner    
