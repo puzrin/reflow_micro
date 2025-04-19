@@ -1,12 +1,10 @@
 #pragma once
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/semphr.h"
-#include "lib/ring_logger/ring_logger.hpp"
+#include "jetlog/jetlog.hpp"
 
-using Logger = RingLoggerWriter<>;
+using Logger = jetlog::Writer<>;
 
 extern Logger logger;
 void logger_start();
 
-#define DEBUG(...) logger.push(RingLoggerLevelInfo, __VA_ARGS__)
+#define DEBUG(...) logger.push("app", jetlog::level::info, __VA_ARGS__)

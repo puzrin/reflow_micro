@@ -4,19 +4,16 @@
 #include "logger.hpp"
 #include "hal/usb_serial_jtag_ll.h"
 
-using namespace ring_logger;
+static jetlog::RingBuffer<10000> ringBuffer;
 
-static RingBuffer<10000> ringBuffer;
 Logger logger(ringBuffer);
-RingLoggerReader<> logReader(ringBuffer);
+jetlog::Reader<> logReader(ringBuffer);
 
 void logger_start() {
     xTaskCreate([](void* pvParameters) {
         (void)pvParameters;
 
-        std::string outputBuffer;
-        outputBuffer.reserve(1024);
-        outputBuffer.clear();
+        etl::string<1024> outputBuffer{};
 
         // Wait until usb serial ready, or startup messages will be lost
         while(!usb_serial_jtag_ll_txfifo_writable()) {
