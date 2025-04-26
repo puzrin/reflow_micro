@@ -50,7 +50,7 @@ add ~ 8$ in total to your order - good price for convenience.
 
 https://oshwlab.com/reflow/reflow-usb-pd-headless
 
-1. PCB_main: 1.6mm, white.
+1. PCB_main: 1.6mm, green (other colors for 4-layer PCB are expensive).
    - Option "Remove mark".
    - Stencil strongly recommended.
      - Bottom side only.
@@ -59,17 +59,17 @@ https://oshwlab.com/reflow/reflow-usb-pd-headless
        light, with small delivery cost.
 2. PCB_cap: 1.6mm, white.
    - Option "Remove mark".
-   - Comment: "PCB has no traces, mask only, data is correct."
+   - Comment: "PCB has no traces, mask only."
 3. hotplate_base: 1.2mm, white.
    - Option "Remove mark".
 4. hotplate_reflector: 1.6mm, white.
    - Option "Remove mark".
-   - Comment: "PCB has no traces, mask only, data is correct."
+   - Comment: "PCB has no traces, mask only."
 5. MCH mount: aluminum, 1.2mm
    - Option "Remove mark".
-   - Comment: "This PCB has no traces and no mask, data is correct."
+   - Comment: "This PCB has no traces and no mask."
 6. foil_conductor: 1.0mm, red.
-   - Comment: "PCB has no traces, mask only, data is correct."
+   - Comment: "PCB has no traces, mask only."
 
 jlc3dp, CNC:
 
