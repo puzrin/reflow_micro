@@ -1,5 +1,6 @@
 include <utils.scad>;
 include <fan_pi5_data.scad>;
+include <Round-Anything/polyround.scad>
 
 $fn = $preview ? 16 : 64;
 
@@ -266,6 +267,11 @@ module cap() {
                 tr_z(-gap) cube([pcb_wx-2*(magnet_d/2+pcb_support_w), pcb_wy, e], center=true);
 
             };
+
+            tr_z(-e)
+            rotate_z(90)
+            mirror_x()
+            logo();
         }
 
         tr_z(wall_hor-e) magnet_support(cap_inner_h);
@@ -330,6 +336,42 @@ module button() {
             }
         }
     }
+}
+
+module logo() {
+    w = 16.58;
+    h = 20.7;
+    line_w = 1.75;
+
+    line_sp = (h - line_w*5) / 4;
+    r_out = (line_sp + line_w*2) / 2;
+    r_in = line_sp / 2;
+
+    radii_points = [
+        [0, 0, line_w/2],
+        [0, line_w, line_w/2],
+        [w - line_w, line_w, r_in],
+        [w - line_w, line_w + line_sp, r_in],
+        [0, line_w + line_sp, r_out],
+        [0, line_w*3 + line_sp*2, r_out],
+        [w - line_w, line_w*3 + line_sp*2, r_in],
+        [w - line_w, line_w*3 + line_sp*3, r_in],
+        [0, line_w*3 + line_sp*3, r_out],
+        [0, line_w*5 + line_sp*4, r_out],
+        [w, line_w*5 + line_sp*4, line_w/2],
+        [w, line_w*4 + line_sp*4, line_w/2],
+        [line_w, line_w*4 + line_sp*4, r_in],
+        [line_w, line_w*4 + line_sp*3, r_in],
+        [w, line_w*4 + line_sp*3, r_out],
+        [w, line_w*2 + line_sp*2, r_out],
+        [line_w, line_w*2 + line_sp*2, r_in],
+        [line_w, line_w*2 + line_sp, r_in],
+        [w, line_w*2 + line_sp, r_out],
+        [w, 0, r_out]
+    ];
+
+    tr_xy(-w/2, -h/2)
+    polyRoundExtrude(radii_points, 0.5, 0.2, -0.2, 16);
 }
 
 DRAW_TRAY = 0;
