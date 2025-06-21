@@ -1,4 +1,13 @@
 #pragma once
+
+//
+// PWM / Timers usage:
+//
+// PWM0 / T0: LED (demo board only, real device uses RMT)
+// PWM1 / T1: Fan speed
+// PWM2+PWM3 / T2: Buzzer
+//
+
 #include "driver/ledc.h"
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
@@ -6,6 +15,11 @@
 #include "lib/blinker_engine.hpp"
 
 class LedDriver : public IBlinkerLED<1> {
+private:
+    static constexpr int ledPin{GPIO_NUM_8};
+    static constexpr ledc_timer_t timerNum{LEDC_TIMER_0};
+    static constexpr ledc_channel_t channelNum{LEDC_CHANNEL_0};
+
 public:
     LedDriver() {
         ledc_timer_config_t timer_conf = {
@@ -38,11 +52,6 @@ public:
         ledc_set_duty(LEDC_LOW_SPEED_MODE, channelNum, value[0]);
         ledc_update_duty(LEDC_LOW_SPEED_MODE, channelNum);
     }
-
-private:
-    static constexpr int ledPin{GPIO_NUM_8};
-    static constexpr ledc_timer_t timerNum{LEDC_TIMER_0};
-    static constexpr ledc_channel_t channelNum{LEDC_CHANNEL_0};
 };
 
 template <typename Driver>

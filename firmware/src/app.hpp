@@ -4,6 +4,7 @@
 #include "heater_mock.hpp"
 #include "components/button.hpp"
 #include "components/blinker.hpp"
+#include "components/fan.hpp"
 #include "components/profiles_config.hpp"
 
 namespace AppCmd {
@@ -59,6 +60,7 @@ public:
     HeaterMock heater{};
     Blinker<LedDriver> blinker{};
     ProfilesConfig profilesConfig{};
+    Fan fan{};
 
     void LogUnknownEvent(const etl::imessage& msg);
     void setup();

@@ -62,5 +62,6 @@ void App::setup() {
     heater.start();
     button.start();
     blinker.start();
+    fan.setSpeed(0);
     BLINK_SET_IDLE_BACKGROUND(blinker);
 }
