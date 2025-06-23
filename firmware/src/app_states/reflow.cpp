@@ -1,5 +1,6 @@
 #include "app.hpp"
 #include "logger.hpp"
+#include "blink_signals.hpp"
 
 namespace {
 
@@ -76,7 +77,7 @@ public:
 
         // Enable ADRC & blink about success
         app.heater.temperature_control_on();
-        app.blinker.once({ {0, 200}, {255, 300}, {0, 200} });
+        BLINK_REFLOW_START(app.blinker);
 
         return No_State_Change;
     }
