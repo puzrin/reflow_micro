@@ -64,4 +64,8 @@ void App::setup() {
     blinker.start();
     fan.setSpeed(0);
     BLINK_SET_IDLE_BACKGROUND(blinker);
+
+    // Temporary
+    BLINK_TEST(blinker);
+    buzzer.play("ArcadeCoin2:d=32,o=5,b=300:c6,e6,g6,b6,8c7,c6,e6,g6,b6,8c7"_rtttl2tones);
 }

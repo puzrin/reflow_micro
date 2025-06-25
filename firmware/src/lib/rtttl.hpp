@@ -29,6 +29,12 @@ struct Track {
     constexpr const Note* data() const { return notes.data(); }
 };
 
+struct ToneSeq {
+    const Tone* data;
+    size_t size;
+};
+
+
 // ======================== Frequency Conversion ========================
 
 // Lookup table for one octave (compile-time only, won't be stored in flash)
@@ -270,7 +276,7 @@ private:
 
 // Convenient literal - returns array<Tone, N> with frequencies and durations
 template<typename T, T... Ch>
-constexpr auto operator""_rtttl2tones() {
-    constexpr auto track = rtttl::detail::rtttl_parser<Ch...>{}.parse();
-    return rtttl::to_tones(track);
+constexpr rtttl::ToneSeq operator""_rtttl2tones() {
+    static constexpr auto arr = rtttl::to_tones(rtttl::detail::rtttl_parser<Ch...>{}.parse());
+    return { arr.data(), arr.size() };
 }

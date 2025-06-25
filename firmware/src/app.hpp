@@ -4,6 +4,7 @@
 #include "heater_mock.hpp"
 #include "components/button.hpp"
 #include "components/blinker.hpp"
+#include "components/buzzer.hpp"
 #include "components/fan.hpp"
 #include "components/profiles_config.hpp"
 
@@ -59,6 +60,7 @@ public:
 
     HeaterMock heater{};
     Blinker<LedDriver> blinker{};
+    Buzzer buzzer{};
     ProfilesConfig profilesConfig{};
     Fan fan{};
 

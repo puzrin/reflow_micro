@@ -1,0 +1,58 @@
+#pragma once
+
+#include <array>
+#include <atomic>
+#include <cstdint>
+#include "freertos/FreeRTOS.h"
+#include "freertos/timers.h"
+#include "driver/ledc.h"
+#include "driver/gpio.h"
+#include "lib/rtttl.hpp"
+
+class BuzzerDriver {
+public:
+    static constexpr uint8_t GPIO_PIN_A = 10;
+    static constexpr uint8_t GPIO_PIN_B = 8;
+
+    BuzzerDriver();
+
+    void sound(uint16_t freq_hz);
+
+private:
+    void set_duty(uint8_t duty_percent);
+    uint8_t get_min_pwm_resolution(uint32_t freq_hz);
+};
+
+class Buzzer {
+public:
+    static constexpr uint32_t NOTE_GAP_MS = 5;
+    static constexpr uint32_t TICK_INTERVAL_MS = 1;
+
+    Buzzer();
+
+    void play(const rtttl::ToneSeq& tones) {
+        play(tones.data, tones.size);
+    }
+
+    void play(const rtttl::Tone* tones, size_t count);
+
+private:
+    std::atomic<uint32_t> version_{0};
+
+    const rtttl::Tone* shadow_tones_{nullptr};
+    size_t shadow_tone_count_{0};
+
+    const rtttl::Tone* active_tones_{nullptr};
+    size_t active_tone_count_{0};
+    size_t tone_index_{0};
+    TickType_t start_time_{0};
+    bool in_gap_{false};
+
+    BuzzerDriver driver_;
+    TimerHandle_t timer_;
+    uint32_t last_version_{0};
+
+    void tick();
+
+    static void timer_callback(TimerHandle_t timer);
+};
