@@ -3,6 +3,7 @@
 // ======================== BuzzerDriver ========================
 
 BuzzerDriver::BuzzerDriver() {
+    sound(1000); // Attach PWM to GPIO
     sound(0);
 }
 
@@ -24,23 +25,10 @@ uint8_t BuzzerDriver::get_min_pwm_resolution(uint32_t freq_hz) {
 
 void BuzzerDriver::sound(uint16_t freq_hz) {
     if (freq_hz == 0) {
-        gpio_config_t gpio_conf = {
-            .pin_bit_mask = (1ULL << GPIO_PIN_A),
-            .mode = GPIO_MODE_OUTPUT,
-            .pull_up_en = GPIO_PULLUP_DISABLE,
-            .pull_down_en = GPIO_PULLDOWN_DISABLE,
-            .intr_type = GPIO_INTR_DISABLE
-        };
-        gpio_reset_pin(static_cast<gpio_num_t>(GPIO_PIN_A));
-        gpio_config(&gpio_conf);
-        gpio_set_level(static_cast<gpio_num_t>(GPIO_PIN_A), 0);
-
-#ifndef HW_DEMO_ESP32_C3_SUPERMINI
-        gpio_conf.pin_bit_mask = (1ULL << GPIO_PIN_B);
-        gpio_reset_pin(static_cast<gpio_num_t>(GPIO_PIN_B));
-        gpio_config(&gpio_conf);
-        gpio_set_level(static_cast<gpio_num_t>(GPIO_PIN_B), 0);
-#endif
+        ledc_stop(LEDC_LOW_SPEED_MODE, PWM_CHANNEL_A, IDLE_LEVEL);
+        if constexpr (doubleOutput) {
+            ledc_stop(LEDC_LOW_SPEED_MODE, PWM_CHANNEL_B, IDLE_LEVEL);
+        }
         return;
     }
 
@@ -49,7 +37,7 @@ void BuzzerDriver::sound(uint16_t freq_hz) {
     ledc_timer_config_t timer_conf = {
         .speed_mode = LEDC_LOW_SPEED_MODE,
         .duty_resolution = static_cast<ledc_timer_bit_t>(pwm_bits),
-        .timer_num = LEDC_TIMER_2,
+        .timer_num = static_cast<ledc_timer_t>(PWM_TIMER_CHANNEL),
         .freq_hz = freq_hz,
         .clk_cfg = LEDC_USE_APB_CLK,
         .deconfigure = false
@@ -59,21 +47,21 @@ void BuzzerDriver::sound(uint16_t freq_hz) {
     ledc_channel_config_t channel_conf = {
         .gpio_num = GPIO_PIN_A,
         .speed_mode = LEDC_LOW_SPEED_MODE,
-        .channel = LEDC_CHANNEL_2,
+        .channel = PWM_CHANNEL_A,
         .intr_type = LEDC_INTR_DISABLE,
-        .timer_sel = LEDC_TIMER_2,
+        .timer_sel = static_cast<ledc_timer_t>(PWM_TIMER_CHANNEL),
         .duty = 1u << (pwm_bits - 1), // 50% duty cycle
         .hpoint = 0,
         .flags = {.output_invert = 0}
     };
     ledc_channel_config(&channel_conf);
 
-#ifndef HW_DEMO_ESP32_C3_SUPERMINI
-    channel_conf.gpio_num = GPIO_PIN_B;
-    channel_conf.channel = LEDC_CHANNEL_3;
-    channel_conf.flags.output_invert = 1; // Invert output for channel B
-    ledc_channel_config(&channel_conf);
-#endif
+    if constexpr (doubleOutput) {
+        channel_conf.gpio_num = GPIO_PIN_B;
+        channel_conf.channel = PWM_CHANNEL_B;
+        channel_conf.flags.output_invert = 1; // Invert output for channel B
+        ledc_channel_config(&channel_conf);
+    }
 }
 
 // ======================== Buzzer ========================

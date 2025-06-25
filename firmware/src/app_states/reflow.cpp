@@ -1,6 +1,5 @@
 #include "app.hpp"
 #include "logger.hpp"
-#include "blink_signals.hpp"
 
 namespace {
 
@@ -77,7 +76,8 @@ public:
 
         // Enable ADRC & blink about success
         app.heater.temperature_control_on();
-        BLINK_REFLOW_START(app.blinker);
+        app.showReflowStart();
+        app.beepReflowStarted();
 
         return No_State_Change;
     }
@@ -89,7 +89,10 @@ public:
         return DeviceState_Idle;
     }
     auto on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
-        if (event.type == ButtonEventId::BUTTON_PRESSED_1X) { return DeviceState_Idle; }
+        if (event.type == ButtonEventId::BUTTON_PRESSED_1X) {
+            get_fsm_context().beepReflowTerminated();
+            return DeviceState_Idle;
+        }
         return No_State_Change;
     }
 
@@ -110,6 +113,7 @@ private:
         //}
 
         if (time_ms >= timeline.get_max_time()) {
+            app.beepReflowComplete();
             app.heater.task_stop();
             app.safe_receive(AppCmd::Stop());
             return;

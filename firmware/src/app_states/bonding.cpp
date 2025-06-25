@@ -1,6 +1,5 @@
 #include "app.hpp"
 #include "logger.hpp"
-#include "blink_signals.hpp"
 #include "rpc/rpc.hpp"
 
 namespace {
@@ -12,7 +11,7 @@ public:
     auto on_enter_state() -> etl::fsm_state_id_t override {
         DEBUG("State => Bonding");
 
-        BLINK_BONDING_LOOP(get_fsm_context().blinker);
+        get_fsm_context().showBondingLoop();
 
         // Enable bonding for 30 seconds
         xTimeoutTimer = xTimerCreate("BondingTimeout", pdMS_TO_TICKS(BONDING_PERIOD_MS), pdFALSE, (void *)0,

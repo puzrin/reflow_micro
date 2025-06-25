@@ -76,12 +76,24 @@ public:
 
     float last_cmd_data{0};
 
+    // UI signals
+    void showIdleBackground();
+    void showLongPressProgress();
+    void showBondingLoop();
+    void showReflowStart();
+    void showLedTest();
+
+    void beepButtonPress();
+    void beepReflowStarted();
+    void beepReflowComplete();
+    void beepReflowTerminated();
+
 private:
     SemaphoreHandle_t mutex{nullptr};
     Button<ButtonDriver> button{};
     void handleButton(ButtonEventId event) {
         if (event == ButtonEventId::BUTTON_PRESS_START) {
-            buzzer.play("button_push:b=300:64e7"_rtttl2tones);
+            beepButtonPress();
         }
         safe_receive(AppCmd::Button(event));
     }

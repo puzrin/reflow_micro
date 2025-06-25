@@ -1,6 +1,5 @@
 #include "app.hpp"
 #include "logger.hpp"
-#include "blink_signals.hpp"
 
 static constexpr etl::message_router_id_t APP_FSM_ROUTER_ID = 0;
 App application;
@@ -63,9 +62,68 @@ void App::setup() {
     button.start();
     blinker.start();
     fan.setSpeed(0);
-    BLINK_SET_IDLE_BACKGROUND(blinker);
+    showIdleBackground();
 
     // Temporary
-    BLINK_TEST(blinker);
-    buzzer.play("coin:d=32,o=5,b=300:c6,e6,g6,b6,8c7,c6,e6,g6,b6,8c7"_rtttl2tones);
+    showLedTest();
+    beepReflowComplete();
+}
+
+void App::showIdleBackground() {
+    #ifdef HW_DEMO_ESP32_C3_SUPERMINI
+    blinker.background({10});
+    #else
+    blinker.background({0, 100, 0});
+    #endif
+}
+
+void App::showLongPressProgress() {
+    int animation_time = ButtonConstants::LONG_PRESS_THRESHOLD - ButtonConstants::SHORT_PRESS_THRESHOLD;
+
+    #ifdef HW_DEMO_ESP32_C3_SUPERMINI
+    blinker.once({{10, 0}, blinker.flowTo(255, animation_time)});
+    #else
+    blinker.once({{{0, 100, 0}, 0}, blinker.flowTo({255, 255, 255}, animation_time)});
+    #endif
+}
+
+void App::showBondingLoop() {
+    #ifdef HW_DEMO_ESP32_C3_SUPERMINI
+    blinker.loop({{10, 150}, {0, 250}});
+    #else
+    blinker.loop({{{0, 0, 255}, 150}, {{0, 0, 0}, 250}});
+    #endif
+}
+
+void App::showReflowStart() {
+    #ifdef HW_DEMO_ESP32_C3_SUPERMINI
+    blinker.once({{0, 200}, {255, 300}, {0, 200}});
+    #else
+    blinker.once({{{0, 0, 0}, 200}, {{0, 255, 0}, 300}, {{0, 0, 0}, 200}});
+    #endif
+}
+
+void App::showLedTest() {
+    #ifdef HW_DEMO_ESP32_C3_SUPERMINI
+    // Nothing at demo board
+    #else
+    // R / G / B / W cycle
+    blinker.loop({{{255, 0, 0}, 1000}, {{0, 255, 0}, 1000}, {{0, 0, 255}, 1000}, {{128, 128, 128}, 1000}});
+    #endif
+}
+
+void App::beepButtonPress() {
+    buzzer.play(":b=300:64e7"_rtttl2tones);
+}
+
+void App::beepReflowStarted() {
+    buzzer.play(":d=32,o=6,b=200:c,g#"_rtttl2tones);
+}
+
+void App::beepReflowComplete() {
+    buzzer.play(":d=32,o=5,b=300:c6,e6,g6,b6,8c7,c6,e6,g6,b6,8c7"_rtttl2tones);
+}
+
+void App::beepReflowTerminated() {
+    buzzer.play(":d=32,o=6,b=200:g,f#,f,e,d#,8d"_rtttl2tones);
 }

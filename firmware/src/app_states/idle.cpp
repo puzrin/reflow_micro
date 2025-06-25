@@ -1,6 +1,5 @@
 #include "app.hpp"
 #include "logger.hpp"
-#include "blink_signals.hpp"
 
 namespace {
 
@@ -36,7 +35,7 @@ public:
             // Animate long press start
             case ButtonEventId::BUTTON_LONG_PRESS_START:
                 DEBUG("Long press start");
-                BLINK_LONG_PRESS_START(get_fsm_context().blinker);
+                get_fsm_context().showLongPressProgress();
                 break;
 
             // Stops animation if long press not reached

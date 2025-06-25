@@ -11,8 +11,19 @@
 
 class BuzzerDriver {
 public:
+    static constexpr int PWM_TIMER_CHANNEL = LEDC_CHANNEL_2;
     static constexpr uint8_t GPIO_PIN_A = 10;
+    static constexpr ledc_channel_t PWM_CHANNEL_A = LEDC_CHANNEL_2;
     static constexpr uint8_t GPIO_PIN_B = 8;
+    static constexpr ledc_channel_t PWM_CHANNEL_B = LEDC_CHANNEL_3;
+
+    #ifdef HW_DEMO_ESP32_C3_SUPERMINI
+    static constexpr bool doubleOutput = false;
+    static constexpr uint8_t IDLE_LEVEL = 0;
+    #else
+    static constexpr bool doubleOutput = true;
+    static constexpr uint8_t IDLE_LEVEL = 0;
+    #endif
 
     BuzzerDriver();
 
