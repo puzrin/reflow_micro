@@ -79,7 +79,12 @@ public:
 private:
     SemaphoreHandle_t mutex{nullptr};
     Button<ButtonDriver> button{};
-    void handleButton(ButtonEventId event) { safe_receive(AppCmd::Button(event)); }
+    void handleButton(ButtonEventId event) {
+        if (event == ButtonEventId::BUTTON_PRESS_START) {
+            buzzer.play("button_push:b=300:64e7"_rtttl2tones);
+        }
+        safe_receive(AppCmd::Button(event));
+    }
 };
 
 extern App application;

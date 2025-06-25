@@ -1,14 +1,18 @@
-#include "logger.hpp"
-#include "rpc/rpc.hpp"
+#include "app.hpp"
 #include "components/prefs.hpp"
 #include "components/stack_monitor.hpp"
-#include "app.hpp"
+#include "esp_log.h"
+#include "logger.hpp"
+#include "rpc/rpc.hpp"
 
 extern "C" {
     void app_main(void);
 }
 
 extern "C" void app_main() {
+    // Disable log garbage
+    esp_log_level_set("gpio", ESP_LOG_NONE);
+
     logger_start();
     PrefsWriter::getInstance().start();
 

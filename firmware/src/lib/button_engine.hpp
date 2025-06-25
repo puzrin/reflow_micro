@@ -18,6 +18,7 @@ class IButtonDriver {
 enum class ButtonEventId {
     //BUTTON_SEQUENCE_START,
     //BUTTON_SEQUENCE_END,
+    BUTTON_PRESS_START,
     BUTTON_LONG_PRESS_START,
     BUTTON_LONG_PRESS_FAIL,
     BUTTON_LONG_PRESS,
@@ -57,6 +58,9 @@ public:
             btnPressed = unfilteredBtn;
             prevPeriod = ms_timestamp - btnToggleTimestamp;
             btnToggleTimestamp = ms_timestamp;
+            if (btnPressed) {
+                handleEvent(ButtonEventId::BUTTON_PRESS_START);
+            }
         }
         currentPeriod = ms_timestamp - btnToggleTimestamp;
 
