@@ -86,11 +86,10 @@ Buzzer::Buzzer() {
                          timer_callback);
 }
 
-void Buzzer::play(const rtttl::Tone* tones, size_t count) {
+void Buzzer::play(const rtttl::ToneSeq& tones) {
     version_.fetch_add(1, std::memory_order_release);
 
     shadow_tones_ = tones;
-    shadow_tone_count_ = count;
 
     version_.fetch_add(1, std::memory_order_release);
 
@@ -106,7 +105,6 @@ void Buzzer::tick() {
         driver_.sound(0);
 
         active_tones_ = shadow_tones_;
-        active_tone_count_ = shadow_tone_count_;
 
         uint32_t check_version = version_.load(std::memory_order_acquire);
         if (check_version != current_version) { return; }
@@ -116,18 +114,18 @@ void Buzzer::tick() {
         start_time_ = xTaskGetTickCount();
         in_gap_ = false;
 
-        if (active_tone_count_ > 0) {
-            driver_.sound(active_tones_[0].freq_hz);
+        if (active_tones_.size > 0) {
+            driver_.sound(active_tones_.data[0].freq_hz);
         }
         return;
     }
 
-    if (active_tone_count_ == 0) { return; }
+    if (active_tones_.size == 0) { return; }
 
-    if (tone_index_ >= active_tone_count_) {
+    if (tone_index_ >= active_tones_.size) {
         driver_.sound(0);
         tone_index_ = 0;
-        active_tone_count_ = 0;
+        active_tones_ = {nullptr, 0};
         return;
     }
 
@@ -138,17 +136,17 @@ void Buzzer::tick() {
         if (elapsed >= pdMS_TO_TICKS(NOTE_GAP_MS)) {
             tone_index_++;
 
-            if (tone_index_ >= active_tone_count_) {
+            if (tone_index_ >= active_tones_.size) {
                 driver_.sound(0);
                 return;
             }
 
-            driver_.sound(active_tones_[tone_index_].freq_hz);
+            driver_.sound(active_tones_.data[tone_index_].freq_hz);
             start_time_ = current_time;
             in_gap_ = false;
         }
     } else {
-        if (elapsed >= pdMS_TO_TICKS(active_tones_[tone_index_].duration_ms)) {
+        if (elapsed >= pdMS_TO_TICKS(active_tones_.data[tone_index_].duration_ms)) {
             driver_.sound(0);
             start_time_ = current_time;
             in_gap_ = true;

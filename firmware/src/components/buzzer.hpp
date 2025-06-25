@@ -30,20 +30,14 @@ public:
 
     Buzzer();
 
-    void play(const rtttl::ToneSeq& tones) {
-        play(tones.data, tones.size);
-    }
-
-    void play(const rtttl::Tone* tones, size_t count);
+    void play(const rtttl::ToneSeq& tones);
 
 private:
     std::atomic<uint32_t> version_{0};
 
-    const rtttl::Tone* shadow_tones_{nullptr};
-    size_t shadow_tone_count_{0};
+    rtttl::ToneSeq shadow_tones_{nullptr, 0};
+    rtttl::ToneSeq active_tones_{nullptr, 0};
 
-    const rtttl::Tone* active_tones_{nullptr};
-    size_t active_tone_count_{0};
     size_t tone_index_{0};
     TickType_t start_time_{0};
     bool in_gap_{false};
