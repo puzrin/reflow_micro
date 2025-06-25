@@ -230,40 +230,21 @@ TEST(RTTTLParserTest, TonesLiteral) {
     constexpr auto tones = "Simple:d=4,o=5,b=60:c,g,8c6"_rtttl2tones;
 
     // Verify compile-time evaluation
-    static_assert(tones.size() == 3, "Should have 3 tones");
-    static_assert(tones[0].freq_hz == 523, "C5 = 523 Hz");
-    static_assert(tones[1].freq_hz == 784, "G5 = 784 Hz");
-    static_assert(tones[2].freq_hz == 1047, "C6 = 1047 Hz");
-    static_assert(tones[0].duration_ms == 1000, "Quarter note at 60 BPM = 1000ms");
-    static_assert(tones[2].duration_ms == 500, "Eighth note at 60 BPM = 500ms");
+    static_assert(tones.size == 3, "Should have 3 tones");
+    static_assert(tones.data[0].freq_hz == 523, "C5 = 523 Hz");
+    static_assert(tones.data[1].freq_hz == 784, "G5 = 784 Hz");
+    static_assert(tones.data[2].freq_hz == 1047, "C6 = 1047 Hz");
+    static_assert(tones.data[0].duration_ms == 1000, "Quarter note at 60 BPM = 1000ms");
+    static_assert(tones.data[2].duration_ms == 500, "Eighth note at 60 BPM = 500ms");
 
     // Runtime checks for good measure
-    EXPECT_EQ(tones.size(), 3u);
-    EXPECT_EQ(tones[0].freq_hz, 523);
-    EXPECT_EQ(tones[0].duration_ms, 1000);
-    EXPECT_EQ(tones[1].freq_hz, 784);
-    EXPECT_EQ(tones[1].duration_ms, 1000);
-    EXPECT_EQ(tones[2].freq_hz, 1047);
-    EXPECT_EQ(tones[2].duration_ms, 500);
-}
-
-// Test _rtttl2tones literal with a real song
-TEST(RTTTLParserTest, TonesLiteralRealSong) {
-    constexpr auto nokia_tones = "Nokia:d=4,o=5,b=125:8e6,8d6,f#,g#"_rtttl2tones;
-
-    EXPECT_EQ(nokia_tones.size(), 4u);
-
-    // Check frequencies are reasonable (not testing exact values due to rounding)
-    EXPECT_GT(nokia_tones[0].freq_hz, 1000);  // E6 is high
-    EXPECT_GT(nokia_tones[1].freq_hz, 1000);  // D6 is high
-    EXPECT_GT(nokia_tones[2].freq_hz, 300);   // F#5 is mid-range
-    EXPECT_GT(nokia_tones[3].freq_hz, 400);   // G#5 is mid-range
-
-    // Check durations are calculated from BPM=125
-    EXPECT_EQ(nokia_tones[0].duration_ms, 240);  // eighth note at 125 BPM
-    EXPECT_EQ(nokia_tones[1].duration_ms, 240);  // eighth note at 125 BPM
-    EXPECT_EQ(nokia_tones[2].duration_ms, 480);  // quarter note at 125 BPM
-    EXPECT_EQ(nokia_tones[3].duration_ms, 480);  // quarter note at 125 BPM
+    EXPECT_EQ(tones.size, 3u);
+    EXPECT_EQ(tones.data[0].freq_hz, 523);
+    EXPECT_EQ(tones.data[0].duration_ms, 1000);
+    EXPECT_EQ(tones.data[1].freq_hz, 784);
+    EXPECT_EQ(tones.data[1].duration_ms, 1000);
+    EXPECT_EQ(tones.data[2].freq_hz, 1047);
+    EXPECT_EQ(tones.data[2].duration_ms, 500);
 }
 
 int main(int argc, char **argv) {

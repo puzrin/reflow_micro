@@ -34,7 +34,6 @@ struct ToneSeq {
     size_t size;
 };
 
-
 // ======================== Frequency Conversion ========================
 
 // Lookup table for one octave (compile-time only, won't be stored in flash)
@@ -270,6 +269,13 @@ private:
 
 } // namespace detail
 
+// Helper structure to cache parsed tones at compile time. Because c++17
+// does not allow static constexpr in constexpr functions.
+template<char... Ch>
+struct tone_sec_holder {
+    inline static constexpr auto value = to_tones(detail::rtttl_parser<Ch...>{}.parse());
+};
+
 } // namespace rtttl
 
 // ======================== User-Defined Literals ========================
@@ -277,6 +283,8 @@ private:
 // Convenient literal - returns array<Tone, N> with frequencies and durations
 template<typename T, T... Ch>
 constexpr rtttl::ToneSeq operator""_rtttl2tones() {
-    static constexpr auto arr = rtttl::to_tones(rtttl::detail::rtttl_parser<Ch...>{}.parse());
-    return { arr.data(), arr.size() };
+    return {
+        rtttl::tone_sec_holder<Ch...>::value.data(),
+        rtttl::tone_sec_holder<Ch...>::value.size()
+    };
 }
