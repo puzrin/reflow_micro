@@ -1,5 +1,4 @@
 e = 0.01;
-2e = 0.02;
 
 module torus(r1, r2, $fn = $fn) {
     rotate_extrude(convexity=2, $fn=$fn)
@@ -14,12 +13,12 @@ module _hooled_toruses(x, y, r_xy, r_z) {
     translate([x-r_xy, r_xy, 0]) torus(r_xy, r_z);
     translate([r_xy, y-r_xy, 0]) torus(r_xy, r_z);
     translate([x-r_xy, y-r_xy, 0]) torus(r_xy, r_z);
-    
+
     translate([r_z, r_xy, 0]) rotate([-90, 0, 0]) cylinder(y-r_xy*2, r=r_z);
     translate([x-r_z, r_xy, 0]) rotate([-90, 0, 0]) cylinder(y-r_xy*2, r=r_z);
     translate([r_xy, r_z, 0]) rotate([0, 90, 0]) cylinder(x-r_xy*2, r=r_z);
     translate([r_xy, y-r_z, 0]) rotate([0, 90, 0]) cylinder(x-r_xy*2, r=r_z);
-    
+
     translate([r_z, r_z, -r_z])
     rcube([x-r_z*2, y-r_z*2, r_z*2], r = r_xy-r_z, center = false);
 }
@@ -76,7 +75,7 @@ module rcube(size = [10, 10, 10], center = true, r = 1, rtop = 0, rbottom = 0) {
             translate([0, 0, h-rtop]) _hooled_toruses(x, y, r, rtop);
             translate([0, 0, rbottom]) _hooled_toruses(x, y, r, rbottom);
             translate([0, 0, rbottom])
-            rcube([x, y, h-rbottom-rtop], r = r, center = false);            
+            rcube([x, y, h-rbottom-rtop], r = r, center = false);
         }
     }
 }

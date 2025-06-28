@@ -34,12 +34,12 @@ module bottom () {
                 }
                 dupe_y() tr_xy(x/2, 30/2-1.25 + wall) cube([e,e, back_inner_h + wall]);
             }
-            
+
             // mounting
             rcube([6, 32, wall_base], r=3);
         }
-            
-        // inner    
+
+        // inner
         translate([e, 0, -e]) hull () {
             dupe_y() tr_xy(-x/2+r, y/2-r) {
                 tr_z(back_inner_h-r) sphere(r);
@@ -47,13 +47,13 @@ module bottom () {
             }
             dupe_y() tr_xy(x/2, 30/2-1.25) cube([e,e, back_inner_h]);
         }
-        
+
         mirror_z() translate([-50, -50, -e]) cube(100);
         translate([x/2-e, -50, -e]) cube(100);
 
         // mount holes
         dupe_y() tr_y(mnt_y) {
-            tr_z(-e) cylinder(mnt_wall+2e, d = mnt_hole);
+            tr_z(-e) cylinder(mnt_wall+2*e, d = mnt_hole);
             tr_z(mnt_wall) cylinder(100, d = 4.0);
         }
     }
@@ -75,7 +75,7 @@ module top () {
 
             // mounting
             rcube([6, 32, wall_base], r=3);
-            
+
             // orientation key
             tr_x(-x/2 - wall)
             linear_extrude(top_h) hull() {
@@ -84,20 +84,20 @@ module top () {
             }
         }
 
-        // inner    
+        // inner
         tr_z(-e) hull () {
             dupe_y() tr_xy(-x/2+r, y/2-r) cylinder(e, r);
 
             if (conic) {
                 tr_z(top_h) cylinder(h = 2*e, r = top_dia/2);
             } else {
-                tr_z(top_h+2e) dupe_y() tr_xy(-x/2+r, y/2-r) cylinder(e, r);
+                tr_z(top_h+2*e) dupe_y() tr_xy(-x/2+r, y/2-r) cylinder(e, r);
             }
         }
 
         // mount holes
         dupe_y() tr_y(mnt_y) {
-            tr_z(-e) cylinder(mnt_wall+2e, d = mnt_hole);
+            tr_z(-e) cylinder(mnt_wall+2*e, d = mnt_hole);
             tr_z(mnt_wall) cylinder(100, d = 4.5);
         }
     }

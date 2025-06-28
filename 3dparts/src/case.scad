@@ -55,6 +55,7 @@ btn_h = 3.3; // 3.5mm - 2*margin
 btn_w = 9.8;
 btn_margin = 0.1;
 btn_marks = 1; // to visully distinguish sizes
+btn_protrusion = 1.5;
 
 btn_pusher_w = 12;
 btn_pusher_base_w = 1.5;
@@ -305,8 +306,13 @@ module button() {
         union () {
             // Front part, 1mm out of case
             tr_z(btn_inner_depth - e)
-            linear_extrude(wall_side + pcb_support_w + 1)
-            rsquare([btn_w, btn_h], r=btn_h/2);
+            tr_xy(-btn_w/2, -btn_h/2)
+            polyRoundExtrude([
+                [0, 0, btn_h/2],
+                [0, btn_h, btn_h/2],
+                [btn_w, btn_h, btn_h/2],
+                [btn_w, 0, btn_h/2]
+            ], wall_side + pcb_support_w + btn_protrusion, .5, 0, 16);
 
             // Inner
             linear_extrude(btn_inner_depth)
