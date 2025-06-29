@@ -1,6 +1,5 @@
 # May be those will be used later.
 #CONFIG_COMPILER_OPTIMIZATION_SIZE=y
-#CONFIG_PARTITION_TABLE_TWO_OTA=y
 
 #
 # Force using USB CDC only for console.
