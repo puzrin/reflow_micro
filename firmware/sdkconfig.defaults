@@ -3,6 +3,14 @@
 #CONFIG_PARTITION_TABLE_TWO_OTA=y
 
 #
+# Force using USB CDC only for console.
+#
+CONFIG_ESP_CONSOLE_UART_NONE=y
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+CONFIG_ESP_CONSOLE_SECONDARY_NONE=y
+CONFIG_ESP_CONSOLE_UART_DEFAULT=n
+
+#
 # This should be in sync with pio board info, or pio shows warning
 #
 CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
