@@ -24,29 +24,21 @@ private:
 
 public:
     LedDriver() {
-        ledc_timer_config_t timer_conf = {
-            .speed_mode = LEDC_LOW_SPEED_MODE,
-            .duty_resolution = LEDC_TIMER_8_BIT,
-            .timer_num = timerNum,
-            .freq_hz = 5000,
-            .clk_cfg = LEDC_AUTO_CLK,
-            .deconfigure = false
-        };
+        ledc_timer_config_t timer_conf{};
+        timer_conf.speed_mode = LEDC_LOW_SPEED_MODE;
+        timer_conf.duty_resolution = LEDC_TIMER_8_BIT;
+        timer_conf.timer_num = timerNum;
+        timer_conf.freq_hz = 5000;
+        timer_conf.clk_cfg = LEDC_AUTO_CLK;
         ledc_timer_config(&timer_conf);
 
-        ledc_channel_config_t ch_conf = {
-            .gpio_num = ledPin,
-            .speed_mode = LEDC_LOW_SPEED_MODE,
-            .channel = channelNum,
-            .intr_type = LEDC_INTR_DISABLE,
-            .timer_sel = timerNum,
-            .duty = 0,
-            .hpoint = 0,
-            .flags = {
-                // LED output should be inverted
-                .output_invert = 1
-            }
-        };
+        ledc_channel_config_t ch_conf{};
+        ch_conf.gpio_num = ledPin;
+        ch_conf.speed_mode = LEDC_LOW_SPEED_MODE;
+        ch_conf.channel = channelNum;
+        ch_conf.timer_sel = timerNum;
+        ch_conf.duty = 0;
+        ch_conf.flags.output_invert = 1; // LED output should be inverted
         ledc_channel_config(&ch_conf);
     }
 

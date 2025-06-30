@@ -26,7 +26,7 @@ uint8_t BuzzerDriver::get_min_pwm_resolution(uint32_t freq_hz) {
 void BuzzerDriver::sound(uint16_t freq_hz) {
     if (freq_hz == 0) {
         ledc_stop(LEDC_LOW_SPEED_MODE, PWM_CHANNEL_A, IDLE_LEVEL);
-        if constexpr (doubleOutput) {
+        if (doubleOutput) {
             ledc_stop(LEDC_LOW_SPEED_MODE, PWM_CHANNEL_B, IDLE_LEVEL);
         }
         return;
@@ -34,29 +34,23 @@ void BuzzerDriver::sound(uint16_t freq_hz) {
 
     auto pwm_bits = get_min_pwm_resolution(freq_hz);
 
-    ledc_timer_config_t timer_conf = {
-        .speed_mode = LEDC_LOW_SPEED_MODE,
-        .duty_resolution = static_cast<ledc_timer_bit_t>(pwm_bits),
-        .timer_num = static_cast<ledc_timer_t>(PWM_TIMER_CHANNEL),
-        .freq_hz = freq_hz,
-        .clk_cfg = LEDC_USE_APB_CLK,
-        .deconfigure = false
-    };
+    ledc_timer_config_t timer_conf{};
+    timer_conf.speed_mode = LEDC_LOW_SPEED_MODE;
+    timer_conf.duty_resolution = static_cast<ledc_timer_bit_t>(pwm_bits);
+    timer_conf.timer_num = static_cast<ledc_timer_t>(PWM_TIMER_CHANNEL);
+    timer_conf.freq_hz = freq_hz;
+    timer_conf.clk_cfg = LEDC_USE_APB_CLK;
     ledc_timer_config(&timer_conf);
 
-    ledc_channel_config_t channel_conf = {
-        .gpio_num = GPIO_PIN_A,
-        .speed_mode = LEDC_LOW_SPEED_MODE,
-        .channel = PWM_CHANNEL_A,
-        .intr_type = LEDC_INTR_DISABLE,
-        .timer_sel = static_cast<ledc_timer_t>(PWM_TIMER_CHANNEL),
-        .duty = 1u << (pwm_bits - 1), // 50% duty cycle
-        .hpoint = 0,
-        .flags = {.output_invert = 0}
-    };
+    ledc_channel_config_t channel_conf{};
+    channel_conf.gpio_num = GPIO_PIN_A;
+    channel_conf.speed_mode = LEDC_LOW_SPEED_MODE;
+    channel_conf.channel = PWM_CHANNEL_A;
+    channel_conf.timer_sel = static_cast<ledc_timer_t>(PWM_TIMER_CHANNEL);
+    channel_conf.duty = 1u << (pwm_bits - 1); // 50% duty cycle
     ledc_channel_config(&channel_conf);
 
-    if constexpr (doubleOutput) {
+    if (doubleOutput) {
         channel_conf.gpio_num = GPIO_PIN_B;
         channel_conf.channel = PWM_CHANNEL_B;
         channel_conf.flags.output_invert = 1; // Invert output for channel B
