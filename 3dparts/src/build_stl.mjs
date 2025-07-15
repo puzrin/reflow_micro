@@ -35,12 +35,13 @@ const builds = {
   magnet_clamp: ['magnet_clamp.scad', '-D space=7.5'],
   tool_spacer: ['tool_spacer.scad', ''],
   ss_mch_mount: ['ss_mch_mount.scad', ''],
+  drill_conductor: ['drill_conductor.scad', '']
 }
 
 function build(name) {
   const [file, options] = builds[name]
   console.log(`Building ${name}.stl`)
-  execSync(`${openscad} ${p(file)} ${options} -o ${p(`../${name}.stl`)}`)
+  execSync(`${openscad} ${p(file)} --export-format binstl --enable predictible-output ${options} -o ${p(`../${name}.stl`)}`)
 }
 
 // no params - build all variants
