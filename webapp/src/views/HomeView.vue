@@ -44,7 +44,7 @@ async function stop() {
       </div>
     </template>
 
-    <div class="flex-1 flex relative items-center justify-center rounded-md bg-slate-100">
+    <div class="mb-4 flex-1 flex relative items-center justify-center rounded-md bg-slate-100">
       <div class="absolute top-0 left-0 right-0 bottom-0">
         <ReflowChart id="home-chart"
           :profile="profilesStore.selected"
@@ -58,24 +58,27 @@ async function stop() {
         <div><span class="font-mono">{{ status.amperes.toFixed(2) }}</span> A</div>
         <div><span class="font-mono">{{ status.resistance.toFixed(2) }}</span> Ω</div>
       </div>
-      <div class="absolute bottom-[20%] ">
-        <ButtonPrimary
-          class="me-1"
-          :disabled="status.state !== DeviceState.Idle"
-          @click="start"
-        >
-          Start
-        </ButtonPrimary>
-        <ButtonDanger
-          class="ms-1"
-          :disabled="status.state !== DeviceState.Reflow"
-          @click="stop"
-        >
-          Stop
-        </ButtonDanger>
-      </div>
     </div>
-  </PageLayout>
+
+    <div class="flex justify-center">
+      <ButtonPrimary
+        class="me-1 mb-0"
+        :disabled="status.state !== DeviceState.Idle"
+        @click="start"
+      >
+        Start
+      </ButtonPrimary>
+      <ButtonDanger
+        class="ms-1 mb-0"
+        :disabled="status.state !== DeviceState.Reflow"
+        @click="stop"
+      >
+        Stop
+      </ButtonDanger>
+    </div>
+
+
+</PageLayout>
 </template>
 
 <style scoped>
