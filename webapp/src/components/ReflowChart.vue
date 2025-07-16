@@ -72,6 +72,16 @@ function buildChart() {
     .call(d3.axisBottom(x) as any);
 
   const line = d3.line((p: Point) => x(p.x), (p: Point) => y(p.y))
+  const area = d3.area<Point>()
+    .x(p => x(p.x))
+    .y0(y(Constants.START_TEMPERATURE))
+    .y1(p => y(p.y))
+
+  // Profile zigzag background area
+  d3.select('.pchart-profile-area').datum(profilePoints)
+    .transition()
+    .attr('d', area)
+    .attr('fill', `url(#profileGradient-${props.id})`)
 
   // Profile zigzag line
   d3.select('.pchart-profile-line').datum(profilePoints)
@@ -121,9 +131,16 @@ onUnmounted(() => {
 
 <template>
   <svg :id="props.id" width="100%" height="100%" ref="svgRef">
+    <defs>
+      <linearGradient :id="`profileGradient-${props.id}`" gradientUnits="objectBoundingBox" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" class="gradient-start" />
+        <stop offset="80%" class="gradient-end" />
+      </linearGradient>
+    </defs>
     <g class="root">
       <g class="x-axis"></g>
       <g class="y-axis"></g>
+      <path class="pchart-profile-area" />
       <path class="pchart-profile-line" />
       <path class="pchart-probe-line" />
       <path class="guide-vertical" />
@@ -156,5 +173,15 @@ onUnmounted(() => {
     stroke-width: 1px;
     stroke-dasharray: 3, 3;
     opacity: 0.3;
+  }
+
+  .gradient-start {
+    stop-color: steelblue;
+    stop-opacity: 0.3;
+  }
+
+  .gradient-end {
+    stop-color: steelblue;
+    stop-opacity: 0;
   }
 </style>
