@@ -202,14 +202,14 @@ module tray() {
         // Partially remove stifffeners for pi5 fan & air duct
         translate([-9+1, -38/2, wall_hor]) cube([52.5, 38, 2+e]);
         // Extra space for fan mounting
-        //for (i = fan_mount_coords) {
-        //    tr_xy(5, -15)
-        //    translate(i)
-        //    tr_z(wall_hor+e) mirror_z() {
-        //        cylinder(h=1, d=4.5);
-        //        //cylinder(h=1.3, d=2.5);
-        //    }
-        //}
+        for (i = fan_mount_coords) {
+            tr_xy(5, -15)
+            translate(i)
+            tr_z(wall_hor+e) mirror_z() {
+                cylinder(h=1.1, d=4.5);
+                //cylinder(h=1.3, d=2.5);
+            }
+        }
 
         // Partially remove stifffeners for pi5 fan connector
         //tr_xy(-pcb_wx/2 + 68.5, -pcb_wy/2 + 21) tr_z(wall_hor) cylinder(h=3, r=7);
