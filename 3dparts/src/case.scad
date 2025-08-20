@@ -6,7 +6,7 @@ $fn = $preview ? 16 : 64;
 
 // Inserts size for PCB mount (M1.6)
 insert_d = 2.5 + 0.1;
-insert_h = 4 + 0.3;
+insert_h = 4 + 1;
 insert_pcb_x_offset = 2.5;
 insert_pcb_y_offset = 25;
 
