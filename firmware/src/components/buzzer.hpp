@@ -22,7 +22,7 @@ public:
     static constexpr uint8_t IDLE_LEVEL = 0;
     #else
     static constexpr bool doubleOutput = true;
-    static constexpr uint8_t IDLE_LEVEL = 0;
+    static constexpr uint8_t IDLE_LEVEL = 1;
     #endif
 
     BuzzerDriver();

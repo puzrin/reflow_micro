@@ -27,7 +27,8 @@ void BuzzerDriver::sound(uint16_t freq_hz) {
     if (freq_hz == 0) {
         ledc_stop(LEDC_LOW_SPEED_MODE, PWM_CHANNEL_A, IDLE_LEVEL);
         if (doubleOutput) {
-            ledc_stop(LEDC_LOW_SPEED_MODE, PWM_CHANNEL_B, IDLE_LEVEL);
+            // Output is inverted (see below)
+            ledc_stop(LEDC_LOW_SPEED_MODE, PWM_CHANNEL_B, IDLE_LEVEL ? 0 : 1);
         }
         return;
     }

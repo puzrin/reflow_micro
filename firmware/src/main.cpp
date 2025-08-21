@@ -9,17 +9,6 @@ extern "C" {
 }
 
 extern "C" void app_main() {
-    // Temporary. Force heater off until control implemented.
-    gpio_config_t io_conf = {
-        .pin_bit_mask = (1ULL << GPIO_NUM_20),
-        .mode = GPIO_MODE_OUTPUT,
-        .pull_up_en = GPIO_PULLUP_DISABLE,
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_DISABLE
-    };
-    gpio_config(&io_conf);
-    gpio_set_level(GPIO_NUM_20, 0);
-
     logger_start();
     PrefsWriter::getInstance().start();
 
