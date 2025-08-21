@@ -16,6 +16,9 @@ Device assembly <!-- omit in toc -->
 
 ## Required components
 
+Note. If some Aliexpress links become broken - use description to find items in
+another shops. All important things are commented.
+
 ### General
 
 &nbsp; | Name | Comment
@@ -26,17 +29,16 @@ Device assembly <!-- omit in toc -->
 4 | [M1.6 black screws 8mm, cone cap](https://www.aliexpress.com/item/32431305716.html) | DIN965/GB819. MCH & RTD mount.
 5 | [M1.6 screws 3mm, flat cap](https://www.aliexpress.com/item/4000308042674.html) | Mount head reflector to head base.
 6 | [M1.6 screws 12mm, flat cap](https://www.aliexpress.com/item/4000308042674.html) | Fan mount.
-7 | [M1.6 screws 5m, flat cap](https://www.aliexpress.com/item/4000308042674.html) | PCB mount.
+7 | [M1.6 screws 6mm, flat cap](https://www.aliexpress.com/item/4000308042674.html) | PCB mount.
 8 | [M1.6 SS spring lock washers](https://www.aliexpress.com/item/32975233438.html) | MCH mount.
 9 | [M1.6 SS nuts](https://www.aliexpress.com/item/1005007593861199.html) | MCH mount.
-10 | [M1.6 brass insert nuts](https://www.aliexpress.com/item/1005008644449489.html) | MCH mount.
-11 | [MCH 70*14 1R](https://www.aliexpress.com/item/32966428374.html) | 2 heaters required, but buy 5-10 to match resistance.
+10 | [M1.6 insert nuts 4mm](https://www.aliexpress.com/item/1005008644449489.html) | MCH & PCB mount.
+11 | [MCH 70*14 2R](https://www.aliexpress.com/item/32966428374.html) | 2 heaters required, but buy 5-10 to match resistance.
 12 | [Soft silicone wire, 30 AWG, white](https://www.aliexpress.com/item/4001283806251.html) | RTD  mount.
-13 | Aluminum foil, 50μm (0.05mm) | Heater reflector. Such foil is sold for sauna insulation. You can also use foil from baking forms.
-14 | [Thermal conductive paste](https://www.aliexpress.com/item/1005006085448629.html) | [Alternate](https://www.aliexpress.com/item/32870824982.html). Should work at 300°C. Don't try cheap ones.
-15 | [Magnets 6x6mm](https://www.aliexpress.com/item/1005005114069840.html) | Cap lock. If buy in other place - check height and adjust case appropriately.
-16 | [esp32-c3](https://www.aliexpress.com/item/1005004386637738.html) (optional) | If not available at LCSC, model ESP32-C3-WROOM-02-N4.
-17 | Black paint | High temperature paint, aerosol (used for barbecue / stovespray), to cover heating plate top.
+13 | [Thermal conductive paste](https://www.aliexpress.com/item/1005002400161049.html) | Use Thermal Grizzly Kryonaut. The paste should work at 300°C. Don't try cheap ones.
+14 | [Magnets 6x6mm](https://www.aliexpress.com/item/1005005114069840.html) | Cap lock. If buy in other place - check height and adjust case appropriately. You can stack 6x3mm or even 6x2mm.
+15 | [esp32-c3](https://www.aliexpress.com/item/1005004386637738.html) (optional) | If not available at LCSC, model ESP32-C3-WROOM-02-N4.
+16 | Black paint | High temperature paint, aerosol (used for barbecue / stovespray), to cover heating plate top.
 
 Note. You are strongly advised to order SMT stencil for your PCB. That will
 add ~ 8$ in total to your order - good price for convenience.
@@ -44,16 +46,17 @@ add ~ 8$ in total to your order - good price for convenience.
 
 ### Other (optional)
 
+Consider this as a checklist. All depends on equipment you already have.
+
 &nbsp; | Name | Comment
 -------|------|--------
-1 | 100W USB PD changer with PPS | 21v/5A PPS profile required. [Voltme 100W](https://www.aliexpress.com/item/1005004624922429.html), [Voltme 140W](https://www.aliexpress.com/item/1005004777502660.html), [Essager 100W](https://www.aliexpress.com/item/1005006436990810.html). If you prefer different one - make sure required power profile is supported, that's important.
-2 | [Digital thermometer](https://www.aliexpress.com/item/32815540975.html) | [Alternate](https://www.aliexpress.com/item/32803473451.html) | For temperature calibration.
+1 | 140W USB PD changer | 28v profile required. Also support of 21v/5A PPS profile is highly recommended.
+2 | Digital thermometer with K-probe | For temperature calibration.
 3 | [Soldering air gun](https://www.aliexpress.com/item/1005006099512955.html) | For PCB assembly.
-4 | [Low temp soldering paste](https://www.aliexpress.com/item/1005006023229246.html) | Sn42bi58, 138°C, for PCB assembly. [Alternate](https://www.aliexpress.com/item/1005006724027713.html).
+4 | Low temp soldering paste | Sn42bi58, 138°C, for PCB assembly. You can use standard leaded paste, not a problem, but low temp paste is more convenient.
 5 | [Milliohm meter](https://www.aliexpress.com/item/1005006408703765.html) | For MCH heaters pairing. 5v PD trigger recommended for convenient 5v power from USB.
 6 | [Dental diamond disk](https://www.aliexpress.com/item/4001138228461.html) | For SS clamps cut. Don't forget to buy mandrel.
-7 | 217°C soldering paste | Solder RTD wires
-8 | 138°C soldering paste | Solder everything except RTD
+7 | 217°C soldering paste | Solder RTD wires.
 
 
 ## JLCPCB / LCSC order notes
