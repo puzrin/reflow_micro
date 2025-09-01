@@ -1,6 +1,6 @@
 #pragma once
 
-#include "jetlog/jetlog.hpp"
+#include <jetlog/jetlog.hpp>
 
 using Logger = jetlog::Writer<>;
 
