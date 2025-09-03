@@ -88,25 +88,23 @@ typedef struct _HistoryChunk {
     Point data[100];
 } HistoryChunk;
 
-typedef struct _AdrcParams {
+typedef struct _HeadParams {
+    /* Temperature sensor calibration data */
+    float sensor_p0_temperature;
+    float sensor_p0_value;
+    float sensor_p1_temperature;
+    float sensor_p1_value;
     /* System response time (when temperature reaches 63% of final value) */
-    float response;
+    float adrc_response;
     /* Scale. Max derivative / power */
-    float b0;
+    float adrc_b0;
     /* ω_observer = N / τ. Usually 3..10
  5 is good for the start. Increase until oscillates, then back 10-20%. */
-    float N;
+    float adrc_N;
     /* ω_controller = ω_observer / M. Usually 2..5
  3 is a good for the start. Probably, changes not required. */
-    float M;
-} AdrcParams;
-
-typedef struct _SensorParams {
-    float p0_temperature;
-    float p0_value;
-    float p1_temperature;
-    float p1_value;
-} SensorParams;
+    float adrc_M;
+} HeadParams;
 
 
 #ifdef __cplusplus
@@ -139,7 +137,6 @@ extern "C" {
 
 
 
-
 /* Initializer values for message structs */
 #define DeviceStatus_init_default                {_DeviceState_MIN, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define Segment_init_default                     {0, 0}
@@ -147,16 +144,14 @@ extern "C" {
 #define ProfilesData_init_default                {0, {Profile_init_default, Profile_init_default, Profile_init_default, Profile_init_default, Profile_init_default, Profile_init_default, Profile_init_default, Profile_init_default, Profile_init_default, Profile_init_default}, 0}
 #define Point_init_default                       {0, 0}
 #define HistoryChunk_init_default                {0, 0, 0, {Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default}}
-#define AdrcParams_init_default                  {0, 0, 0, 0}
-#define SensorParams_init_default                {0, 0, 0, 0}
+#define HeadParams_init_default                  {0, 0, 0, 0, 0, 0, 0, 0}
 #define DeviceStatus_init_zero                   {_DeviceState_MIN, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define Segment_init_zero                        {0, 0}
 #define Profile_init_zero                        {0, "", 0, {Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero}}
 #define ProfilesData_init_zero                   {0, {Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero}, 0}
 #define Point_init_zero                          {0, 0}
 #define HistoryChunk_init_zero                   {0, 0, 0, {Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero}}
-#define AdrcParams_init_zero                     {0, 0, 0, 0}
-#define SensorParams_init_zero                   {0, 0, 0, 0}
+#define HeadParams_init_zero                     {0, 0, 0, 0, 0, 0, 0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define DeviceStatus_state_tag                   1
@@ -181,14 +176,14 @@ extern "C" {
 #define HistoryChunk_type_tag                    1
 #define HistoryChunk_version_tag                 2
 #define HistoryChunk_data_tag                    3
-#define AdrcParams_response_tag                  1
-#define AdrcParams_b0_tag                        2
-#define AdrcParams_N_tag                         3
-#define AdrcParams_M_tag                         4
-#define SensorParams_p0_temperature_tag          1
-#define SensorParams_p0_value_tag                2
-#define SensorParams_p1_temperature_tag          3
-#define SensorParams_p1_value_tag                4
+#define HeadParams_sensor_p0_temperature_tag     1
+#define HeadParams_sensor_p0_value_tag           2
+#define HeadParams_sensor_p1_temperature_tag     3
+#define HeadParams_sensor_p1_value_tag           4
+#define HeadParams_adrc_response_tag             5
+#define HeadParams_adrc_b0_tag                   6
+#define HeadParams_adrc_N_tag                    7
+#define HeadParams_adrc_M_tag                    8
 
 /* Struct field encoding specification for nanopb */
 #define DeviceStatus_FIELDLIST(X, a) \
@@ -240,21 +235,17 @@ X(a, STATIC,   REPEATED, MESSAGE,  data,              3)
 #define HistoryChunk_DEFAULT NULL
 #define HistoryChunk_data_MSGTYPE Point
 
-#define AdrcParams_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, FLOAT,    response,          1) \
-X(a, STATIC,   SINGULAR, FLOAT,    b0,                2) \
-X(a, STATIC,   SINGULAR, FLOAT,    N,                 3) \
-X(a, STATIC,   SINGULAR, FLOAT,    M,                 4)
-#define AdrcParams_CALLBACK NULL
-#define AdrcParams_DEFAULT NULL
-
-#define SensorParams_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, FLOAT,    p0_temperature,    1) \
-X(a, STATIC,   SINGULAR, FLOAT,    p0_value,          2) \
-X(a, STATIC,   SINGULAR, FLOAT,    p1_temperature,    3) \
-X(a, STATIC,   SINGULAR, FLOAT,    p1_value,          4)
-#define SensorParams_CALLBACK NULL
-#define SensorParams_DEFAULT NULL
+#define HeadParams_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, FLOAT,    sensor_p0_temperature,   1) \
+X(a, STATIC,   SINGULAR, FLOAT,    sensor_p0_value,   2) \
+X(a, STATIC,   SINGULAR, FLOAT,    sensor_p1_temperature,   3) \
+X(a, STATIC,   SINGULAR, FLOAT,    sensor_p1_value,   4) \
+X(a, STATIC,   SINGULAR, FLOAT,    adrc_response,     5) \
+X(a, STATIC,   SINGULAR, FLOAT,    adrc_b0,           6) \
+X(a, STATIC,   SINGULAR, FLOAT,    adrc_N,            7) \
+X(a, STATIC,   SINGULAR, FLOAT,    adrc_M,            8)
+#define HeadParams_CALLBACK NULL
+#define HeadParams_DEFAULT NULL
 
 extern const pb_msgdesc_t DeviceStatus_msg;
 extern const pb_msgdesc_t Segment_msg;
@@ -262,8 +253,7 @@ extern const pb_msgdesc_t Profile_msg;
 extern const pb_msgdesc_t ProfilesData_msg;
 extern const pb_msgdesc_t Point_msg;
 extern const pb_msgdesc_t HistoryChunk_msg;
-extern const pb_msgdesc_t AdrcParams_msg;
-extern const pb_msgdesc_t SensorParams_msg;
+extern const pb_msgdesc_t HeadParams_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define DeviceStatus_fields &DeviceStatus_msg
@@ -272,18 +262,16 @@ extern const pb_msgdesc_t SensorParams_msg;
 #define ProfilesData_fields &ProfilesData_msg
 #define Point_fields &Point_msg
 #define HistoryChunk_fields &HistoryChunk_msg
-#define AdrcParams_fields &AdrcParams_msg
-#define SensorParams_fields &SensorParams_msg
+#define HeadParams_fields &HeadParams_msg
 
 /* Maximum encoded size of messages (where known) */
-#define AdrcParams_size                          20
 #define DeviceStatus_size                        45
+#define HeadParams_size                          40
 #define HistoryChunk_size                        1222
 #define Point_size                               10
 #define Profile_size                             303
 #define ProfilesData_size                        3071
 #define Segment_size                             22
-#define SensorParams_size                        20
 #define TYPES_PB_H_MAX_SIZE                      ProfilesData_size
 
 #ifdef __cplusplus

@@ -1,5 +1,5 @@
 import { Device, type IBackend } from '@/device'
-import { ProfilesData, AdrcParams, SensorParams, HistoryChunk, DeviceStatus, Constants } from '@/proto/generated/types'
+import { ProfilesData, HeadParams, HistoryChunk, DeviceStatus, Constants } from '@/proto/generated/types'
 import { BleRpcClient } from '../../../src/lib/ble/BleRpcClient';
 
 export class BleBackend implements IBackend {
@@ -122,21 +122,12 @@ export class BleBackend implements IBackend {
     this.bleRpcClient.invoke('run_step_response', watts)
   }
 
-  async set_sensor_calibration_point(point_id: (0 | 1), temperature: number) {
-    this.bleRpcClient.invoke('set_sensor_calibration_point', point_id, temperature)
+  async get_head_params(): Promise<HeadParams> {
+    const pb_head_params: Uint8Array = await this.bleRpcClient.invoke('get_head_params') as Uint8Array
+    return HeadParams.decode(pb_head_params)
   }
 
-  async get_sensor_params(): Promise<SensorParams> {
-    const pb_sensor_params: Uint8Array = await this.bleRpcClient.invoke('get_sensor_params') as Uint8Array
-    return SensorParams.decode(pb_sensor_params)
-  }
-
-  async set_adrc_params(config: AdrcParams): Promise<void> {
-    this.bleRpcClient.invoke('set_adrc_params', AdrcParams.encode(config).finish())
-  }
-
-  async get_adrc_params(): Promise<AdrcParams> {
-    const pb_adrc_params: Uint8Array = await this.bleRpcClient.invoke('get_adrc_params') as Uint8Array
-    return AdrcParams.decode(pb_adrc_params)
+  async set_head_params(config: HeadParams): Promise<void> {
+    this.bleRpcClient.invoke('set_head_params', HeadParams.encode(config).finish())
   }
 }

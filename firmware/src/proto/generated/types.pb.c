@@ -24,10 +24,7 @@ PB_BIND(Point, Point, AUTO)
 PB_BIND(HistoryChunk, HistoryChunk, 2)
 
 
-PB_BIND(AdrcParams, AdrcParams, AUTO)
-
-
-PB_BIND(SensorParams, SensorParams, AUTO)
+PB_BIND(HeadParams, HeadParams, AUTO)
 
 
 

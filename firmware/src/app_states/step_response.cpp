@@ -90,13 +90,13 @@ private:
             static_cast<int>(time_63),
             b0_str.c_str());
 
-        AdrcParams adrc_params;
-        heater.get_adrc_params(adrc_params);
+        HeadParams p;
+        heater.get_head_params(p);
 
-        adrc_params.response = time_63;
-        adrc_params.b0 = b0;
+        p.adrc_response = time_63;
+        p.adrc_b0 = b0;
 
-        heater.set_adrc_params(adrc_params);
+        heater.set_head_params(p);
 
         heater.task_stop();
         app.receive(AppCmd::Stop());

@@ -4,62 +4,33 @@
 #include <algorithm>
 #include <memory>
 
-auto HeaterBase::get_adrc_params(std::vector<uint8_t>& pb_data) -> bool {
+auto HeaterBase::get_head_params(std::vector<uint8_t>& pb_data) -> bool {
     if (!is_hotplate_connected()) { return false; }
 
-    pb_data = adrc_params[get_hotplate_id()].get();
+    pb_data = head_params.get();
     return true;
 }
 
-auto HeaterBase::get_adrc_params(AdrcParams& params) -> bool {
+auto HeaterBase::get_head_params(HeadParams& params) -> bool {
     if (!is_hotplate_connected()) { return false; }
 
-    return pb2struct(adrc_params[get_hotplate_id()].get(), params, AdrcParams_fields);
+    return pb2struct(head_params.get(), params, HeadParams_fields);
 }
 
-auto HeaterBase::set_adrc_params(const std::vector<uint8_t> &pb_data) -> bool {
+auto HeaterBase::set_head_params(const std::vector<uint8_t> &pb_data) -> bool {
     if (!is_hotplate_connected()) { return false; }
 
-    adrc_params[get_hotplate_id()].set(pb_data);
+    head_params.set(pb_data);
     return true;
 }
 
-auto HeaterBase::set_adrc_params(const AdrcParams& params) -> bool {
+auto HeaterBase::set_head_params(const HeadParams& params) -> bool {
     if (!is_hotplate_connected()) { return false; }
 
-    std::vector<uint8_t> pb_data(AdrcParams_size);
-    if (!struct2pb(params, pb_data, AdrcParams_fields, AdrcParams_size)) { return false; }
+    std::vector<uint8_t> pb_data(HeadParams_size);
+    if (!struct2pb(params, pb_data, HeadParams_fields, HeadParams_size)) { return false; }
 
-    adrc_params[get_hotplate_id()].set(pb_data);
-    return true;
-}
-
-auto HeaterBase::get_sensor_params(std::vector<uint8_t>& pb_data) -> bool {
-    if (!is_hotplate_connected()) { return false; }
-
-    pb_data = sensor_params[get_hotplate_id()].get();
-    return true;
-}
-
-auto HeaterBase::get_sensor_params(SensorParams& params) -> bool {
-    if (!is_hotplate_connected()) { return false; }
-
-    return pb2struct(sensor_params[get_hotplate_id()].get(), params, SensorParams_fields);
-}
-auto HeaterBase::set_sensor_params(const std::vector<uint8_t>& pb_data) -> bool {
-    if (!is_hotplate_connected()) { return false; }
-
-    sensor_params[get_hotplate_id()].set(pb_data);
-    return true;
-}
-
-auto HeaterBase::set_sensor_params(const SensorParams& params) -> bool {
-    if (!is_hotplate_connected()) { return false; }
-
-    std::vector<uint8_t> pb_data(SensorParams_size);
-    if (!struct2pb(params, pb_data, SensorParams_fields, SensorParams_size)) { return false; }
-
-    sensor_params[get_hotplate_id()].set(pb_data);
+    head_params.set(pb_data);
     return true;
 }
 
@@ -115,9 +86,9 @@ void HeaterBase::get_history(int32_t client_history_version, float from, std::ve
 
 
 auto HeaterBase::load_all_params() -> bool {
-    AdrcParams p;
-    if (!get_adrc_params(p)) { return false; }
-    adrc.set_params(p.b0, p.response, p.N, p.M);
+    HeadParams p;
+    if (!get_head_params(p)) { return false; }
+    adrc.set_params(p.adrc_b0, p.adrc_response, p.adrc_N, p.adrc_M);
     return true;
 }
 

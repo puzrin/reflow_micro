@@ -7,8 +7,8 @@ import { Device } from '@/device'
 import ReflowChart from '@/components/ReflowChart.vue'
 import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
 import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
-import { AdrcParams, DeviceState, Constants } from '@/proto/generated/types'
-import { DEFAULT_ADRC_PARAMS_PB } from '@/proto/generated/defaults'
+import { HeadParams, DeviceState, Constants } from '@/proto/generated/types'
+import { DEFAULT_HEAD_PARAMS_PB } from '@/proto/generated/defaults'
 
 const device: Device = inject('device')!
 
@@ -37,15 +37,15 @@ function toPrecisionStr(num: number, valuableDigits: number = 2): string {
   return Number(num.toPrecision(valuableDigits)).toString();
 }
 
-function configToRefs(config: AdrcParams) {
-  adrc_param_tau.value = toPrecisionStr(config.response, 3)
-  adrc_param_b0.value = toPrecisionStr(config.b0, 3)
-  adrc_param_n.value = toPrecisionStr(config.N, 3)
-  adrc_param_m.value = toPrecisionStr(config.M, 3)
+function configToRefs(config: HeadParams) {
+  adrc_param_tau.value = toPrecisionStr(config.adrc_response, 3)
+  adrc_param_b0.value = toPrecisionStr(config.adrc_b0, 3)
+  adrc_param_n.value = toPrecisionStr(config.adrc_N, 3)
+  adrc_param_m.value = toPrecisionStr(config.adrc_M, 3)
 }
 
 onMounted(async () => {
-  configToRefs(await device.get_adrc_params())
+  configToRefs(await device.get_head_params())
 })
 
 onBeforeRouteLeave(async () => {
@@ -64,7 +64,7 @@ watchDebounced(test_temperature, async () => {
 // Reload ADRC settings when finish any task
 watch(() => device.status.value.state, async (newState) => {
   if (newState === DeviceState.Idle) {
-    configToRefs(await device.get_adrc_params())
+    configToRefs(await device.get_head_params())
   }
 })
 
@@ -89,19 +89,19 @@ async function save_adrc_params() {
   adrc_error_n.value = false
   adrc_error_m.value = false
 
-  const adrc_config: AdrcParams = {
-    response: toNumber(adrc_param_tau.value),
-    b0: toNumber(adrc_param_b0.value),
-    N: toNumber(adrc_param_n.value),
-    M: toNumber(adrc_param_m.value),
-  }
-  await device.set_adrc_params(adrc_config)
+  const head_params = await device.get_head_params()
+  head_params.adrc_response = toNumber(adrc_param_tau.value)
+  head_params.adrc_b0 = toNumber(adrc_param_b0.value)
+  head_params.adrc_N = toNumber(adrc_param_n.value)
+  head_params.adrc_M = toNumber(adrc_param_m.value)
+  await device.set_head_params(head_params)
+
   saveBtn.value?.showSuccess();
-  configToRefs(await device.get_adrc_params())
+  configToRefs(await device.get_head_params())
 }
 
 async function default_adrc_params() {
-  configToRefs(AdrcParams.decode(DEFAULT_ADRC_PARAMS_PB))
+  configToRefs(HeadParams.decode(DEFAULT_HEAD_PARAMS_PB))
   resetBtn.value?.showSuccess()
 }
 </script>

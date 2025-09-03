@@ -200,28 +200,26 @@ export interface HistoryChunk {
   data: Point[];
 }
 
-export interface AdrcParams {
+export interface HeadParams {
+  /** Temperature sensor calibration data */
+  sensor_p0_temperature: number;
+  sensor_p0_value: number;
+  sensor_p1_temperature: number;
+  sensor_p1_value: number;
   /** System response time (when temperature reaches 63% of final value) */
-  response: number;
+  adrc_response: number;
   /** Scale. Max derivative / power */
-  b0: number;
+  adrc_b0: number;
   /**
    * ω_observer = N / τ. Usually 3..10
    * 5 is good for the start. Increase until oscillates, then back 10-20%.
    */
-  N: number;
+  adrc_N: number;
   /**
    * ω_controller = ω_observer / M. Usually 2..5
    * 3 is a good for the start. Probably, changes not required.
    */
-  M: number;
-}
-
-export interface SensorParams {
-  p0_temperature: number;
-  p0_value: number;
-  p1_temperature: number;
-  p1_value: number;
+  adrc_M: number;
 }
 
 function createBaseDeviceStatus(): DeviceStatus {
@@ -851,31 +849,52 @@ export const HistoryChunk: MessageFns<HistoryChunk> = {
   },
 };
 
-function createBaseAdrcParams(): AdrcParams {
-  return { response: 0, b0: 0, N: 0, M: 0 };
+function createBaseHeadParams(): HeadParams {
+  return {
+    sensor_p0_temperature: 0,
+    sensor_p0_value: 0,
+    sensor_p1_temperature: 0,
+    sensor_p1_value: 0,
+    adrc_response: 0,
+    adrc_b0: 0,
+    adrc_N: 0,
+    adrc_M: 0,
+  };
 }
 
-export const AdrcParams: MessageFns<AdrcParams> = {
-  encode(message: AdrcParams, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.response !== 0) {
-      writer.uint32(13).float(message.response);
+export const HeadParams: MessageFns<HeadParams> = {
+  encode(message: HeadParams, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.sensor_p0_temperature !== 0) {
+      writer.uint32(13).float(message.sensor_p0_temperature);
     }
-    if (message.b0 !== 0) {
-      writer.uint32(21).float(message.b0);
+    if (message.sensor_p0_value !== 0) {
+      writer.uint32(21).float(message.sensor_p0_value);
     }
-    if (message.N !== 0) {
-      writer.uint32(29).float(message.N);
+    if (message.sensor_p1_temperature !== 0) {
+      writer.uint32(29).float(message.sensor_p1_temperature);
     }
-    if (message.M !== 0) {
-      writer.uint32(37).float(message.M);
+    if (message.sensor_p1_value !== 0) {
+      writer.uint32(37).float(message.sensor_p1_value);
+    }
+    if (message.adrc_response !== 0) {
+      writer.uint32(45).float(message.adrc_response);
+    }
+    if (message.adrc_b0 !== 0) {
+      writer.uint32(53).float(message.adrc_b0);
+    }
+    if (message.adrc_N !== 0) {
+      writer.uint32(61).float(message.adrc_N);
+    }
+    if (message.adrc_M !== 0) {
+      writer.uint32(69).float(message.adrc_M);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): AdrcParams {
+  decode(input: BinaryReader | Uint8Array, length?: number): HeadParams {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseAdrcParams();
+    const message = createBaseHeadParams();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -884,7 +903,7 @@ export const AdrcParams: MessageFns<AdrcParams> = {
             break;
           }
 
-          message.response = reader.float();
+          message.sensor_p0_temperature = reader.float();
           continue;
         }
         case 2: {
@@ -892,7 +911,7 @@ export const AdrcParams: MessageFns<AdrcParams> = {
             break;
           }
 
-          message.b0 = reader.float();
+          message.sensor_p0_value = reader.float();
           continue;
         }
         case 3: {
@@ -900,7 +919,7 @@ export const AdrcParams: MessageFns<AdrcParams> = {
             break;
           }
 
-          message.N = reader.float();
+          message.sensor_p1_temperature = reader.float();
           continue;
         }
         case 4: {
@@ -908,7 +927,39 @@ export const AdrcParams: MessageFns<AdrcParams> = {
             break;
           }
 
-          message.M = reader.float();
+          message.sensor_p1_value = reader.float();
+          continue;
+        }
+        case 5: {
+          if (tag !== 45) {
+            break;
+          }
+
+          message.adrc_response = reader.float();
+          continue;
+        }
+        case 6: {
+          if (tag !== 53) {
+            break;
+          }
+
+          message.adrc_b0 = reader.float();
+          continue;
+        }
+        case 7: {
+          if (tag !== 61) {
+            break;
+          }
+
+          message.adrc_N = reader.float();
+          continue;
+        }
+        case 8: {
+          if (tag !== 69) {
+            break;
+          }
+
+          message.adrc_M = reader.float();
           continue;
         }
       }
@@ -920,149 +971,61 @@ export const AdrcParams: MessageFns<AdrcParams> = {
     return message;
   },
 
-  fromJSON(object: any): AdrcParams {
+  fromJSON(object: any): HeadParams {
     return {
-      response: isSet(object.response) ? globalThis.Number(object.response) : 0,
-      b0: isSet(object.b0) ? globalThis.Number(object.b0) : 0,
-      N: isSet(object.N) ? globalThis.Number(object.N) : 0,
-      M: isSet(object.M) ? globalThis.Number(object.M) : 0,
+      sensor_p0_temperature: isSet(object.sensor_p0_temperature) ? globalThis.Number(object.sensor_p0_temperature) : 0,
+      sensor_p0_value: isSet(object.sensor_p0_value) ? globalThis.Number(object.sensor_p0_value) : 0,
+      sensor_p1_temperature: isSet(object.sensor_p1_temperature) ? globalThis.Number(object.sensor_p1_temperature) : 0,
+      sensor_p1_value: isSet(object.sensor_p1_value) ? globalThis.Number(object.sensor_p1_value) : 0,
+      adrc_response: isSet(object.adrc_response) ? globalThis.Number(object.adrc_response) : 0,
+      adrc_b0: isSet(object.adrc_b0) ? globalThis.Number(object.adrc_b0) : 0,
+      adrc_N: isSet(object.adrc_N) ? globalThis.Number(object.adrc_N) : 0,
+      adrc_M: isSet(object.adrc_M) ? globalThis.Number(object.adrc_M) : 0,
     };
   },
 
-  toJSON(message: AdrcParams): unknown {
+  toJSON(message: HeadParams): unknown {
     const obj: any = {};
-    if (message.response !== 0) {
-      obj.response = message.response;
+    if (message.sensor_p0_temperature !== 0) {
+      obj.sensor_p0_temperature = message.sensor_p0_temperature;
     }
-    if (message.b0 !== 0) {
-      obj.b0 = message.b0;
+    if (message.sensor_p0_value !== 0) {
+      obj.sensor_p0_value = message.sensor_p0_value;
     }
-    if (message.N !== 0) {
-      obj.N = message.N;
+    if (message.sensor_p1_temperature !== 0) {
+      obj.sensor_p1_temperature = message.sensor_p1_temperature;
     }
-    if (message.M !== 0) {
-      obj.M = message.M;
+    if (message.sensor_p1_value !== 0) {
+      obj.sensor_p1_value = message.sensor_p1_value;
+    }
+    if (message.adrc_response !== 0) {
+      obj.adrc_response = message.adrc_response;
+    }
+    if (message.adrc_b0 !== 0) {
+      obj.adrc_b0 = message.adrc_b0;
+    }
+    if (message.adrc_N !== 0) {
+      obj.adrc_N = message.adrc_N;
+    }
+    if (message.adrc_M !== 0) {
+      obj.adrc_M = message.adrc_M;
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<AdrcParams>, I>>(base?: I): AdrcParams {
-    return AdrcParams.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<HeadParams>, I>>(base?: I): HeadParams {
+    return HeadParams.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<AdrcParams>, I>>(object: I): AdrcParams {
-    const message = createBaseAdrcParams();
-    message.response = object.response ?? 0;
-    message.b0 = object.b0 ?? 0;
-    message.N = object.N ?? 0;
-    message.M = object.M ?? 0;
-    return message;
-  },
-};
-
-function createBaseSensorParams(): SensorParams {
-  return { p0_temperature: 0, p0_value: 0, p1_temperature: 0, p1_value: 0 };
-}
-
-export const SensorParams: MessageFns<SensorParams> = {
-  encode(message: SensorParams, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.p0_temperature !== 0) {
-      writer.uint32(13).float(message.p0_temperature);
-    }
-    if (message.p0_value !== 0) {
-      writer.uint32(21).float(message.p0_value);
-    }
-    if (message.p1_temperature !== 0) {
-      writer.uint32(29).float(message.p1_temperature);
-    }
-    if (message.p1_value !== 0) {
-      writer.uint32(37).float(message.p1_value);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): SensorParams {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseSensorParams();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 13) {
-            break;
-          }
-
-          message.p0_temperature = reader.float();
-          continue;
-        }
-        case 2: {
-          if (tag !== 21) {
-            break;
-          }
-
-          message.p0_value = reader.float();
-          continue;
-        }
-        case 3: {
-          if (tag !== 29) {
-            break;
-          }
-
-          message.p1_temperature = reader.float();
-          continue;
-        }
-        case 4: {
-          if (tag !== 37) {
-            break;
-          }
-
-          message.p1_value = reader.float();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): SensorParams {
-    return {
-      p0_temperature: isSet(object.p0_temperature) ? globalThis.Number(object.p0_temperature) : 0,
-      p0_value: isSet(object.p0_value) ? globalThis.Number(object.p0_value) : 0,
-      p1_temperature: isSet(object.p1_temperature) ? globalThis.Number(object.p1_temperature) : 0,
-      p1_value: isSet(object.p1_value) ? globalThis.Number(object.p1_value) : 0,
-    };
-  },
-
-  toJSON(message: SensorParams): unknown {
-    const obj: any = {};
-    if (message.p0_temperature !== 0) {
-      obj.p0_temperature = message.p0_temperature;
-    }
-    if (message.p0_value !== 0) {
-      obj.p0_value = message.p0_value;
-    }
-    if (message.p1_temperature !== 0) {
-      obj.p1_temperature = message.p1_temperature;
-    }
-    if (message.p1_value !== 0) {
-      obj.p1_value = message.p1_value;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<SensorParams>, I>>(base?: I): SensorParams {
-    return SensorParams.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<SensorParams>, I>>(object: I): SensorParams {
-    const message = createBaseSensorParams();
-    message.p0_temperature = object.p0_temperature ?? 0;
-    message.p0_value = object.p0_value ?? 0;
-    message.p1_temperature = object.p1_temperature ?? 0;
-    message.p1_value = object.p1_value ?? 0;
+  fromPartial<I extends Exact<DeepPartial<HeadParams>, I>>(object: I): HeadParams {
+    const message = createBaseHeadParams();
+    message.sensor_p0_temperature = object.sensor_p0_temperature ?? 0;
+    message.sensor_p0_value = object.sensor_p0_value ?? 0;
+    message.sensor_p1_temperature = object.sensor_p1_temperature ?? 0;
+    message.sensor_p1_value = object.sensor_p1_value ?? 0;
+    message.adrc_response = object.adrc_response ?? 0;
+    message.adrc_b0 = object.adrc_b0 ?? 0;
+    message.adrc_N = object.adrc_N ?? 0;
+    message.adrc_M = object.adrc_M ?? 0;
     return message;
   },
 };

@@ -46,9 +46,9 @@ export function* task_step_response(backend: VirtualBackend, watts: number) {
 
   console.log(`Temperature = ${temperature_63}, time = ${time_63}, b0 = ${b0}`)
 
-  const adrc_params = backend.pick_adrc_params()
-  adrc_params.response = time_63
-  adrc_params.b0 = b0
-  backend.set_adrc_params(adrc_params)
+  const head_params = backend.pick_head_params()
+  head_params.adrc_response = time_63
+  head_params.adrc_b0 = b0
+  backend.set_head_params(head_params)
   backend.stop()
 }

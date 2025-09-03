@@ -7,7 +7,7 @@ import { task_sensor_bake } from './tasks/task_sensor_bake'
 import { task_adrc_test } from './tasks/task_adrc_test'
 import { task_reflow } from './tasks/task_reflow'
 import { task_step_response } from './tasks/task_step_response'
-import { ProfilesData, AdrcParams, SensorParams, HistoryChunk, DeviceState, Constants } from '@/proto/generated/types'
+import { ProfilesData, HeadParams, HistoryChunk, DeviceState, Constants } from '@/proto/generated/types'
 import { DEFAULT_PROFILES_DATA_PB } from '@/proto/generated/defaults'
 
 // Tick step in ms, 10Hz.
@@ -214,39 +214,24 @@ export class VirtualBackend implements IBackend {
     this.task_iterator = task_step_response(this, watts)
   }
 
-  async set_sensor_calibration_point(point_id: (0 | 1), temperature: number) {
-    const sensor_params = await this.get_sensor_params()
-
-    if (point_id === 0) sensor_params.p0_temperature = temperature
-    else sensor_params.p1_temperature = temperature
-
-    const virtualBackendStore = useVirtualBackendStore()
-    virtualBackendStore.rawSensorParams = SensorParams.toJSON(sensor_params)
-  }
-
-  async get_sensor_params(): Promise<SensorParams> {
-    const virtualBackendStore = useVirtualBackendStore()
-    return structuredClone(SensorParams.fromJSON(virtualBackendStore.rawSensorParams))
-  }
-
-  async set_adrc_params(config: AdrcParams): Promise<void> {
-    const virtualBackendStore = useVirtualBackendStore()
-    virtualBackendStore.rawAdrcParams = AdrcParams.toJSON(config)
-  }
-
   // Sync, for local use from tasks
-  pick_adrc_params(): AdrcParams {
+  pick_head_params(): HeadParams {
     const virtualBackendStore = useVirtualBackendStore()
-    return structuredClone(AdrcParams.fromJSON(virtualBackendStore.rawAdrcParams))
+    return structuredClone(HeadParams.fromJSON(virtualBackendStore.rawHeadParams))
   }
 
-  async get_adrc_params(): Promise<AdrcParams> {
-    return this.pick_adrc_params()
+  async get_head_params(): Promise<HeadParams> {
+    return this.pick_head_params()
+  }
+
+  async set_head_params(config: HeadParams): Promise<void> {
+    const virtualBackendStore = useVirtualBackendStore()
+    virtualBackendStore.rawHeadParams = HeadParams.toJSON(config)
   }
 
   heat_control_on() {
-    const adrc_params = this.pick_adrc_params()
-    this.heater.adrc.set_params(adrc_params.b0, adrc_params.response, adrc_params.N, adrc_params.M)
+    const head_params = this.pick_head_params()
+    this.heater.adrc.set_params(head_params.adrc_b0, head_params.adrc_response, head_params.adrc_N, head_params.adrc_M)
     this.heater.temperature_control_on()
   }
 

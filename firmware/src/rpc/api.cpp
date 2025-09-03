@@ -75,43 +75,24 @@ auto run_step_response(float watts) -> bool {
     return application.get_state_id() == DeviceState_StepResponse;
 }
 
-auto set_sensor_calibration_point(uint32_t point_id, float temperature) -> bool {
+std::vector<uint8_t> get_head_params() {
+    std::vector<uint8_t> pb_data(HeadParams_size);
     if (!application.heater.is_hotplate_connected() ||
-        !application.heater.set_sensor_calibration_point(point_id, temperature))
-    {
-        throw std::runtime_error("Hotplate is not connected");
-    }
-    return true;
-}
-
-std::vector<uint8_t> get_sensor_params() {
-    std::vector<uint8_t> pb_data(SensorParams_size);
-    if (!application.heater.is_hotplate_connected() ||
-        !application.heater.get_sensor_params(pb_data))
-    {
-        throw std::runtime_error("Hotplate is not connected");
-    }
-    return pb_data;
-}
-
-auto set_adrc_params(std::vector<uint8_t> pb_data) -> bool {
-    if (!application.heater.is_hotplate_connected() ||
-        !application.heater.set_adrc_params(pb_data))
-    {
-        throw std::runtime_error("Hotplate is not connected");
-    }
-    return true;
-}
-
-std::vector<uint8_t> get_adrc_params() {
-    std::vector<uint8_t> pb_data(AdrcParams_size);
-    if (!application.heater.is_hotplate_connected() ||
-        !application.heater.get_adrc_params(pb_data))
+        !application.heater.get_head_params(pb_data))
     {
         throw std::runtime_error("Hotplate is not connected");
     }
 
     return pb_data;
+}
+
+auto set_head_params(std::vector<uint8_t> pb_data) -> bool {
+    if (!application.heater.is_hotplate_connected() ||
+        !application.heater.set_head_params(pb_data))
+    {
+        throw std::runtime_error("Hotplate is not connected");
+    }
+    return true;
 }
 
 } // namespace
@@ -126,8 +107,6 @@ void api_methods_create() {
     rpc.addMethod("run_sensor_bake", run_sensor_bake);
     rpc.addMethod("run_adrc_test", run_adrc_test);
     rpc.addMethod("run_step_response", run_step_response);
-    rpc.addMethod("set_sensor_calibration_point", set_sensor_calibration_point);
-    rpc.addMethod("get_sensor_params", get_sensor_params);
-    rpc.addMethod("set_adrc_params", set_adrc_params);
-    rpc.addMethod("get_adrc_params", get_adrc_params);
+    rpc.addMethod("get_head_params", get_head_params);
+    rpc.addMethod("set_head_params", set_head_params);
 }

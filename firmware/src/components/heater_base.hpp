@@ -14,15 +14,10 @@ public:
     virtual auto is_hotplate_connected() -> bool { return true;};
     virtual auto get_hotplate_id() -> uint8_t { return 0; };
 
-    auto get_adrc_params(std::vector<uint8_t>& pb_data) -> bool;
-    auto get_adrc_params(AdrcParams& params) -> bool;
-    auto set_adrc_params(const std::vector<uint8_t>& pb_data) -> bool;
-    auto set_adrc_params(const AdrcParams& params) -> bool;
-
-    auto get_sensor_params(std::vector<uint8_t>& pb_data) -> bool;
-    auto get_sensor_params(SensorParams& params) -> bool;
-    auto set_sensor_params(const std::vector<uint8_t>& pb_data) -> bool;
-    auto set_sensor_params(const SensorParams& params) -> bool;
+    auto get_head_params(std::vector<uint8_t>& pb_data) -> bool;
+    auto get_head_params(HeadParams& params) -> bool;
+    auto set_head_params(const std::vector<uint8_t>& pb_data) -> bool;
+    auto set_head_params(const HeadParams& params) -> bool;
 
     void get_history(int32_t client_history_version, float from, std::vector<uint8_t>& pb_data);
 
@@ -43,7 +38,6 @@ public:
     virtual void temperature_control_off();
 
     virtual void tick(int32_t dt_ms);
-    virtual auto set_sensor_calibration_point(uint32_t point_id, float temperature) -> bool = 0;
 
     // "task" machinery, by default record history.
 
@@ -57,19 +51,12 @@ protected:
     std::atomic<float> temperature_setpoint{0};
 
 private:
-    AsyncPreferenceMap<std::vector<uint8_t>> adrc_params{
+    AsyncPreference<std::vector<uint8_t>> head_params{
         PrefsWriter::getInstance(),
         AsyncPreferenceKV::getInstance(),
         PREFS_NAMESPACE,
-        "adrc",
-        std::vector<uint8_t>{std::begin(DEFAULT_ADRC_PARAMS_PB), std::end(DEFAULT_ADRC_PARAMS_PB)}
-    };
-    AsyncPreferenceMap<std::vector<uint8_t>> sensor_params{
-        PrefsWriter::getInstance(),
-        AsyncPreferenceKV::getInstance(),
-        PREFS_NAMESPACE,
-        "sensor",
-        std::vector<uint8_t>{std::begin(DEFAULT_SENSOR_PARAMS_PB), std::end(DEFAULT_SENSOR_PARAMS_PB)}
+        "head",
+        std::vector<uint8_t>{std::begin(DEFAULT_HEAD_PARAMS_PB), std::end(DEFAULT_HEAD_PARAMS_PB)}
     };
     std::atomic<bool> is_task_active{false};
     HeaterTaskIteratorFn task_iterator{nullptr};

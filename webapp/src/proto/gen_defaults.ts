@@ -1,7 +1,7 @@
 /// <reference types="node" />
 
-import { ProfilesData, AdrcParams, SensorParams, DeviceState } from './generated/types'
-import { profiles_default, adrc_default, sensor_default } from './defaults_src';
+import { ProfilesData, HeadParams, DeviceState } from './generated/types'
+import { profiles_default, head_default } from './defaults_src';
 import { writeFileSync } from 'fs'
 
 const ts_header = '// Auto-generated file. DO NOT EDIT.'
@@ -40,8 +40,7 @@ ${toHexBlock(data, 4)}
 write_relative('./generated/defaults.ts', [
   ts_header,
   to_ts('DEFAULT_PROFILES_DATA_PB', ProfilesData.encode(profiles_default).finish()),
-  to_ts('DEFAULT_ADRC_PARAMS_PB', AdrcParams.encode(adrc_default).finish()),
-  to_ts('DEFAULT_SENSOR_PARAMS_PB', SensorParams.encode(sensor_default).finish())
+  to_ts('DEFAULT_HEAD_PARAMS_PB', HeadParams.encode(head_default).finish())
 ].join('\n\n') + `\n`)
 
 const profiles_default_unselected = { ...profiles_default, selectedId: -1 }
@@ -52,9 +51,7 @@ write_relative('../../../firmware/src/proto/generated/defaults.hpp', [
   // Split into selection & unselected data tp simplify initialization & updates
   `inline const int32_t DEFAULT_PROFILES_SELECTION = ${profiles_default.selectedId};`,
   to_hpp('DEFAULT_PROFILES_DATA_UNSELECTED_PB', ProfilesData.encode(profiles_default_unselected).finish()),
-
-  to_hpp('DEFAULT_ADRC_PARAMS_PB', AdrcParams.encode(adrc_default).finish()),
-  to_hpp('DEFAULT_SENSOR_PARAMS_PB', SensorParams.encode(sensor_default).finish())
+  to_hpp('DEFAULT_HEAD_PARAMS_PB', HeadParams.encode(head_default).finish())
 ].join('\n\n') + `\n`)
 
 // Validate DeviceState fields, required for FSM

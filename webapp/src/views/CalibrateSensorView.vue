@@ -30,9 +30,9 @@ const is_p1_calibrated = computed(() => p1_orig.value > 0)
 const power = ref(50)
 
 async function loadCalibrationStatus() {
-  const sensor_params = await device.get_sensor_params()
-  p0_orig.value = sensor_params.p0_temperature
-  p1_orig.value = sensor_params.p1_temperature
+  const head_params = await device.get_head_params()
+  p0_orig.value = head_params.sensor_p0_temperature
+  p1_orig.value = head_params.sensor_p1_temperature
 }
 
 onMounted(async () => { await loadCalibrationStatus() })
@@ -62,7 +62,10 @@ async function save_p0() {
   if (!isNumberLike(p0.value)) { show_p0_error.value = true; return }
 
   show_p0_error.value = false
-  await device.set_sensor_calibration_point(0, toNumber(p0.value))
+  const head_params = await device.get_head_params()
+  head_params.sensor_p0_temperature = toNumber(p0.value)
+  await device.set_head_params(head_params)
+
   saveP0Btn.value?.showSuccess()
   await loadCalibrationStatus()
   p0.value = ''
@@ -73,7 +76,10 @@ async function save_p1() {
   if (!isNumberLike(p1.value)) { show_p1_error.value = true; return }
 
   show_p1_error.value = false
-  await device.set_sensor_calibration_point(1, toNumber(p1.value))
+  const head_params = await device.get_head_params()
+  head_params.sensor_p1_temperature = toNumber(p1.value)
+  await device.set_head_params(head_params)
+
   saveP1Btn.value?.showSuccess()
   await loadCalibrationStatus()
   p1.value = ''

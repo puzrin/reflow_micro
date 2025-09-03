@@ -77,22 +77,27 @@ message HistoryChunk {
 }
 
 
-message AdrcParams {
+message HeadParams {
+  //
+  // Temperature sensor calibration data
+  //
+  float sensor_p0_temperature = 1;
+  float sensor_p0_value = 2;
+  float sensor_p1_temperature = 3;
+  float sensor_p1_value = 4;
+
+  //
+  // ADRC calibration data
+  //
+
   // System response time (when temperature reaches 63% of final value)
-  float response = 1;
+  float adrc_response = 5;
   // Scale. Max derivative / power
-  float b0 = 2;
+  float adrc_b0 = 6;
   // ω_observer = N / τ. Usually 3..10
   // 5 is good for the start. Increase until oscillates, then back 10-20%.
-  float N = 3;
+  float adrc_N = 7;
   // ω_controller = ω_observer / M. Usually 2..5
   // 3 is a good for the start. Probably, changes not required.
-  float M = 4;
-}
-
-message SensorParams {
-  float p0_temperature = 1;
-  float p0_value = 2;
-  float p1_temperature = 3;
-  float p1_value = 4;
+  float adrc_M = 8;
 }

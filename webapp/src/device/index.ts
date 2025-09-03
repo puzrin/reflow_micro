@@ -2,7 +2,7 @@ import { ref, type App, type Ref, toValue } from "vue"
 import { VirtualBackend } from "./virtual_backend"
 import { BleBackend } from "./ble_backend"
 import { useProfilesStore } from '@/stores/profiles'
-import { ProfilesData, Point, AdrcParams, SensorParams, DeviceStatus } from '@/proto/generated/types'
+import { ProfilesData, Point, HeadParams, DeviceStatus } from '@/proto/generated/types'
 import { SparseHistory } from './sparse_history'
 import { useLocalSettingsStore } from "@/stores/localSettings"
 
@@ -26,10 +26,8 @@ export interface IBackend {
   fetch_status(): Promise<void>
   fetch_history(): Promise<void>
 
-  set_sensor_calibration_point(point_id: (0 | 1), value: number): Promise<void>
-  get_sensor_params(): Promise<SensorParams>
-  set_adrc_params(config: AdrcParams): Promise<void>
-  get_adrc_params(): Promise<AdrcParams>
+  set_head_params(config: HeadParams): Promise<void>
+  get_head_params(): Promise<HeadParams>
 }
 
 export class Device {
@@ -82,23 +80,14 @@ export class Device {
   async run_step_response(watts: number) { await this.backend?.run_step_response(watts) }
   async stop() { await this.backend?.stop() }
 
-  async set_sensor_calibration_point(point_id: (0 | 1), value: number) {
+  async get_head_params(): Promise<HeadParams> {
     if (!this.backend) throw Error('No backend selected')
-    await this.backend.set_sensor_calibration_point(point_id, value)
+    return await this.backend.get_head_params()
   }
-  async get_sensor_params(): Promise<SensorParams> {
+  async set_head_params(config: HeadParams) {
     if (!this.backend) throw Error('No backend selected')
-    return await this.backend.get_sensor_params()
+    await this.backend.set_head_params(config)
   }
-  async set_adrc_params(config: AdrcParams) {
-    if (!this.backend) throw Error('No backend selected')
-    await this.backend.set_adrc_params(config)
-  }
-  async get_adrc_params(): Promise<AdrcParams> {
-    if (!this.backend) throw Error('No backend selected')
-    return await this.backend.get_adrc_params()
-  }
-
 
   // Control
   // id: computed(() => driverKey.value);
