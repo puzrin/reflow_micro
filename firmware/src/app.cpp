@@ -1,3 +1,7 @@
+#include <freertos/FreeRTOS.h>
+#include <freertos/queue.h>
+#include <freertos/task.h>
+
 #include "app.hpp"
 #include "logger.hpp"
 #include "app_states/adrc_test.hpp"
@@ -31,12 +35,25 @@ etl::fsm_state_pack<
 > app_states;
 
 void App::setup() {
+    blinker.setup();
+
     set_states(app_states);
     start();
 
+    // Init message queue and start background task
+    message_queue = xQueueCreate(16, sizeof(AppCmd::Packet));
+    xTaskCreate(
+        [](void* arg) {
+            static_cast<App*>(arg)->message_consumer_loop();
+        },
+        "app_message_consumer",
+        1024*4, // Stack size
+        this,
+        4, // Priority
+        nullptr);
+
     heater.setup();
     button.setup();
-    blinker.setup();
     fan.setSpeed(0);
     showIdleBackground();
 
@@ -102,4 +119,13 @@ void App::beepReflowComplete() {
 
 void App::beepReflowTerminated() {
     buzzer.play(":d=32,o=6,b=200:g,f#,f,e,d#,8d"_rtttl2tones);
+}
+
+void App::message_consumer_loop() {
+    for (;;) {
+        AppCmd::Packet packet;
+        if (xQueueReceive(message_queue, &packet, portMAX_DELAY) == pdTRUE) {
+            receive(packet.get());
+        }
+    }
 }

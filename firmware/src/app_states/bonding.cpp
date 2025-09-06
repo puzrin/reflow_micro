@@ -9,9 +9,8 @@ auto Bonding_State::on_enter_state() -> etl::fsm_state_id_t {
 
     // Enable bonding for 30 seconds
     xTimeoutTimer = xTimerCreate("BondingTimeout", pdMS_TO_TICKS(BONDING_PERIOD_MS), pdFALSE, (void *)0,
-        [](TimerHandle_t xTimer){
-            (void)xTimer;
-            application.receive(AppCmd::BondOff());
+        [](TimerHandle_t){
+            application.enqueue_message(AppCmd::BondOff{});
         });
 
     // Ideally, we should check all returned statuses, but who cares...
@@ -21,9 +20,16 @@ auto Bonding_State::on_enter_state() -> etl::fsm_state_id_t {
     return No_State_Change;
 }
 
-auto Bonding_State::on_event(const AppCmd::BondOff& event) -> etl::fsm_state_id_t {
-    (void)event;
+auto Bonding_State::on_event(const AppCmd::BondOff&) -> etl::fsm_state_id_t {
     return DeviceState_Idle;
+}
+
+auto Bonding_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
+    if (event.type == ButtonEventId::BUTTON_PRESSED_1X) {
+        // Exit bonding on single press
+        return DeviceState_Idle;
+    }
+    return No_State_Change;
 }
 
 auto Bonding_State::on_event_unknown(const etl::imessage& event) -> etl::fsm_state_id_t {

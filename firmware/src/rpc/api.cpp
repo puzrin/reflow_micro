@@ -51,27 +51,27 @@ auto save_profiles_data(std::vector<uint8_t> pb_data) -> bool {
 }
 
 auto stop() -> bool {
-    application.safe_receive(AppCmd::Stop());
+    application.receive(AppCmd::Stop{});
     return application.get_state_id() == DeviceState_Idle;
 }
 
 auto run_reflow() -> bool {
-    application.safe_receive(AppCmd::Reflow());
+    application.receive(AppCmd::Reflow{});
     return application.get_state_id() == DeviceState_Reflow;
 }
 
 auto run_sensor_bake(float watts) -> bool {
-    application.safe_receive(AppCmd::SensorBake(watts));
+    application.receive(AppCmd::SensorBake{watts});
     return application.get_state_id() == DeviceState_SensorBake;
 }
 
 auto run_adrc_test(float temperature) -> bool {
-    application.safe_receive(AppCmd::AdrcTest(temperature));
+    application.receive(AppCmd::AdrcTest{temperature});
     return application.get_state_id() == DeviceState_AdrcTest;
 }
 
 auto run_step_response(float watts) -> bool {
-    application.safe_receive(AppCmd::StepResponse(watts));
+    application.receive(AppCmd::StepResponse{watts});
     return application.get_state_id() == DeviceState_StepResponse;
 }
 

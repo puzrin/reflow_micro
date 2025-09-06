@@ -13,8 +13,7 @@ auto SensorBake_State::on_enter_state() -> etl::fsm_state_id_t {
     return No_State_Change;
 }
 
-auto SensorBake_State::on_event(const AppCmd::Stop& event) -> etl::fsm_state_id_t {
-    (void)event;
+auto SensorBake_State::on_event(const AppCmd::Stop&) -> etl::fsm_state_id_t {
     return DeviceState_Idle;
 }
 

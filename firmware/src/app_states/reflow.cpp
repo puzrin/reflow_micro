@@ -85,8 +85,7 @@ void Reflow_State::on_exit_state() {
     get_fsm_context().heater.task_stop();
 }
 
-void Reflow_State::task_iterator(int32_t dt_ms, int32_t time_ms) {
-    (void)dt_ms;
+void Reflow_State::task_iterator(int32_t /*dt_ms*/, int32_t time_ms) {
     auto& app = get_fsm_context();
 
     //if (time_ms % 1000 == 0) {
@@ -96,7 +95,7 @@ void Reflow_State::task_iterator(int32_t dt_ms, int32_t time_ms) {
     if (time_ms >= timeline.get_max_time()) {
         app.beepReflowComplete();
         app.heater.task_stop();
-        app.safe_receive(AppCmd::Stop());
+        app.enqueue_message(AppCmd::Stop{});
         return;
     }
 

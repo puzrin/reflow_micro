@@ -10,9 +10,7 @@ Logger logger(ringBuffer);
 jetlog::Reader<> logReader(ringBuffer);
 
 void logger_start() {
-    xTaskCreate([](void* pvParameters) {
-        (void)pvParameters;
-
+    xTaskCreate([](void* /*pvParameters*/) {
         etl::string<1024> outputBuffer{};
 
         // Wait until usb serial ready, or startup messages will be lost

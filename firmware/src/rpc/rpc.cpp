@@ -273,7 +273,7 @@ auto pair(const std::vector<uint8_t> client_id) -> std::vector<uint8_t> {
     auto secret = create_secret();
     bleAuthStore.create(auth_id, secret);
 
-    application.receive(AppCmd::BondOff());
+    application.enqueue_message(AppCmd::BondOff{});
 
     return std::vector<uint8_t>(secret.begin(), secret.end());
 }

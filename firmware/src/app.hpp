@@ -7,6 +7,10 @@
 #include "components/buzzer.hpp"
 #include "components/fan.hpp"
 #include "components/profiles_config.hpp"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+#include "freertos/queue.h"
+#include "freertos/task.h"
 
 namespace AppCmd {
 
@@ -40,6 +44,16 @@ DEFINE_PARAM_MSG(StepResponse, _id::STEP_RESPONSE, float, watts);
 DEFINE_SIMPLE_MSG(BondOff, _id::BOND_OFF);
 DEFINE_PARAM_MSG(Button, _id::BUTTON, ButtonEventId, type);
 
+using Packet = etl::message_packet<
+    AppCmd::Stop,
+    AppCmd::Reflow,
+    AppCmd::SensorBake,
+    AppCmd::AdrcTest,
+    AppCmd::StepResponse,
+    AppCmd::BondOff,
+    AppCmd::Button
+>;
+
 } // namespace AppCmd
 
 class App : public etl::fsm {
@@ -55,11 +69,19 @@ public:
     void LogUnknownEvent(const etl::imessage& msg);
     void setup();
 
-    void safe_receive(const etl::imessage& message) {
-        if (!mutex) { mutex = xSemaphoreCreateMutex(); }
-        xSemaphoreTake(mutex, portMAX_DELAY);
-        receive(message);
-        xSemaphoreGive(mutex);
+    void receive(const etl::imessage& message) {
+        xSemaphoreTake(message_lock, portMAX_DELAY);
+        etl::fsm::receive(message);
+        xSemaphoreGive(message_lock);
+    }
+
+    // Asynchronous message delivery. When sync processing not required OR
+    // message is generated from state (from inside of .receive()).
+    // It also guarantees processing priority.
+    template <typename TMessage>
+    void enqueue_message(const TMessage& message) {
+        AppCmd::Packet packet(message);
+        xQueueSend(message_queue, &packet, 0);
     }
 
     float last_cmd_data{0};
@@ -77,13 +99,16 @@ public:
     void beepReflowTerminated();
 
 private:
-    SemaphoreHandle_t mutex{nullptr};
+    SemaphoreHandle_t message_lock{xSemaphoreCreateMutex()};
+    QueueHandle_t message_queue{nullptr};
+    void message_consumer_loop();
+
     Button<ButtonDriver> button{};
     void handleButton(ButtonEventId event) {
         if (event == ButtonEventId::BUTTON_PRESS_START) {
             beepButtonPress();
         }
-        safe_receive(AppCmd::Button(event));
+        enqueue_message(AppCmd::Button{event});
     }
 };
 

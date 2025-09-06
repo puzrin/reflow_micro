@@ -20,8 +20,7 @@ auto StepResponse_State::on_enter_state() -> etl::fsm_state_id_t {
     return No_State_Change;
 }
 
-auto StepResponse_State::on_event(const AppCmd::Stop& event) -> etl::fsm_state_id_t {
-    (void)event;
+auto StepResponse_State::on_event(const AppCmd::Stop&) -> etl::fsm_state_id_t {
     return DeviceState_Idle;
 }
 
@@ -39,8 +38,7 @@ void StepResponse_State::on_exit_state() {
     get_fsm_context().heater.task_stop();
 }
 
-void StepResponse_State::task_iterator(int32_t dt_ms, int32_t time_ms) {
-    (void)dt_ms;
+void StepResponse_State::task_iterator(int32_t /*dt_ms*/, int32_t time_ms) {
     // log index = time in seconds
     if (time_ms < log.size() * 1000) { return; }
 
@@ -94,5 +92,5 @@ void StepResponse_State::task_iterator(int32_t dt_ms, int32_t time_ms) {
     heater.set_head_params(p);
 
     heater.task_stop();
-    app.receive(AppCmd::Stop());
+    app.enqueue_message(AppCmd::Stop{});
 }

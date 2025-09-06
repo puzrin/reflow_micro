@@ -4,9 +4,7 @@
 #include "logger.hpp"
 
 void stack_monitor_start() {
-    xTaskCreate([](void* pvParameters) {
-        (void)pvParameters;
-
+    xTaskCreate([](void* /*pvParameters*/) {
         const UBaseType_t MAX_TASKS = 20;
         TaskStatus_t taskStatusArray[MAX_TASKS];
 
