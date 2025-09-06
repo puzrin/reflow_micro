@@ -1,6 +1,7 @@
 #include "app.hpp"
 
-class Bonding_State : public etl::fsm_state<App, Bonding_State, DeviceState_Bonding, AppCmd::BondOff, AppCmd::Button> {
+class Bonding_State : public etl::fsm_state<App, Bonding_State, DeviceState_Bonding,
+    AppCmd::BondOff, AppCmd::Button> {
 public:
     static constexpr int32_t BONDING_PERIOD_MS = 15 * 1000;
 

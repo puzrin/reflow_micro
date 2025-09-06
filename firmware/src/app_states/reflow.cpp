@@ -65,6 +65,12 @@ auto Reflow_State::on_enter_state() -> etl::fsm_state_id_t {
 }
 
 auto Reflow_State::on_event(const AppCmd::Stop&) -> etl::fsm_state_id_t {
+    get_fsm_context().beepReflowTerminated();
+    return DeviceState_Idle;
+}
+
+auto Reflow_State::on_event(const AppCmd::Succeeded&) -> etl::fsm_state_id_t {
+    get_fsm_context().beepReflowComplete();
     return DeviceState_Idle;
 }
 
@@ -93,9 +99,8 @@ void Reflow_State::task_iterator(int32_t /*dt_ms*/, int32_t time_ms) {
     //}
 
     if (time_ms >= timeline.get_max_time()) {
-        app.beepReflowComplete();
         app.heater.task_stop();
-        app.enqueue_message(AppCmd::Stop{});
+        app.enqueue_message(AppCmd::Succeeded{});
         return;
     }
 
