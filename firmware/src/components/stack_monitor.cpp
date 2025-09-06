@@ -14,17 +14,17 @@ void stack_monitor_start() {
             UBaseType_t actualNumber = uxTaskGetSystemState(taskStatusArray, MAX_TASKS, NULL);
 
             if(actualNumber > MAX_TASKS) {
-                DEBUG("Error: Too many tasks to monitor. Tasks: {}, Max: {}",
+                APP_LOGI("Error: Too many tasks to monitor. Tasks: {}, Max: {}",
                     uint32_t(actualNumber), uint32_t(MAX_TASKS));
             } else {
-                DEBUG("################## Stack Monitor ##################");
+                APP_LOGI("################## Stack Monitor ##################");
                 for(UBaseType_t i = 0; i < actualNumber; i++) {
                     UBaseType_t stackHighWaterMark = uxTaskGetStackHighWaterMark(taskStatusArray[i].xHandle);
-                    DEBUG("Task: {} Stack HWM: {} words",
+                    APP_LOGI("Task: {} Stack HWM: {} words",
                         taskStatusArray[i].pcTaskName,
                         uint32_t(stackHighWaterMark));
                 }
-                DEBUG("---------------------------------------------------");
+                APP_LOGI("---------------------------------------------------");
             }
 
             vTaskDelay(pdMS_TO_TICKS(60 * 1000));

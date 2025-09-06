@@ -2,7 +2,7 @@
 #include "logger.hpp"
 
 auto Idle_State::on_enter_state() -> etl::fsm_state_id_t {
-    DEBUG("State => Idle");
+    APP_LOGI("State => Idle");
     return No_State_Change;
 }
 
@@ -32,18 +32,18 @@ auto Idle_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
 
         // Animate long press start
         case ButtonEventId::BUTTON_LONG_PRESS_START:
-            DEBUG("Long press start");
+            APP_LOGI("Long press start");
             get_fsm_context().showLongPressProgress();
             break;
 
         // Stops animation if long press not reached
         case ButtonEventId::BUTTON_LONG_PRESS_FAIL:
-            DEBUG("Long press fail");
+            APP_LOGI("Long press fail");
             get_fsm_context().blinker.off();
             break;
 
         case ButtonEventId::BUTTON_LONG_PRESS:
-            DEBUG("Long press succeeded");
+            APP_LOGI("Long press succeeded");
             return DeviceState_Reflow;
 
         default:

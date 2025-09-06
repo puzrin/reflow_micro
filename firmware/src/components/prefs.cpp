@@ -9,16 +9,16 @@ bool AsyncPreferenceKV::write(const std::string& ns, const std::string& key, uin
     if (!nvs_initialized) {
         esp_err_t ret = nvs_flash_init();
         if (ret == ESP_ERR_NVS_NO_FREE_PAGES) {
-            DEBUG("NVS has no free pages, erasing storage");
+            APP_LOGI("NVS has no free pages, erasing storage");
             nvs_flash_erase();
             ret = nvs_flash_init();
         } else if (ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-            DEBUG("NVS version mismatch, erasing storage");
+            APP_LOGI("NVS version mismatch, erasing storage");
             nvs_flash_erase();
             ret = nvs_flash_init();
         }
         if (ret != ESP_OK) {
-            DEBUG("NVS initialization failed: {}", esp_err_to_name(ret));
+            APP_LOGI("NVS initialization failed: {}", esp_err_to_name(ret));
             return false;
         }
         nvs_initialized = true;
@@ -27,13 +27,13 @@ bool AsyncPreferenceKV::write(const std::string& ns, const std::string& key, uin
     nvs_handle_t handle;
     esp_err_t err = nvs_open(ns.c_str(), NVS_READWRITE, &handle);
     if (err != ESP_OK) {
-        DEBUG("Failed to open namespace '{}': {}", ns, esp_err_to_name(err));
+        APP_LOGI("Failed to open namespace '{}': {}", ns, esp_err_to_name(err));
         return false;
     }
 
     err = nvs_set_blob(handle, key.c_str(), buffer, length);
     if (err != ESP_OK) {
-        DEBUG("Failed to write key '{}': {}", key, esp_err_to_name(err));
+        APP_LOGI("Failed to write key '{}': {}", key, esp_err_to_name(err));
         nvs_close(handle);
         return false;
     }
@@ -41,7 +41,7 @@ bool AsyncPreferenceKV::write(const std::string& ns, const std::string& key, uin
     err = nvs_commit(handle);
     nvs_close(handle);
     if (err != ESP_OK) {
-        DEBUG("Failed to commit NVS changes: {}", esp_err_to_name(err));
+        APP_LOGI("Failed to commit NVS changes: {}", esp_err_to_name(err));
         return false;
     }
 

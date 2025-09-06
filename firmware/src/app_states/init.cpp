@@ -2,7 +2,7 @@
 #include "logger.hpp"
 
 auto Init_State::on_enter_state() -> etl::fsm_state_id_t {
-    DEBUG("State => Init");
+    APP_LOGI("State => Init");
     return DeviceState_Idle;
 }
 

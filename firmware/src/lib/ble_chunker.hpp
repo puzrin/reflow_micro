@@ -8,7 +8,9 @@
 #ifndef TEST
 #include "logger.hpp"
 #else
-#define DEBUG(...)
+#define APP_LOGE(...)
+#define APP_LOGI(...)
+#define APP_LOGD(...)
 #endif
 
 class BleChunkHead {

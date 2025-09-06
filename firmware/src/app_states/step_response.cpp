@@ -2,7 +2,7 @@
 #include "logger.hpp"
 
 auto StepResponse_State::on_enter_state() -> etl::fsm_state_id_t {
-    DEBUG("State => StepResponse");
+    APP_LOGI("State => StepResponse");
 
     auto& app = get_fsm_context();
     auto& heater = app.heater;
@@ -80,7 +80,7 @@ void StepResponse_State::task_iterator(int32_t dt_ms, int32_t time_ms) {
     const float b0 = (temperature_63 - t_initial) / time_63 / max_power;
 
     const std::string b0_str = std::to_string(b0);
-    DEBUG("Temperature = {}, time = {}, b0 = {}",
+    APP_LOGI("Temperature = {}, time = {}, b0 = {}",
         static_cast<int>(temperature_63),
         static_cast<int>(time_63),
         b0_str.c_str());

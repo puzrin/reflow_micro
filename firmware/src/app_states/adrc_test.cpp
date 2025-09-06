@@ -3,7 +3,7 @@
 
 
 auto AdrcTest_State::on_enter_state() -> etl::fsm_state_id_t {
-    DEBUG("State => AdrcTest");
+    APP_LOGI("State => AdrcTest");
 
     auto& app = get_fsm_context();
     auto& heater = app.heater;

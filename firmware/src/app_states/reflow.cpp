@@ -41,7 +41,7 @@ auto Timeline::interpolate(int32_t offset) const -> float {
 
 
 auto Reflow_State::on_enter_state() -> etl::fsm_state_id_t {
-    DEBUG("State => Reflow");
+    APP_LOGI("State => Reflow");
 
     auto& app = get_fsm_context();
 
@@ -90,7 +90,7 @@ void Reflow_State::task_iterator(int32_t dt_ms, int32_t time_ms) {
     auto& app = get_fsm_context();
 
     //if (time_ms % 1000 == 0) {
-    //    DEBUG("Reflow: time={}ms, temp={}", time_ms, timeline.interpolate(time_ms));
+    //    APP_LOGI("Reflow: time={}ms, temp={}", time_ms, timeline.interpolate(time_ms));
     //}
 
     if (time_ms >= timeline.get_max_time()) {

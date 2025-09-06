@@ -2,7 +2,7 @@
 #include "logger.hpp"
 
 auto SensorBake_State::on_enter_state() -> etl::fsm_state_id_t {
-    DEBUG("State => SensorBake");
+    APP_LOGI("State => SensorBake");
 
     auto& app = get_fsm_context();
     auto& heater = app.heater;

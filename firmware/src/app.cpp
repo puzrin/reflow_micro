@@ -17,7 +17,7 @@ App::App() : etl::fsm(0) {
 }
 
 void App::LogUnknownEvent(const etl::imessage& msg) {
-    DEBUG("APP: Unknown event! msg id [{}], state id [{}]", msg.get_message_id(), get_state_id());
+    APP_LOGI("APP: Unknown event! msg id [{}], state id [{}]", msg.get_message_id(), get_state_id());
 }
 
 etl::fsm_state_pack<

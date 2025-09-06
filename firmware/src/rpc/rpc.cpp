@@ -41,12 +41,12 @@ public:
         : rpcChunker(16*1024 + 500), authChunker(1*1024), authenticated(false)
     {
         rpcChunker.onMessage = [this](const std::vector<uint8_t>& message) {
-            /*DEBUG("Free memory: {}; Minimum free memory: {}; Max free block: {}",
+            /*APP_LOGI("Free memory: {}; Minimum free memory: {}; Max free block: {}",
                 heap_caps_get_free_size(MALLOC_CAP_8BIT),
                 heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT),
                 heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
 
-            DEBUG("BLE: Received message of length {}", message.size());*/
+            APP_LOGI("BLE: Received message of length {}", message.size());*/
 
             if (authenticated) {
                 std::vector<uint8_t> response;
@@ -73,7 +73,7 @@ public:
         // No default value allowed!
         random = create_secret();
     }
-    ~Session() { DEBUG("BLE: Session destroyed"); }
+    ~Session() { APP_LOGI("BLE: Session destroyed"); }
 
     BleChunker rpcChunker;
     BleChunker authChunker;
@@ -109,7 +109,7 @@ public:
 
         auto session = sessions[conn_handle];
         const std::vector<uint8_t> chunk = pCharacteristic->getValue();
-        DEBUG("BLE AUTH: Received chunk of length {}", pCharacteristic->getLength());
+        APP_LOGI("BLE AUTH: Received chunk of length {}", pCharacteristic->getLength());
         session->authChunker.consumeChunk(chunk.data(), chunk.size());
     }
 
@@ -127,7 +127,7 @@ public:
     void onConnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo) override {
         auto conn_handle = connInfo.getConnHandle();
         sessions[conn_handle] = std::make_shared<Session>();
-        DEBUG("BLE: Device connected, conn_handle {}", conn_handle);
+        APP_LOGI("BLE: Device connected, conn_handle {}", conn_handle);
 
         // For BLE 5 clients with DLE extension support - set data packet size to max.
         // This boosts transfer speed to ~ 45 Kb/sec for big transfers.
@@ -142,17 +142,17 @@ public:
 
     void onDisconnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo, int reason) override {
         auto conn_handle = connInfo.getConnHandle();
-        DEBUG("BLE: Device disconnected, conn_handle {}", conn_handle);
+        APP_LOGI("BLE: Device disconnected, conn_handle {}", conn_handle);
         sessions.erase(conn_handle);
     }
 
     void onMTUChange(uint16_t mtu, NimBLEConnInfo& connInfo) override {
-        DEBUG("BLE: MTU updated to {}, conn_handle {}", mtu, connInfo.getConnHandle());
+        APP_LOGI("BLE: MTU updated to {}, conn_handle {}", mtu, connInfo.getConnHandle());
     }
 
     // Used for testing purposes, to check if encryption is working
     void onAuthenticationComplete(NimBLEConnInfo& connInfo) override {
-        DEBUG("BLE: Authentication complete, conn_handle {}, encrypted {}, authenticated {}, bonded {}",
+        APP_LOGI("BLE: Authentication complete, conn_handle {}, encrypted {}, authenticated {}, bonded {}",
             connInfo.getConnHandle(), connInfo.isEncrypted(),
             connInfo.isEncrypted(), connInfo.isBonded());
     }
@@ -216,7 +216,7 @@ void ble_init() {
     pAdvertising->setPreferredParams(0x06, 0x06);
     NimBLEDevice::startAdvertising();
 
-    DEBUG("BLE initialized");
+    APP_LOGI("BLE initialized");
 }
 
 std::vector<uint8_t> auth_info() {

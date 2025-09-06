@@ -3,7 +3,7 @@
 #include "rpc/rpc.hpp"
 
 auto Bonding_State::on_enter_state() -> etl::fsm_state_id_t {
-    DEBUG("State => Bonding");
+    APP_LOGI("State => Bonding");
 
     get_fsm_context().showBondingLoop();
 
