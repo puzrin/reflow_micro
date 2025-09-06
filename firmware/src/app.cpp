@@ -3,6 +3,10 @@
 #include <freertos/task.h>
 
 #include "app.hpp"
+#include "components/blinker.hpp"
+#include "components/button.hpp"
+#include "components/buzzer.hpp"
+#include "components/fan.hpp"
 #include "logger.hpp"
 #include "app_states/adrc_test.hpp"
 #include "app_states/bonding.hpp"
@@ -14,11 +18,7 @@
 
 App application;
 
-App::App() : etl::fsm(0) {
-    button.setEventHandler([this](ButtonEventId event) {
-        this->handleButton(event);
-    });
-}
+App::App() : etl::fsm(0) {}
 
 void App::LogUnknownEvent(const etl::imessage& msg) {
     APP_LOGI("APP: Unknown event! msg id [{}], state id [{}]", msg.get_message_id(), get_state_id());
@@ -36,6 +36,7 @@ etl::fsm_state_pack<
 
 void App::setup() {
     blinker.setup();
+    fan.setSpeed(0);
 
     set_states(app_states);
     start();
@@ -53,8 +54,15 @@ void App::setup() {
         nullptr);
 
     heater.setup();
+
     button.setup();
-    fan.setSpeed(0);
+    button.setEventHandler([this](ButtonEventId event) {
+        if (event == ButtonEventId::BUTTON_PRESS_START) {
+            this->beepButtonPress();
+        }
+        this->enqueue_message(AppCmd::Button{event});;
+    });
+
     showIdleBackground();
 
     // Temporary
@@ -103,6 +111,10 @@ void App::showLedTest() {
     // R / G / B / W cycle
     blinker.loop({{{255, 0, 0}, 1000}, {{0, 255, 0}, 1000}, {{0, 0, 255}, 1000}, {{128, 128, 128}, 1000}});
     #endif
+}
+
+void App::showOff() {
+    blinker.off();
 }
 
 void App::beepButtonPress() {

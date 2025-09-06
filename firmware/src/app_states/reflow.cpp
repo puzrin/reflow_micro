@@ -1,5 +1,6 @@
-#include "reflow.hpp"
+#include "components/profiles_config.hpp"
 #include "logger.hpp"
+#include "reflow.hpp"
 
 
 void Timeline::load(const Profile& profile) {
@@ -47,7 +48,7 @@ auto Reflow_State::on_enter_state() -> etl::fsm_state_id_t {
 
     // Pick active profile, terminate on fail
     auto profile = std::make_unique<Profile>();
-    if (!app.profilesConfig.get_selected_profile(*profile)) { return DeviceState_Idle; }
+    if (!profiles_config.get_selected_profile(*profile)) { return DeviceState_Idle; }
 
     // Load timeline and try to execute the task
     timeline.load(*profile);

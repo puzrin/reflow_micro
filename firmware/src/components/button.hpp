@@ -25,8 +25,7 @@ private:
     static constexpr gpio_num_t btnPin{GPIO_NUM_9};
 };
 
-template <typename Driver>
-class Button : public ButtonEngine<Driver> {
+class Button : public ButtonEngine<ButtonDriver> {
 public:
     void setup() {
         xTaskCreate(
@@ -40,3 +39,5 @@ public:
         );
     }
 };
+
+inline Button button;

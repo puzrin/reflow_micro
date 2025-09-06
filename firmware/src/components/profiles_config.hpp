@@ -29,3 +29,5 @@ private:
     };
     void adjustSelection(ProfilesData& profiles_config);
 };
+
+extern ProfilesConfig profiles_config;

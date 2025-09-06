@@ -1,5 +1,7 @@
 #include "fan.hpp"
 
+Fan fan;
+
 void Fan::initialize() {
     if (initialized) return;
     initialized = true;

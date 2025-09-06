@@ -51,6 +51,7 @@ public:
 #else
 
 #include <rmt_led_strip.hpp>
+#include "driver/gpio.h"
 
 class LedDriver : public IBlinkerLED<3> {
 private:
@@ -77,14 +78,14 @@ public:
 
 #endif // HW_DEMO_ESP32_C3_SUPERMINI
 
-template <typename Driver>
-class Blinker : public BlinkerEngine<Driver> {
+class Blinker : public BlinkerEngine<LedDriver> {
 private:
     TimerHandle_t timer;
 
     static void timerCallback(TimerHandle_t timer) {
         Blinker* self = static_cast<Blinker*>(pvTimerGetTimerID(timer));
-        self->tick(esp_timer_get_time() / 1000);
+        TickType_t t = xPortInIsrContext() ? xTaskGetTickCountFromISR() : xTaskGetTickCount();
+        self->tick(pdTICKS_TO_MS(t));
     }
 
 public:
@@ -99,3 +100,5 @@ public:
         xTimerStart(timer, 0);
     }
 };
+
+inline Blinker blinker;

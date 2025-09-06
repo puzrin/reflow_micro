@@ -1,9 +1,11 @@
 #include <vector>
+#include <pb_encode.h>
+
 #include "api.hpp"
+#include "components/profiles_config.hpp"
 #include "rpc.hpp"
 #include "proto/generated/types.pb.h"
 #include "app.hpp"
-#include <pb_encode.h>
 
 namespace {
 
@@ -38,15 +40,15 @@ std::vector<uint8_t> get_history_chunk(int32_t client_history_version, float fro
 }
 
 std::vector<uint8_t> get_profiles_data(bool reset) {
-    if (reset) { application.profilesConfig.reset_profiles(); }
+    if (reset) { profiles_config.reset_profiles(); }
 
     std::vector<uint8_t> pb_data(ProfilesData_size);
-    application.profilesConfig.get_profiles(pb_data);
+    profiles_config.get_profiles(pb_data);
     return pb_data;
 }
 
 auto save_profiles_data(std::vector<uint8_t> pb_data) -> bool {
-    application.profilesConfig.set_profiles(pb_data);
+    profiles_config.set_profiles(pb_data);
     return true;
 }
 

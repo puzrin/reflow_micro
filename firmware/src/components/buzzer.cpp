@@ -1,5 +1,7 @@
 #include "buzzer.hpp"
 
+Buzzer buzzer;
+
 // ======================== BuzzerDriver ========================
 
 BuzzerDriver::BuzzerDriver() {

@@ -3,10 +3,6 @@
 #include "etl/fsm.h"
 #include "heater_mock.hpp"
 #include "components/button.hpp"
-#include "components/blinker.hpp"
-#include "components/buzzer.hpp"
-#include "components/fan.hpp"
-#include "components/profiles_config.hpp"
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "freertos/queue.h"
@@ -64,10 +60,6 @@ public:
     App();
 
     HeaterMock heater{};
-    Blinker<LedDriver> blinker{};
-    Buzzer buzzer{};
-    ProfilesConfig profilesConfig{};
-    Fan fan{};
 
     void LogUnknownEvent(const etl::imessage& msg);
     void setup();
@@ -95,6 +87,7 @@ public:
     void showBondingLoop();
     void showReflowStart();
     void showLedTest();
+    void showOff();
 
     void beepButtonPress();
     void beepReflowStarted();
@@ -105,14 +98,6 @@ private:
     SemaphoreHandle_t message_lock{xSemaphoreCreateMutex()};
     QueueHandle_t message_queue{nullptr};
     void message_consumer_loop();
-
-    Button<ButtonDriver> button{};
-    void handleButton(ButtonEventId event) {
-        if (event == ButtonEventId::BUTTON_PRESS_START) {
-            beepButtonPress();
-        }
-        enqueue_message(AppCmd::Button{event});
-    }
 };
 
 extern App application;

@@ -2,6 +2,7 @@
 #include "components/pb2struct.hpp"
 #include <memory>
 
+ProfilesConfig profiles_config;
 
 auto ProfilesConfig::get_profiles(std::vector<uint8_t>& pb_data) -> bool {
     // Struct can be big, use heap instead of stack

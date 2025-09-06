@@ -61,3 +61,5 @@ private:
 
     static void timer_callback(TimerHandle_t timer);
 };
+
+extern Buzzer buzzer;

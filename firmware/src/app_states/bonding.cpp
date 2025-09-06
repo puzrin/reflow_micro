@@ -44,5 +44,5 @@ void Bonding_State::on_exit_state() {
         xTimeoutTimer = nullptr;
     }
     pairing_disable();
-    get_fsm_context().blinker.off();
+    get_fsm_context().showOff();
 }

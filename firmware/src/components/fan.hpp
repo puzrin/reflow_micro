@@ -28,3 +28,5 @@ public:
 
     inline void max() { setSpeed(100); }
 };
+
+extern Fan fan;

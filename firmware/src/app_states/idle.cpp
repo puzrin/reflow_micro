@@ -39,7 +39,7 @@ auto Idle_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
         // Stops animation if long press not reached
         case ButtonEventId::BUTTON_LONG_PRESS_FAIL:
             APP_LOGI("Long press fail");
-            get_fsm_context().blinker.off();
+            get_fsm_context().showOff();
             break;
 
         case ButtonEventId::BUTTON_LONG_PRESS:
