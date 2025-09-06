@@ -22,35 +22,23 @@ namespace _id {
     };
 }
 
-class Stop : public etl::message<_id::STOP> {};
+#define DEFINE_SIMPLE_MSG(ClassName, MsgId) \
+    class ClassName : public etl::message<MsgId> {}
 
-class Reflow : public etl::message<_id::REFLOW> {};
+#define DEFINE_PARAM_MSG(ClassName, MsgId, ParamType, ParamName) \
+    class ClassName : public etl::message<MsgId> { \
+    public: \
+        explicit ClassName(ParamType ParamName) : ParamName{ParamName} {} \
+        const ParamType ParamName; \
+    }
 
-class SensorBake : public etl::message<_id::SENSOR_BAKE> {
-public:
-    explicit SensorBake(float watts) : watts{watts} {}
-    const float watts;
-};
-
-class AdrcTest : public etl::message<_id::ADRC_TEST> {
-public:
-    explicit AdrcTest(float temperature) : temperature{temperature} {}
-    const float temperature;
-};
-
-class StepResponse : public etl::message<_id::STEP_RESPONSE> {
-public:
-    explicit StepResponse(float watts) : watts{watts} {}
-    const float watts;
-};
-
-class BondOff : public etl::message<_id::BOND_OFF> {};
-
-class Button : public etl::message<_id::BUTTON> {
-public:
-    explicit Button(ButtonEventId type) : type{type} {}
-    const ButtonEventId type;
-};
+DEFINE_SIMPLE_MSG(Stop, _id::STOP);
+DEFINE_SIMPLE_MSG(Reflow, _id::REFLOW);
+DEFINE_PARAM_MSG(SensorBake, _id::SENSOR_BAKE, float, watts);
+DEFINE_PARAM_MSG(AdrcTest, _id::ADRC_TEST, float, temperature);
+DEFINE_PARAM_MSG(StepResponse, _id::STEP_RESPONSE, float, watts);
+DEFINE_SIMPLE_MSG(BondOff, _id::BOND_OFF);
+DEFINE_PARAM_MSG(Button, _id::BUTTON, ButtonEventId, type);
 
 } // namespace AppCmd
 
