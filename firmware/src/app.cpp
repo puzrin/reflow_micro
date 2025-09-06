@@ -60,7 +60,7 @@ void App::setup() {
         if (event == ButtonEventId::BUTTON_PRESS_START) {
             this->beepButtonPress();
         }
-        this->enqueue_message(AppCmd::Button{event});;
+        this->enqueue_message(AppCmd::Button{event});
     });
 
     showIdleBackground();

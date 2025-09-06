@@ -26,17 +26,25 @@ private:
 };
 
 class Button : public ButtonEngine<ButtonDriver> {
+private:
+    TimerHandle_t timer;
+
+    static void timerCallback(TimerHandle_t timer) {
+        Button* self = static_cast<Button*>(pvTimerGetTimerID(timer));
+        TickType_t t = xPortInIsrContext() ? xTaskGetTickCountFromISR() : xTaskGetTickCount();
+        self->tick(pdTICKS_TO_MS(t));
+    }
+
 public:
     void setup() {
-        xTaskCreate(
-            [](void* params) {
-                auto* self = static_cast<Button*>(params);
-                while (true) {
-                    self->tick(esp_timer_get_time() / 1000);
-                    vTaskDelay(pdMS_TO_TICKS(10));
-                }
-            }, "button", 1024*4, this, 4, nullptr
+        timer = xTimerCreate(
+            "ButtonTimer",
+            pdMS_TO_TICKS(10),
+            pdTRUE,
+            this,
+            timerCallback
         );
+        xTimerStart(timer, 0);
     }
 };
 
