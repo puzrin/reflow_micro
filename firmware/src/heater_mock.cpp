@@ -185,7 +185,7 @@ auto HeaterMock::reset() -> HeaterMock& {
 }
 
 // Need separate thread, because can send events to app (guarded with mutexes)
-void HeaterMock::start() {
+void HeaterMock::setup() {
     // Work at 10x speed for convenience
     xTaskCreate(
         [](void* params) {

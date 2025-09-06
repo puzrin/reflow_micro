@@ -34,9 +34,9 @@ void App::setup() {
     set_states(app_states);
     start();
 
-    heater.start();
-    button.start();
-    blinker.start();
+    heater.setup();
+    button.setup();
+    blinker.setup();
     fan.setSpeed(0);
     showIdleBackground();
 

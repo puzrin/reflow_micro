@@ -65,7 +65,7 @@ public:
         return r > 0 ? std::sqrt(get_power() / r) : 0;
     }
 
-    void start() override;
+    void setup() override;
     void tick(int32_t dt_ms) override;
 
     // Mock-related methods

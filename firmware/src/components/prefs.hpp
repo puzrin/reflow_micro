@@ -22,7 +22,7 @@ private:
 
 class PrefsWriter : public AsyncPreferenceWriter {
 public:
-    void start() {
+    void setup() {
         xTaskCreate([](void* arg) {
             auto* self = static_cast<PrefsWriter*>(arg);
             while(true) {

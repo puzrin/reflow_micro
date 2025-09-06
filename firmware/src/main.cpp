@@ -10,7 +10,7 @@ extern "C" {
 
 extern "C" void app_main() {
     logger_start();
-    PrefsWriter::getInstance().start();
+    PrefsWriter::getInstance().setup();
 
     application.setup();
 

@@ -21,7 +21,7 @@ public:
 
     void get_history(int32_t client_history_version, float from, std::vector<uint8_t>& pb_data);
 
-    virtual void start() = 0;
+    virtual void setup() = 0;
     virtual auto load_all_params() -> bool;
 
     virtual auto get_temperature() -> float = 0;

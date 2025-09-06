@@ -28,7 +28,7 @@ private:
 template <typename Driver>
 class Button : public ButtonEngine<Driver> {
 public:
-    void start() {
+    void setup() {
         xTaskCreate(
             [](void* params) {
                 auto* self = static_cast<Button*>(params);

@@ -88,7 +88,7 @@ private:
     }
 
 public:
-    void start() {
+    void setup() {
         timer = xTimerCreate(
             "BlinkerTimer",
             pdMS_TO_TICKS(20),
