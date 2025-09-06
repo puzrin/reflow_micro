@@ -1,3 +1,4 @@
+#include <etl/error_handler.h>
 #include "app.hpp"
 #include "components/prefs.hpp"
 #include "components/stack_monitor.hpp"
@@ -8,8 +9,18 @@ extern "C" {
     void app_main(void);
 }
 
+void etl_error_log(const etl::exception& e) {
+    APP_LOGE("ETL Error: {}, file: {}, line: {}",
+        e.what(), e.file_name(), e.line_number());
+}
+
 extern "C" void app_main() {
     logger_start();
+
+#ifdef ETL_LOG_ERRORS
+    etl::error_handler::set_callback<etl_error_log>();
+#endif
+
     PrefsWriter::getInstance().setup();
 
     application.setup();
