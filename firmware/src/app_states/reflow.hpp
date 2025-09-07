@@ -20,7 +20,7 @@ public:
 };
 
 
-class Reflow_State : public etl::fsm_state<App, Reflow_State, DeviceState_Reflow,
+class Reflow_State : public etl::fsm_state<App, Reflow_State, DeviceActivityStatus_Reflow,
     AppCmd::Stop, AppCmd::Succeeded, AppCmd::Button> {
 public:
     auto on_enter_state() -> etl::fsm_state_id_t override;

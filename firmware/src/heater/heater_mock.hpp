@@ -3,6 +3,8 @@
 #include <vector>
 #include <atomic>
 #include <cmath>
+
+#include "app.hpp"
 #include "lib/adrc.hpp"
 #include "heater_base.hpp"
 
@@ -54,6 +56,13 @@ private:
 
 public:
     HeaterMock();
+
+    auto get_health_status() -> DeviceHealthStatus override { return DeviceHealthStatus_DevOK; }
+    auto get_activity_status() -> DeviceActivityStatus override {
+        return static_cast<DeviceActivityStatus>(application.get_state_id());
+    }
+    auto get_power_status() -> PowerStatus override { return PowerStatus_PwrOK; }
+    auto get_head_status() -> HeadStatus override { return HeadStatus_HeadConnected; }
 
     auto get_temperature() -> float override { return temperature; }
     auto get_resistance() -> float override { return calculate_resistance(temperature); }

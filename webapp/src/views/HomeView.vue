@@ -3,7 +3,7 @@ import { useProfilesStore } from '@/stores/profiles'
 import { useLocalSettingsStore } from '@/stores/localSettings'
 import { inject, computed } from 'vue'
 import { Device } from '@/device'
-import { DeviceState } from '@/proto/generated/types'
+import { DeviceActivityStatus } from '@/proto/generated/types'
 import PageLayout from '@/components/PageLayout.vue'
 import HomeMenu from '@/components/HomeMenu.vue'
 import ButtonDanger from '@/components/buttons/ButtonDanger.vue'
@@ -63,14 +63,14 @@ async function stop() {
     <div class="flex justify-center">
       <ButtonPrimary
         class="me-1 mb-0"
-        :disabled="status.state !== DeviceState.Idle"
+        :disabled="status.activity !== DeviceActivityStatus.Idle"
         @click="start"
       >
         Start
       </ButtonPrimary>
       <ButtonDanger
         class="ms-1 mb-0"
-        :disabled="status.state !== DeviceState.Reflow"
+        :disabled="status.activity !== DeviceActivityStatus.Reflow"
         @click="stop"
       >
         Stop

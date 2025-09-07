@@ -7,7 +7,7 @@ import { Device } from '@/device'
 import ReflowChart from '@/components/ReflowChart.vue'
 import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
 import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
-import { DeviceState, Constants } from '@/proto/generated/types'
+import { DeviceActivityStatus, HeadStatus, Constants } from '@/proto/generated/types'
 
 const device: Device = inject('device')!
 
@@ -15,8 +15,8 @@ const saveP0Btn = ref()
 const saveP1Btn = ref()
 
 const status = computed(() => device.status.value)
-const is_idle = computed(() => status.value.state === DeviceState.Idle)
-const is_baking = computed(() => status.value.state === DeviceState.SensorBake)
+const is_idle = computed(() => status.value.activity === DeviceActivityStatus.Idle)
+const is_baking = computed(() => status.value.activity === DeviceActivityStatus.SensorBake)
 
 const p0 = ref('')
 const p1 = ref('')
@@ -38,13 +38,13 @@ async function loadCalibrationStatus() {
 onMounted(async () => { await loadCalibrationStatus() })
 
 onBeforeRouteLeave(async () => {
-  if (status.value.state === DeviceState.SensorBake) await device.stop()
+  if (status.value.activity === DeviceActivityStatus.SensorBake) await device.stop()
   return true
 })
 
 // Update power "on the fly" (only when baking on progress)
 watchDebounced(power, async () => {
-  if (status.value.state === DeviceState.SensorBake) await device.run_sensor_bake(toNumber(power.value))
+  if (status.value.activity === DeviceActivityStatus.SensorBake) await device.run_sensor_bake(toNumber(power.value))
 }, { debounce: 500 })
 
 function isNumberLike(val: string | number): boolean {
@@ -105,7 +105,7 @@ async function save_p1() {
       </div>
     </template>
 
-    <div v-if="!status.hotplate_connected" class="text-red-800 mb-4">
+    <div v-if="status.head !== HeadStatus.HeadConnected" class="text-red-800 mb-4">
       <p class="text-red-500">Hotplate not connected</p>
     </div>
     <template v-else>

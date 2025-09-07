@@ -11,7 +11,6 @@
 #include "logger.hpp"
 #include "app_states/adrc_test.hpp"
 #include "app_states/bonding.hpp"
-#include "app_states/init.hpp"
 #include "app_states/idle.hpp"
 #include "app_states/reflow.hpp"
 #include "app_states/sensor_bake.hpp"
@@ -26,7 +25,6 @@ void App::LogUnknownEvent(const etl::imessage& msg) {
 }
 
 etl::fsm_state_pack<
-    Init_State,
     Idle_State,
     Reflow_State,
     SensorBake_State,

@@ -49,14 +49,14 @@ auto Reflow_State::on_enter_state() -> etl::fsm_state_id_t {
 
     // Pick active profile, terminate on fail
     auto profile = std::make_unique<Profile>();
-    if (!profiles_config.get_selected_profile(*profile)) { return DeviceState_Idle; }
+    if (!profiles_config.get_selected_profile(*profile)) { return DeviceActivityStatus_Idle; }
 
     // Load timeline and try to execute the task
     timeline.load(*profile);
     auto status = heater.task_start(profile->id, [this](int32_t dt_ms, int32_t time_ms) {
         task_iterator(dt_ms, time_ms);
     });
-    if (!status) { return DeviceState_Idle; }
+    if (!status) { return DeviceActivityStatus_Idle; }
 
     // Enable ADRC & blink about success
     heater.temperature_control_on();
@@ -68,18 +68,18 @@ auto Reflow_State::on_enter_state() -> etl::fsm_state_id_t {
 
 auto Reflow_State::on_event(const AppCmd::Stop&) -> etl::fsm_state_id_t {
     get_fsm_context().beepReflowTerminated();
-    return DeviceState_Idle;
+    return DeviceActivityStatus_Idle;
 }
 
 auto Reflow_State::on_event(const AppCmd::Succeeded&) -> etl::fsm_state_id_t {
     get_fsm_context().beepReflowComplete();
-    return DeviceState_Idle;
+    return DeviceActivityStatus_Idle;
 }
 
 auto Reflow_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
     if (event.type == ButtonEventId::BUTTON_PRESSED_1X) {
         get_fsm_context().beepReflowTerminated();
-        return DeviceState_Idle;
+        return DeviceActivityStatus_Idle;
     }
     return No_State_Change;
 }

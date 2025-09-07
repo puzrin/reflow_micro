@@ -11,9 +11,6 @@ using HeaterTaskIteratorFn = std::function<void(uint32_t, uint32_t)>;
 
 class HeaterBase {
 public:
-    virtual auto is_hotplate_connected() -> bool { return true;};
-    virtual auto get_hotplate_id() -> uint8_t { return 0; };
-
     auto get_head_params(std::vector<uint8_t>& pb_data) -> bool;
     auto get_head_params(HeadParams& params) -> bool;
     auto set_head_params(const std::vector<uint8_t>& pb_data) -> bool;
@@ -23,6 +20,11 @@ public:
 
     virtual void setup() = 0;
     virtual auto load_all_params() -> bool;
+
+    virtual auto get_health_status() -> DeviceHealthStatus = 0;
+    virtual auto get_activity_status() -> DeviceActivityStatus = 0;
+    virtual auto get_power_status() -> PowerStatus = 0;
+    virtual auto get_head_status() -> HeadStatus = 0;
 
     virtual auto get_temperature() -> float = 0;
     virtual auto get_resistance() -> float = 0;

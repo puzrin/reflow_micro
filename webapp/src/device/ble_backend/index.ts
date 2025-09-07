@@ -1,5 +1,5 @@
 import { Device, type IBackend } from '@/device'
-import { ProfilesData, HeadParams, HistoryChunk, DeviceStatus, Constants } from '@/proto/generated/types'
+import { ProfilesData, HeadParams, HistoryChunk, DeviceInfo, Constants } from '@/proto/generated/types'
 import { BleRpcClient } from '../../../src/lib/ble/BleRpcClient';
 
 export class BleBackend implements IBackend {
@@ -28,7 +28,7 @@ export class BleBackend implements IBackend {
 
     if (!this.is_selected) return;
 
-    this.device.status.value = DeviceStatus.decode(pb_status)
+    this.device.status.value = DeviceInfo.decode(pb_status)
   }
 
   async fetch_history(): Promise<void> {

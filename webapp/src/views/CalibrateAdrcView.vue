@@ -7,15 +7,15 @@ import { Device } from '@/device'
 import ReflowChart from '@/components/ReflowChart.vue'
 import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
 import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
-import { HeadParams, DeviceState, Constants } from '@/proto/generated/types'
+import { HeadParams, DeviceActivityStatus, HeadStatus, Constants } from '@/proto/generated/types'
 import { DEFAULT_HEAD_PARAMS_PB } from '@/proto/generated/defaults'
 
 const device: Device = inject('device')!
 
 const status = computed(() => device.status.value)
-const is_idle = computed(() => status.value.state === DeviceState.Idle)
-const is_testing = computed(() => status.value.state === DeviceState.AdrcTest)
-const is_step_response = computed(() => status.value.state === DeviceState.StepResponse)
+const is_idle = computed(() => status.value.activity === DeviceActivityStatus.Idle)
+const is_testing = computed(() => status.value.activity === DeviceActivityStatus.AdrcTest)
+const is_step_response = computed(() => status.value.activity === DeviceActivityStatus.StepResponse)
 
 const saveBtn = ref()
 const resetBtn = ref()
@@ -49,8 +49,8 @@ onMounted(async () => {
 })
 
 onBeforeRouteLeave(async () => {
-  if ((status.value.state === DeviceState.AdrcTest) ||
-      (status.value.state === DeviceState.StepResponse)) {
+  if ((status.value.activity === DeviceActivityStatus.AdrcTest) ||
+      (status.value.activity === DeviceActivityStatus.StepResponse)) {
     await device.stop()
   }
   return true
@@ -58,12 +58,12 @@ onBeforeRouteLeave(async () => {
 
 // Update temperature "on the fly" (only when testing active)
 watchDebounced(test_temperature, async () => {
-  if (status.value.state === DeviceState.AdrcTest) await device.run_adrc_test(toNumber(test_temperature.value))
+  if (status.value.activity === DeviceActivityStatus.AdrcTest) await device.run_adrc_test(toNumber(test_temperature.value))
 }, { debounce: 500 })
 
 // Reload ADRC settings when finish any task
-watch(() => device.status.value.state, async (newState) => {
-  if (newState === DeviceState.Idle) {
+watch(() => device.status.value.activity, async (newState) => {
+  if (newState === DeviceActivityStatus.Idle) {
     configToRefs(await device.get_head_params())
   }
 })
@@ -124,7 +124,7 @@ async function default_adrc_params() {
       </div>
     </template>
 
-    <div v-if="!status.hotplate_connected" class="text-red-800 mb-4">
+    <div v-if="status.head !== HeadStatus.HeadConnected" class="text-red-800 mb-4">
       <p class="text-red-500">Hotplate not connected</p>
     </div>
     <template v-else>

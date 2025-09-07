@@ -81,89 +81,267 @@ export function constantsToJSON(object: Constants): string {
   }
 }
 
-export enum DeviceState {
-  Init = 0,
-  Idle = 1,
-  Reflow = 2,
-  SensorBake = 3,
-  AdrcTest = 4,
-  StepResponse = 5,
-  Bonding = 6,
-  NumberOfStates = 7,
+export enum HeaterType {
+  /** MCH - Ceramic with tungsten wire inside */
+  MCH = 0,
+  /** PCB - Aluminum PCB with copper trace */
+  PCB = 1,
   UNRECOGNIZED = -1,
 }
 
-export function deviceStateFromJSON(object: any): DeviceState {
+export function heaterTypeFromJSON(object: any): HeaterType {
   switch (object) {
     case 0:
-    case "Init":
-      return DeviceState.Init;
+    case "MCH":
+      return HeaterType.MCH;
     case 1:
-    case "Idle":
-      return DeviceState.Idle;
-    case 2:
-    case "Reflow":
-      return DeviceState.Reflow;
-    case 3:
-    case "SensorBake":
-      return DeviceState.SensorBake;
-    case 4:
-    case "AdrcTest":
-      return DeviceState.AdrcTest;
-    case 5:
-    case "StepResponse":
-      return DeviceState.StepResponse;
-    case 6:
-    case "Bonding":
-      return DeviceState.Bonding;
-    case 7:
-    case "NumberOfStates":
-      return DeviceState.NumberOfStates;
+    case "PCB":
+      return HeaterType.PCB;
     case -1:
     case "UNRECOGNIZED":
     default:
-      return DeviceState.UNRECOGNIZED;
+      return HeaterType.UNRECOGNIZED;
   }
 }
 
-export function deviceStateToJSON(object: DeviceState): string {
+export function heaterTypeToJSON(object: HeaterType): string {
   switch (object) {
-    case DeviceState.Init:
-      return "Init";
-    case DeviceState.Idle:
-      return "Idle";
-    case DeviceState.Reflow:
-      return "Reflow";
-    case DeviceState.SensorBake:
-      return "SensorBake";
-    case DeviceState.AdrcTest:
-      return "AdrcTest";
-    case DeviceState.StepResponse:
-      return "StepResponse";
-    case DeviceState.Bonding:
-      return "Bonding";
-    case DeviceState.NumberOfStates:
-      return "NumberOfStates";
-    case DeviceState.UNRECOGNIZED:
+    case HeaterType.MCH:
+      return "MCH";
+    case HeaterType.PCB:
+      return "PCB";
+    case HeaterType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
   }
 }
 
-export interface DeviceStatus {
-  /** Main */
-  state: DeviceState;
-  hotplate_connected: boolean;
-  hotplate_id: number;
-  temperature: number;
-  /** Debug info */
-  watts: number;
-  volts: number;
-  amperes: number;
-  max_watts: number;
-  /** 0..1 */
-  duty_cycle: number;
-  resistance: number;
+export enum SensorType {
+  /** PT100 - Standalone RTD */
+  PT100 = 0,
+  /** Indirect - Calculated via heater's TCR (copper: 0.39%/°C, tungsten: 0.45%/°C) */
+  Indirect = 1,
+  UNRECOGNIZED = -1,
+}
+
+export function sensorTypeFromJSON(object: any): SensorType {
+  switch (object) {
+    case 0:
+    case "PT100":
+      return SensorType.PT100;
+    case 1:
+    case "Indirect":
+      return SensorType.Indirect;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return SensorType.UNRECOGNIZED;
+  }
+}
+
+export function sensorTypeToJSON(object: SensorType): string {
+  switch (object) {
+    case SensorType.PT100:
+      return "PT100";
+    case SensorType.Indirect:
+      return "Indirect";
+    case SensorType.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
+export enum HeadStatus {
+  HeadDisconnected = 0,
+  HeadInitializing = 1,
+  HeadConnected = 2,
+  HeadError = 3,
+  UNRECOGNIZED = -1,
+}
+
+export function headStatusFromJSON(object: any): HeadStatus {
+  switch (object) {
+    case 0:
+    case "HeadDisconnected":
+      return HeadStatus.HeadDisconnected;
+    case 1:
+    case "HeadInitializing":
+      return HeadStatus.HeadInitializing;
+    case 2:
+    case "HeadConnected":
+      return HeadStatus.HeadConnected;
+    case 3:
+    case "HeadError":
+      return HeadStatus.HeadError;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return HeadStatus.UNRECOGNIZED;
+  }
+}
+
+export function headStatusToJSON(object: HeadStatus): string {
+  switch (object) {
+    case HeadStatus.HeadDisconnected:
+      return "HeadDisconnected";
+    case HeadStatus.HeadInitializing:
+      return "HeadInitializing";
+    case HeadStatus.HeadConnected:
+      return "HeadConnected";
+    case HeadStatus.HeadError:
+      return "HeadError";
+    case HeadStatus.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
+export enum PowerStatus {
+  PwrOff = 0,
+  PwrInitializing = 1,
+  /** PwrTransition - PC contract change */
+  PwrTransition = 2,
+  PwrOK = 3,
+  PwrFailure = 4,
+  UNRECOGNIZED = -1,
+}
+
+export function powerStatusFromJSON(object: any): PowerStatus {
+  switch (object) {
+    case 0:
+    case "PwrOff":
+      return PowerStatus.PwrOff;
+    case 1:
+    case "PwrInitializing":
+      return PowerStatus.PwrInitializing;
+    case 2:
+    case "PwrTransition":
+      return PowerStatus.PwrTransition;
+    case 3:
+    case "PwrOK":
+      return PowerStatus.PwrOK;
+    case 4:
+    case "PwrFailure":
+      return PowerStatus.PwrFailure;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return PowerStatus.UNRECOGNIZED;
+  }
+}
+
+export function powerStatusToJSON(object: PowerStatus): string {
+  switch (object) {
+    case PowerStatus.PwrOff:
+      return "PwrOff";
+    case PowerStatus.PwrInitializing:
+      return "PwrInitializing";
+    case PowerStatus.PwrTransition:
+      return "PwrTransition";
+    case PowerStatus.PwrOK:
+      return "PwrOK";
+    case PowerStatus.PwrFailure:
+      return "PwrFailure";
+    case PowerStatus.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
+export enum DeviceHealthStatus {
+  DevNotReady = 0,
+  DevOK = 1,
+  DevFailure = 2,
+  UNRECOGNIZED = -1,
+}
+
+export function deviceHealthStatusFromJSON(object: any): DeviceHealthStatus {
+  switch (object) {
+    case 0:
+    case "DevNotReady":
+      return DeviceHealthStatus.DevNotReady;
+    case 1:
+    case "DevOK":
+      return DeviceHealthStatus.DevOK;
+    case 2:
+    case "DevFailure":
+      return DeviceHealthStatus.DevFailure;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return DeviceHealthStatus.UNRECOGNIZED;
+  }
+}
+
+export function deviceHealthStatusToJSON(object: DeviceHealthStatus): string {
+  switch (object) {
+    case DeviceHealthStatus.DevNotReady:
+      return "DevNotReady";
+    case DeviceHealthStatus.DevOK:
+      return "DevOK";
+    case DeviceHealthStatus.DevFailure:
+      return "DevFailure";
+    case DeviceHealthStatus.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
+export enum DeviceActivityStatus {
+  Idle = 0,
+  Reflow = 1,
+  SensorBake = 2,
+  AdrcTest = 3,
+  StepResponse = 4,
+  Bonding = 5,
+  UNRECOGNIZED = -1,
+}
+
+export function deviceActivityStatusFromJSON(object: any): DeviceActivityStatus {
+  switch (object) {
+    case 0:
+    case "Idle":
+      return DeviceActivityStatus.Idle;
+    case 1:
+    case "Reflow":
+      return DeviceActivityStatus.Reflow;
+    case 2:
+    case "SensorBake":
+      return DeviceActivityStatus.SensorBake;
+    case 3:
+    case "AdrcTest":
+      return DeviceActivityStatus.AdrcTest;
+    case 4:
+    case "StepResponse":
+      return DeviceActivityStatus.StepResponse;
+    case 5:
+    case "Bonding":
+      return DeviceActivityStatus.Bonding;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return DeviceActivityStatus.UNRECOGNIZED;
+  }
+}
+
+export function deviceActivityStatusToJSON(object: DeviceActivityStatus): string {
+  switch (object) {
+    case DeviceActivityStatus.Idle:
+      return "Idle";
+    case DeviceActivityStatus.Reflow:
+      return "Reflow";
+    case DeviceActivityStatus.SensorBake:
+      return "SensorBake";
+    case DeviceActivityStatus.AdrcTest:
+      return "AdrcTest";
+    case DeviceActivityStatus.StepResponse:
+      return "StepResponse";
+    case DeviceActivityStatus.Bonding:
+      return "Bonding";
+    case DeviceActivityStatus.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
 }
 
 export interface Segment {
@@ -222,220 +400,22 @@ export interface HeadParams {
   adrc_M: number;
 }
 
-function createBaseDeviceStatus(): DeviceStatus {
-  return {
-    state: 0,
-    hotplate_connected: false,
-    hotplate_id: 0,
-    temperature: 0,
-    watts: 0,
-    volts: 0,
-    amperes: 0,
-    max_watts: 0,
-    duty_cycle: 0,
-    resistance: 0,
-  };
+export interface DeviceInfo {
+  /** Main */
+  health: DeviceHealthStatus;
+  activity: DeviceActivityStatus;
+  power: PowerStatus;
+  head: HeadStatus;
+  temperature: number;
+  /** Debug info */
+  watts: number;
+  volts: number;
+  amperes: number;
+  max_watts: number;
+  /** 0..1 */
+  duty_cycle: number;
+  resistance: number;
 }
-
-export const DeviceStatus: MessageFns<DeviceStatus> = {
-  encode(message: DeviceStatus, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.state !== 0) {
-      writer.uint32(8).int32(message.state);
-    }
-    if (message.hotplate_connected !== false) {
-      writer.uint32(16).bool(message.hotplate_connected);
-    }
-    if (message.hotplate_id !== 0) {
-      writer.uint32(24).uint32(message.hotplate_id);
-    }
-    if (message.temperature !== 0) {
-      writer.uint32(37).float(message.temperature);
-    }
-    if (message.watts !== 0) {
-      writer.uint32(45).float(message.watts);
-    }
-    if (message.volts !== 0) {
-      writer.uint32(53).float(message.volts);
-    }
-    if (message.amperes !== 0) {
-      writer.uint32(61).float(message.amperes);
-    }
-    if (message.max_watts !== 0) {
-      writer.uint32(69).float(message.max_watts);
-    }
-    if (message.duty_cycle !== 0) {
-      writer.uint32(77).float(message.duty_cycle);
-    }
-    if (message.resistance !== 0) {
-      writer.uint32(85).float(message.resistance);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): DeviceStatus {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseDeviceStatus();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.state = reader.int32() as any;
-          continue;
-        }
-        case 2: {
-          if (tag !== 16) {
-            break;
-          }
-
-          message.hotplate_connected = reader.bool();
-          continue;
-        }
-        case 3: {
-          if (tag !== 24) {
-            break;
-          }
-
-          message.hotplate_id = reader.uint32();
-          continue;
-        }
-        case 4: {
-          if (tag !== 37) {
-            break;
-          }
-
-          message.temperature = reader.float();
-          continue;
-        }
-        case 5: {
-          if (tag !== 45) {
-            break;
-          }
-
-          message.watts = reader.float();
-          continue;
-        }
-        case 6: {
-          if (tag !== 53) {
-            break;
-          }
-
-          message.volts = reader.float();
-          continue;
-        }
-        case 7: {
-          if (tag !== 61) {
-            break;
-          }
-
-          message.amperes = reader.float();
-          continue;
-        }
-        case 8: {
-          if (tag !== 69) {
-            break;
-          }
-
-          message.max_watts = reader.float();
-          continue;
-        }
-        case 9: {
-          if (tag !== 77) {
-            break;
-          }
-
-          message.duty_cycle = reader.float();
-          continue;
-        }
-        case 10: {
-          if (tag !== 85) {
-            break;
-          }
-
-          message.resistance = reader.float();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): DeviceStatus {
-    return {
-      state: isSet(object.state) ? deviceStateFromJSON(object.state) : 0,
-      hotplate_connected: isSet(object.hotplate_connected) ? globalThis.Boolean(object.hotplate_connected) : false,
-      hotplate_id: isSet(object.hotplate_id) ? globalThis.Number(object.hotplate_id) : 0,
-      temperature: isSet(object.temperature) ? globalThis.Number(object.temperature) : 0,
-      watts: isSet(object.watts) ? globalThis.Number(object.watts) : 0,
-      volts: isSet(object.volts) ? globalThis.Number(object.volts) : 0,
-      amperes: isSet(object.amperes) ? globalThis.Number(object.amperes) : 0,
-      max_watts: isSet(object.max_watts) ? globalThis.Number(object.max_watts) : 0,
-      duty_cycle: isSet(object.duty_cycle) ? globalThis.Number(object.duty_cycle) : 0,
-      resistance: isSet(object.resistance) ? globalThis.Number(object.resistance) : 0,
-    };
-  },
-
-  toJSON(message: DeviceStatus): unknown {
-    const obj: any = {};
-    if (message.state !== 0) {
-      obj.state = deviceStateToJSON(message.state);
-    }
-    if (message.hotplate_connected !== false) {
-      obj.hotplate_connected = message.hotplate_connected;
-    }
-    if (message.hotplate_id !== 0) {
-      obj.hotplate_id = Math.round(message.hotplate_id);
-    }
-    if (message.temperature !== 0) {
-      obj.temperature = message.temperature;
-    }
-    if (message.watts !== 0) {
-      obj.watts = message.watts;
-    }
-    if (message.volts !== 0) {
-      obj.volts = message.volts;
-    }
-    if (message.amperes !== 0) {
-      obj.amperes = message.amperes;
-    }
-    if (message.max_watts !== 0) {
-      obj.max_watts = message.max_watts;
-    }
-    if (message.duty_cycle !== 0) {
-      obj.duty_cycle = message.duty_cycle;
-    }
-    if (message.resistance !== 0) {
-      obj.resistance = message.resistance;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<DeviceStatus>, I>>(base?: I): DeviceStatus {
-    return DeviceStatus.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<DeviceStatus>, I>>(object: I): DeviceStatus {
-    const message = createBaseDeviceStatus();
-    message.state = object.state ?? 0;
-    message.hotplate_connected = object.hotplate_connected ?? false;
-    message.hotplate_id = object.hotplate_id ?? 0;
-    message.temperature = object.temperature ?? 0;
-    message.watts = object.watts ?? 0;
-    message.volts = object.volts ?? 0;
-    message.amperes = object.amperes ?? 0;
-    message.max_watts = object.max_watts ?? 0;
-    message.duty_cycle = object.duty_cycle ?? 0;
-    message.resistance = object.resistance ?? 0;
-    return message;
-  },
-};
 
 function createBaseSegment(): Segment {
   return { target: 0, duration: 0 };
@@ -1026,6 +1006,238 @@ export const HeadParams: MessageFns<HeadParams> = {
     message.adrc_b0 = object.adrc_b0 ?? 0;
     message.adrc_N = object.adrc_N ?? 0;
     message.adrc_M = object.adrc_M ?? 0;
+    return message;
+  },
+};
+
+function createBaseDeviceInfo(): DeviceInfo {
+  return {
+    health: 0,
+    activity: 0,
+    power: 0,
+    head: 0,
+    temperature: 0,
+    watts: 0,
+    volts: 0,
+    amperes: 0,
+    max_watts: 0,
+    duty_cycle: 0,
+    resistance: 0,
+  };
+}
+
+export const DeviceInfo: MessageFns<DeviceInfo> = {
+  encode(message: DeviceInfo, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.health !== 0) {
+      writer.uint32(8).int32(message.health);
+    }
+    if (message.activity !== 0) {
+      writer.uint32(16).int32(message.activity);
+    }
+    if (message.power !== 0) {
+      writer.uint32(24).int32(message.power);
+    }
+    if (message.head !== 0) {
+      writer.uint32(32).int32(message.head);
+    }
+    if (message.temperature !== 0) {
+      writer.uint32(45).float(message.temperature);
+    }
+    if (message.watts !== 0) {
+      writer.uint32(53).float(message.watts);
+    }
+    if (message.volts !== 0) {
+      writer.uint32(61).float(message.volts);
+    }
+    if (message.amperes !== 0) {
+      writer.uint32(69).float(message.amperes);
+    }
+    if (message.max_watts !== 0) {
+      writer.uint32(77).float(message.max_watts);
+    }
+    if (message.duty_cycle !== 0) {
+      writer.uint32(85).float(message.duty_cycle);
+    }
+    if (message.resistance !== 0) {
+      writer.uint32(93).float(message.resistance);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DeviceInfo {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDeviceInfo();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.health = reader.int32() as any;
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.activity = reader.int32() as any;
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.power = reader.int32() as any;
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.head = reader.int32() as any;
+          continue;
+        }
+        case 5: {
+          if (tag !== 45) {
+            break;
+          }
+
+          message.temperature = reader.float();
+          continue;
+        }
+        case 6: {
+          if (tag !== 53) {
+            break;
+          }
+
+          message.watts = reader.float();
+          continue;
+        }
+        case 7: {
+          if (tag !== 61) {
+            break;
+          }
+
+          message.volts = reader.float();
+          continue;
+        }
+        case 8: {
+          if (tag !== 69) {
+            break;
+          }
+
+          message.amperes = reader.float();
+          continue;
+        }
+        case 9: {
+          if (tag !== 77) {
+            break;
+          }
+
+          message.max_watts = reader.float();
+          continue;
+        }
+        case 10: {
+          if (tag !== 85) {
+            break;
+          }
+
+          message.duty_cycle = reader.float();
+          continue;
+        }
+        case 11: {
+          if (tag !== 93) {
+            break;
+          }
+
+          message.resistance = reader.float();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DeviceInfo {
+    return {
+      health: isSet(object.health) ? deviceHealthStatusFromJSON(object.health) : 0,
+      activity: isSet(object.activity) ? deviceActivityStatusFromJSON(object.activity) : 0,
+      power: isSet(object.power) ? powerStatusFromJSON(object.power) : 0,
+      head: isSet(object.head) ? headStatusFromJSON(object.head) : 0,
+      temperature: isSet(object.temperature) ? globalThis.Number(object.temperature) : 0,
+      watts: isSet(object.watts) ? globalThis.Number(object.watts) : 0,
+      volts: isSet(object.volts) ? globalThis.Number(object.volts) : 0,
+      amperes: isSet(object.amperes) ? globalThis.Number(object.amperes) : 0,
+      max_watts: isSet(object.max_watts) ? globalThis.Number(object.max_watts) : 0,
+      duty_cycle: isSet(object.duty_cycle) ? globalThis.Number(object.duty_cycle) : 0,
+      resistance: isSet(object.resistance) ? globalThis.Number(object.resistance) : 0,
+    };
+  },
+
+  toJSON(message: DeviceInfo): unknown {
+    const obj: any = {};
+    if (message.health !== 0) {
+      obj.health = deviceHealthStatusToJSON(message.health);
+    }
+    if (message.activity !== 0) {
+      obj.activity = deviceActivityStatusToJSON(message.activity);
+    }
+    if (message.power !== 0) {
+      obj.power = powerStatusToJSON(message.power);
+    }
+    if (message.head !== 0) {
+      obj.head = headStatusToJSON(message.head);
+    }
+    if (message.temperature !== 0) {
+      obj.temperature = message.temperature;
+    }
+    if (message.watts !== 0) {
+      obj.watts = message.watts;
+    }
+    if (message.volts !== 0) {
+      obj.volts = message.volts;
+    }
+    if (message.amperes !== 0) {
+      obj.amperes = message.amperes;
+    }
+    if (message.max_watts !== 0) {
+      obj.max_watts = message.max_watts;
+    }
+    if (message.duty_cycle !== 0) {
+      obj.duty_cycle = message.duty_cycle;
+    }
+    if (message.resistance !== 0) {
+      obj.resistance = message.resistance;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DeviceInfo>, I>>(base?: I): DeviceInfo {
+    return DeviceInfo.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DeviceInfo>, I>>(object: I): DeviceInfo {
+    const message = createBaseDeviceInfo();
+    message.health = object.health ?? 0;
+    message.activity = object.activity ?? 0;
+    message.power = object.power ?? 0;
+    message.head = object.head ?? 0;
+    message.temperature = object.temperature ?? 0;
+    message.watts = object.watts ?? 0;
+    message.volts = object.volts ?? 0;
+    message.amperes = object.amperes ?? 0;
+    message.max_watts = object.max_watts ?? 0;
+    message.duty_cycle = object.duty_cycle ?? 0;
+    message.resistance = object.resistance ?? 0;
     return message;
   },
 };

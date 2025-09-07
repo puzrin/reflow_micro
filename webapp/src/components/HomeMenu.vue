@@ -3,7 +3,7 @@ import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import { RouterLink } from 'vue-router'
 import { useProfilesStore } from '@/stores/profiles'
 import { inject, computed } from 'vue'
-import { DeviceState } from '@/proto/generated/types'
+import { DeviceActivityStatus } from '@/proto/generated/types'
 import { Device } from '@/device'
 import MenuIcon from '@heroicons/vue/24/outline/Bars4Icon'
 import CheckIcon from '@heroicons/vue/24/outline/CheckIcon'
@@ -40,7 +40,7 @@ const repoUrl = __REPO_URL__
                 class="flex w-full items-center rounded-md px-3 py-2 whitespace-nowrap text-ellipsis overflow-hidden disabled:opacity-50 disabled:pointer-events-none"
                 :class="[
                   active ? 'bg-violet-500 text-white' : 'text-gray-900',
-                  { 'disabled':  status.state === DeviceState.Reflow }
+                  { 'disabled':  status.activity === DeviceActivityStatus.Reflow }
                 ]"
                 @click="() => profilesStore.select(profile.id)"
               >
@@ -60,7 +60,7 @@ const repoUrl = __REPO_URL__
               class="flex w-full items-center rounded-md px-3 py-2 whitespace-nowrap text-ellipsis overflow-hidden"
               :class="[
                 active ? 'bg-violet-500 text-white' : 'text-gray-900',
-                { 'disabled':  status.state === DeviceState.Reflow }
+                { 'disabled':  status.activity === DeviceActivityStatus.Reflow }
               ]"
             >
               Settings...

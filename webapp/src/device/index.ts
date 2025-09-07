@@ -2,7 +2,7 @@ import { ref, type App, type Ref, toValue } from "vue"
 import { VirtualBackend } from "./virtual_backend"
 import { BleBackend } from "./ble_backend"
 import { useProfilesStore } from '@/stores/profiles'
-import { ProfilesData, Point, HeadParams, DeviceStatus } from '@/proto/generated/types'
+import { ProfilesData, Point, HeadParams, HeadStatus, DeviceInfo } from '@/proto/generated/types'
 import { SparseHistory } from './sparse_history'
 import { useLocalSettingsStore } from "@/stores/localSettings"
 
@@ -38,7 +38,7 @@ export class Device {
   need_pairing: Ref<boolean> = ref(false)
   is_ready: Ref<boolean> = ref(false) // connected + authenticated + configs fetched
 
-  status: Ref<DeviceStatus> = ref(DeviceStatus.create({ hotplate_connected: false }))
+  status: Ref<DeviceInfo> = ref(DeviceInfo.create({ head: HeadStatus.HeadDisconnected }))
 
   history: Ref<Point[]> = ref<Point[]>([])
   history_id: Ref<number> = ref(0)

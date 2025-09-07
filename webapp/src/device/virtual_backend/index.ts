@@ -7,7 +7,7 @@ import { task_sensor_bake } from './tasks/task_sensor_bake'
 import { task_adrc_test } from './tasks/task_adrc_test'
 import { task_reflow } from './tasks/task_reflow'
 import { task_step_response } from './tasks/task_step_response'
-import { ProfilesData, HeadParams, HistoryChunk, DeviceState, Constants } from '@/proto/generated/types'
+import { ProfilesData, HeadParams, HistoryChunk, DeviceHealthStatus, DeviceActivityStatus, HeadStatus, Constants, PowerStatus } from '@/proto/generated/types'
 import { DEFAULT_PROFILES_DATA_PB } from '@/proto/generated/defaults'
 
 // Tick step in ms, 10Hz.
@@ -20,7 +20,7 @@ export class VirtualBackend implements IBackend {
   private device: Device
   heater: Heater
 
-  private state = DeviceState.Idle
+  private activity = DeviceActivityStatus.Idle
 
   private ticker_id: ReturnType<typeof setInterval> | null = null
 
@@ -47,9 +47,10 @@ export class VirtualBackend implements IBackend {
     if (!this.device.is_ready.value) return
 
     this.device.status.value = {
-      state: this.state,
-      hotplate_connected: true,
-      hotplate_id: 0,
+      health: DeviceHealthStatus.DevOK,
+      activity: this.activity,
+      power: PowerStatus.PwrOK,
+      head: HeadStatus.HeadConnected,
       temperature: this.heater.temperature,
       watts: this.heater.get_power(),
       volts: this.heater.get_volts(),
@@ -91,8 +92,7 @@ export class VirtualBackend implements IBackend {
     this.device.is_authenticated.value = true
     this.client_history_version = -1
 
-    this.device.status.value.hotplate_connected = true
-    this.device.status.value.hotplate_id = 0
+    this.device.status.value.head = HeadStatus.HeadConnected
 
     await this.device.loadProfilesData()
 
@@ -104,14 +104,14 @@ export class VirtualBackend implements IBackend {
 
   async detach() {
     if (this.ticker_id !== null) clearInterval(this.ticker_id)
-    if (this.state !== DeviceState.Idle) await this.stop()
+    if (this.activity !== DeviceActivityStatus.Idle) await this.stop()
     this.remote_history.reset()
     this.device.is_connecting.value = false
     this.device.is_connected.value = false
     this.device.is_authenticated.value = false
     this.device.is_ready.value = false
 
-    this.device.status.value.hotplate_connected = false
+    this.device.status.value.head = HeadStatus.HeadDisconnected
   }
 
   async connect() {}
@@ -137,7 +137,7 @@ export class VirtualBackend implements IBackend {
   }
 
   async stop() {
-    this.state = DeviceState.Idle
+    this.activity = DeviceActivityStatus.Idle
     this.task_iterator = null
     this.heat_control_off()
   }
@@ -166,26 +166,26 @@ export class VirtualBackend implements IBackend {
   }
 
   async run_reflow() {
-    if (this.state !== DeviceState.Idle) throw new Error('Cannot start profile, device busy')
+    if (this.activity !== DeviceActivityStatus.Idle) throw new Error('Cannot start profile, device busy')
 
     const profilesStore = useProfilesStore()
     if (profilesStore.selected === null) throw new Error('No profile set')
 
     this.reset_remote_history(profilesStore.selected.id)
-    this.state = DeviceState.Reflow
+    this.activity = DeviceActivityStatus.Reflow
 
     this.task_iterator = task_reflow(this, profilesStore.selected)
     this.task_iterator.next()
   }
 
   async run_sensor_bake(watts: number) {
-    if (this.state !== DeviceState.Idle && this.state !== DeviceState.SensorBake) {
+    if (this.activity !== DeviceActivityStatus.Idle && this.activity !== DeviceActivityStatus.SensorBake) {
       throw new Error('Cannot heat sensor, device busy')
     }
 
-    if (this.state === DeviceState.Idle) {
+    if (this.activity === DeviceActivityStatus.Idle) {
       this.reset_remote_history(Constants.HISTORY_ID_SENSOR_BAKE_MODE)
-      this.state = DeviceState.SensorBake
+      this.activity = DeviceActivityStatus.SensorBake
       this.task_iterator = task_sensor_bake(this)
     }
 
@@ -193,13 +193,13 @@ export class VirtualBackend implements IBackend {
   }
 
   async run_adrc_test(temperature: number) {
-    if (this.state !== DeviceState.Idle && this.state !== DeviceState.AdrcTest) {
+    if (this.activity !== DeviceActivityStatus.Idle && this.activity !== DeviceActivityStatus.AdrcTest) {
       throw new Error('Cannot run test, device busy')
     }
 
-    if (this.state === DeviceState.Idle) {
+    if (this.activity === DeviceActivityStatus.Idle) {
       this.reset_remote_history(Constants.HISTORY_ID_ADRC_TEST_MODE)
-      this.state = DeviceState.AdrcTest
+      this.activity = DeviceActivityStatus.AdrcTest
       this.task_iterator = task_adrc_test(this)
     }
 
@@ -207,10 +207,10 @@ export class VirtualBackend implements IBackend {
   }
 
   async run_step_response(watts: number) {
-    if (this.state !== DeviceState.Idle) throw new Error('Cannot run test, device busy')
+    if (this.activity !== DeviceActivityStatus.Idle) throw new Error('Cannot run test, device busy')
 
     this.reset_remote_history(Constants.HISTORY_ID_STEP_RESPONSE)
-    this.state = DeviceState.StepResponse
+    this.activity = DeviceActivityStatus.StepResponse
     this.task_iterator = task_step_response(this, watts)
   }
 

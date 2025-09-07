@@ -11,10 +11,11 @@
 namespace {
 
 std::vector<uint8_t> get_status() {
-    DeviceStatus status = {
-        .state = static_cast<DeviceState>(application.get_state_id()),
-        .hotplate_connected = heater.is_hotplate_connected(),
-        .hotplate_id = heater.get_hotplate_id(),
+    DeviceInfo status = {
+        .health = heater.get_health_status(),
+        .activity = heater.get_activity_status(),
+        .power = heater.get_power_status(),
+        .head = heater.get_head_status(),
         .temperature = heater.get_temperature(),
         .watts = heater.get_power(),
         .volts = heater.get_volts(),
@@ -24,10 +25,10 @@ std::vector<uint8_t> get_status() {
         .resistance = heater.get_resistance()
     };
 
-    std::vector<uint8_t> buffer(DeviceStatus_size);
+    std::vector<uint8_t> buffer(DeviceInfo_size);
     pb_ostream_t stream = pb_ostream_from_buffer(buffer.data(), buffer.size());
 
-    pb_encode(&stream, DeviceStatus_fields, &status);
+    pb_encode(&stream, DeviceInfo_fields, &status);
     buffer.resize(stream.bytes_written);
 
     return buffer;
@@ -55,32 +56,32 @@ auto save_profiles_data(std::vector<uint8_t> pb_data) -> bool {
 
 auto stop() -> bool {
     application.receive(AppCmd::Stop{});
-    return application.get_state_id() == DeviceState_Idle;
+    return application.get_state_id() == DeviceActivityStatus_Idle;
 }
 
 auto run_reflow() -> bool {
     application.receive(AppCmd::Reflow{});
-    return application.get_state_id() == DeviceState_Reflow;
+    return application.get_state_id() == DeviceActivityStatus_Reflow;
 }
 
 auto run_sensor_bake(float watts) -> bool {
     application.receive(AppCmd::SensorBake{watts});
-    return application.get_state_id() == DeviceState_SensorBake;
+    return application.get_state_id() == DeviceActivityStatus_SensorBake;
 }
 
 auto run_adrc_test(float temperature) -> bool {
     application.receive(AppCmd::AdrcTest{temperature});
-    return application.get_state_id() == DeviceState_AdrcTest;
+    return application.get_state_id() == DeviceActivityStatus_AdrcTest;
 }
 
 auto run_step_response(float watts) -> bool {
     application.receive(AppCmd::StepResponse{watts});
-    return application.get_state_id() == DeviceState_StepResponse;
+    return application.get_state_id() == DeviceActivityStatus_StepResponse;
 }
 
 std::vector<uint8_t> get_head_params() {
     std::vector<uint8_t> pb_data(HeadParams_size);
-    if (!heater.is_hotplate_connected() ||
+    if (heater.get_head_status() != HeadStatus_HeadConnected ||
         !heater.get_head_params(pb_data))
     {
         throw std::runtime_error("Hotplate is not connected");
@@ -90,7 +91,7 @@ std::vector<uint8_t> get_head_params() {
 }
 
 auto set_head_params(std::vector<uint8_t> pb_data) -> bool {
-    if (!heater.is_hotplate_connected() ||
+    if (heater.get_head_status() != HeadStatus_HeadConnected ||
         !heater.set_head_params(pb_data))
     {
         throw std::runtime_error("Hotplate is not connected");

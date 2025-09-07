@@ -6,9 +6,6 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
-PB_BIND(DeviceStatus, DeviceStatus, AUTO)
-
-
 PB_BIND(Segment, Segment, AUTO)
 
 
@@ -25,6 +22,19 @@ PB_BIND(HistoryChunk, HistoryChunk, 2)
 
 
 PB_BIND(HeadParams, HeadParams, AUTO)
+
+
+PB_BIND(DeviceInfo, DeviceInfo, AUTO)
+
+
+
+
+
+
+
+
+
+
 
 
 

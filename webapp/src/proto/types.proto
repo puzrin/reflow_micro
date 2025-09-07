@@ -16,32 +16,6 @@ enum Constants {
   HISTORY_ID_STEP_RESPONSE = 4002;
 }
 
-enum DeviceState {
-  Init = 0;
-  Idle = 1;
-  Reflow = 2;
-  SensorBake = 3;
-  AdrcTest = 4;
-  StepResponse = 5;
-  Bonding = 6;
-  NumberOfStates = 7;
-}
-
-message DeviceStatus {
-  // Main
-  DeviceState state = 1;
-  bool hotplate_connected = 2;
-  uint32 hotplate_id = 3;
-  float temperature = 4;
-  // Debug info
-  float watts = 5;
-  float volts = 6;
-  float amperes = 7;
-  float max_watts = 8;
-  float duty_cycle = 9; // 0..1
-  float resistance = 10;
-}
-
 message Segment {
   // Target temperature in Celsius
   int32 target = 1;
@@ -100,4 +74,60 @@ message HeadParams {
   // ω_controller = ω_observer / M. Usually 2..5
   // 3 is a good for the start. Probably, changes not required.
   float adrc_M = 8;
+}
+
+enum HeaterType {
+  MCH = 0; // Ceramic with tungsten wire inside
+  PCB = 1; // Aluminum PCB with copper trace
+}
+
+enum SensorType {
+  PT100 = 0; // Standalone RTD
+  Indirect = 1; // Calculated via heater's TCR (copper: 0.39%/°C, tungsten: 0.45%/°C)
+}
+
+enum HeadStatus {
+  HeadDisconnected = 0;
+  HeadInitializing = 1;
+  HeadConnected = 2;
+  HeadError = 3;
+}
+
+enum PowerStatus {
+  PwrOff = 0;
+  PwrInitializing = 1;
+  PwrTransition = 2; // PC contract change
+  PwrOK = 3;
+  PwrFailure = 4;
+}
+
+enum DeviceHealthStatus {
+  DevNotReady = 0;
+  DevOK = 1;
+  DevFailure = 2;
+}
+
+enum DeviceActivityStatus {
+  Idle = 0;
+  Reflow = 1;
+  SensorBake = 2;
+  AdrcTest = 3;
+  StepResponse = 4;
+  Bonding = 5;
+}
+
+message DeviceInfo {
+  // Main
+  DeviceHealthStatus health = 1;
+  DeviceActivityStatus activity = 2;
+  PowerStatus power = 3;
+  HeadStatus head = 4;
+  float temperature = 5;
+  // Debug info
+  float watts = 6;
+  float volts = 7;
+  float amperes = 8;
+  float max_watts = 9;
+  float duty_cycle = 10; // 0..1
+  float resistance = 11;
 }

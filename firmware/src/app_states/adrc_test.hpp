@@ -1,7 +1,7 @@
 #include "app.hpp"
 #include "proto/generated/types.pb.h"
 
-class AdrcTest_State : public etl::fsm_state<App, AdrcTest_State, DeviceState_AdrcTest,
+class AdrcTest_State : public etl::fsm_state<App, AdrcTest_State, DeviceActivityStatus_AdrcTest,
     AppCmd::Stop, AppCmd::Button, AppCmd::AdrcTest> {
 public:
     auto on_enter_state() -> etl::fsm_state_id_t override;

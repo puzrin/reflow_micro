@@ -1,7 +1,7 @@
 #include "app.hpp"
 #include "proto/generated/types.pb.h"
 
-class StepResponse_State : public etl::fsm_state<App, StepResponse_State, DeviceState_StepResponse,
+class StepResponse_State : public etl::fsm_state<App, StepResponse_State, DeviceActivityStatus_StepResponse,
     AppCmd::Stop, AppCmd::Button> {
 public:
     auto on_enter_state() -> etl::fsm_state_id_t override;

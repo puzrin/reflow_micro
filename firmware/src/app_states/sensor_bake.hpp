@@ -1,7 +1,7 @@
 #include "app.hpp"
 #include "proto/generated/types.pb.h"
 
-class SensorBake_State : public etl::fsm_state<App, SensorBake_State, DeviceState_SensorBake,
+class SensorBake_State : public etl::fsm_state<App, SensorBake_State, DeviceActivityStatus_SensorBake,
     AppCmd::Stop, AppCmd::Button, AppCmd::SensorBake> {
 public:
     auto on_enter_state() -> etl::fsm_state_id_t override;

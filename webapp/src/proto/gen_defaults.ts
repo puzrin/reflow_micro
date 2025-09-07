@@ -1,6 +1,6 @@
 /// <reference types="node" />
 
-import { ProfilesData, HeadParams, DeviceState } from './generated/types'
+import { ProfilesData, HeadParams, DeviceActivityStatus } from './generated/types'
 import { profiles_default, head_default } from './defaults_src';
 import { writeFileSync } from 'fs'
 
@@ -54,9 +54,9 @@ write_relative('../../../firmware/src/proto/generated/defaults.hpp', [
   to_hpp('DEFAULT_HEAD_PARAMS_PB', HeadParams.encode(head_default).finish())
 ].join('\n\n') + `\n`)
 
-// Validate DeviceState fields, required for FSM
-const state_values = Object.values(DeviceState).filter(v => typeof v === 'number' && v >= 0);
+// Validate DeviceActivityStatus fields, required for FSM
+const state_values = Object.values(DeviceActivityStatus).filter(v => typeof v === 'number' && v >= 0);
 if (!state_values.every((v, i) => v === i)) {
-  throw new Error('DeviceState values must be sequential starting from 0');
+  throw new Error('DeviceActivityStatus values must be sequential starting from 0');
 }
 

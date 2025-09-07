@@ -13,7 +13,7 @@ auto StepResponse_State::on_enter_state() -> etl::fsm_state_id_t {
     auto status = heater.task_start(HISTORY_ID_STEP_RESPONSE, [this](int32_t dt_ms, int32_t time_ms) {
         task_iterator(dt_ms, time_ms);
     });
-    if (!status) { return DeviceState_Idle; }
+    if (!status) { return DeviceActivityStatus_Idle; }
 
     heater.set_power(app.last_cmd_data);
 
@@ -21,11 +21,11 @@ auto StepResponse_State::on_enter_state() -> etl::fsm_state_id_t {
 }
 
 auto StepResponse_State::on_event(const AppCmd::Stop&) -> etl::fsm_state_id_t {
-    return DeviceState_Idle;
+    return DeviceActivityStatus_Idle;
 }
 
 auto StepResponse_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
-    if (event.type == ButtonEventId::BUTTON_PRESSED_1X) { return DeviceState_Idle; }
+    if (event.type == ButtonEventId::BUTTON_PRESSED_1X) { return DeviceActivityStatus_Idle; }
     return No_State_Change;
 }
 

@@ -5,27 +5,27 @@
 #include <memory>
 
 auto HeaterBase::get_head_params(std::vector<uint8_t>& pb_data) -> bool {
-    if (!is_hotplate_connected()) { return false; }
+    if (get_head_status() != HeadStatus_HeadConnected) { return false; }
 
     pb_data = head_params.get();
     return true;
 }
 
 auto HeaterBase::get_head_params(HeadParams& params) -> bool {
-    if (!is_hotplate_connected()) { return false; }
+    if (get_head_status() != HeadStatus_HeadConnected) { return false; }
 
     return pb2struct(head_params.get(), params, HeadParams_fields);
 }
 
 auto HeaterBase::set_head_params(const std::vector<uint8_t> &pb_data) -> bool {
-    if (!is_hotplate_connected()) { return false; }
+    if (get_head_status() != HeadStatus_HeadConnected) { return false; }
 
     head_params.set(pb_data);
     return true;
 }
 
 auto HeaterBase::set_head_params(const HeadParams& params) -> bool {
-    if (!is_hotplate_connected()) { return false; }
+    if (get_head_status() != HeadStatus_HeadConnected) { return false; }
 
     std::vector<uint8_t> pb_data(HeadParams_size);
     if (!struct2pb(params, pb_data, HeadParams_fields, HeadParams_size)) { return false; }
@@ -131,7 +131,7 @@ void HeaterBase::tick(int32_t dt_ms) {
 
 auto HeaterBase::task_start(int32_t task_id, HeaterTaskIteratorFn ticker) -> bool {
     if (is_task_active) { return false; }
-    if (!is_hotplate_connected()) { return false; }
+    if (get_head_status() != HeadStatus_HeadConnected) { return false; }
     if (!load_all_params()) { return false; }
 
     history.data.clear();

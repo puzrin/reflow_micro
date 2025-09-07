@@ -1,7 +1,7 @@
 #include "app.hpp"
 #include "proto/generated/types.pb.h"
 
-class Idle_State : public etl::fsm_state<App, Idle_State, DeviceState_Idle,
+class Idle_State : public etl::fsm_state<App, Idle_State, DeviceActivityStatus_Idle,
     AppCmd::Reflow, AppCmd::SensorBake, AppCmd::AdrcTest, AppCmd::StepResponse, AppCmd::Button> {
 public:
     auto on_enter_state() -> etl::fsm_state_id_t override;
