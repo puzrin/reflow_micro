@@ -1,4 +1,5 @@
 #include "app.hpp"
+#include "proto/generated/types.pb.h"
 
 class Bonding_State : public etl::fsm_state<App, Bonding_State, DeviceState_Bonding,
     AppCmd::BondOff, AppCmd::Button> {

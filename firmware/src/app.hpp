@@ -1,7 +1,6 @@
 #pragma once
 
 #include "etl/fsm.h"
-#include "heater_mock.hpp"
 #include "components/button.hpp"
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
@@ -58,8 +57,6 @@ using Packet = etl::message_packet<
 class App : public etl::fsm {
 public:
     App();
-
-    HeaterMock heater{};
 
     void LogUnknownEvent(const etl::imessage& msg);
     void setup();

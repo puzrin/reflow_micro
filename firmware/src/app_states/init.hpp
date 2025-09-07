@@ -1,4 +1,5 @@
 #include "app.hpp"
+#include "proto/generated/types.pb.h"
 
 class Init_State : public etl::fsm_state<App, Init_State, DeviceState_Init> {
 public:

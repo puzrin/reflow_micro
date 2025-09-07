@@ -1,4 +1,5 @@
 #include "app.hpp"
+#include "proto/generated/types.pb.h"
 
 class AdrcTest_State : public etl::fsm_state<App, AdrcTest_State, DeviceState_AdrcTest,
     AppCmd::Stop, AppCmd::Button, AppCmd::AdrcTest> {

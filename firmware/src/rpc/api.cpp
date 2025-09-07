@@ -3,6 +3,7 @@
 
 #include "api.hpp"
 #include "components/profiles_config.hpp"
+#include "heater/heater.hpp"
 #include "rpc.hpp"
 #include "proto/generated/types.pb.h"
 #include "app.hpp"
@@ -12,15 +13,15 @@ namespace {
 std::vector<uint8_t> get_status() {
     DeviceStatus status = {
         .state = static_cast<DeviceState>(application.get_state_id()),
-        .hotplate_connected = application.heater.is_hotplate_connected(),
-        .hotplate_id = application.heater.get_hotplate_id(),
-        .temperature = application.heater.get_temperature(),
-        .watts = application.heater.get_power(),
-        .volts = application.heater.get_volts(),
-        .amperes = application.heater.get_amperes(),
-        .max_watts = application.heater.get_max_power(),
-        .duty_cycle = application.heater.get_duty_cycle(),
-        .resistance = application.heater.get_resistance()
+        .hotplate_connected = heater.is_hotplate_connected(),
+        .hotplate_id = heater.get_hotplate_id(),
+        .temperature = heater.get_temperature(),
+        .watts = heater.get_power(),
+        .volts = heater.get_volts(),
+        .amperes = heater.get_amperes(),
+        .max_watts = heater.get_max_power(),
+        .duty_cycle = heater.get_duty_cycle(),
+        .resistance = heater.get_resistance()
     };
 
     std::vector<uint8_t> buffer(DeviceStatus_size);
@@ -35,7 +36,7 @@ std::vector<uint8_t> get_status() {
 std::vector<uint8_t> get_history_chunk(int32_t client_history_version, float from) {
     std::vector<uint8_t> pb_data(HistoryChunk_size);
 
-    application.heater.get_history(client_history_version, from, pb_data);
+    heater.get_history(client_history_version, from, pb_data);
     return pb_data;
 }
 
@@ -79,8 +80,8 @@ auto run_step_response(float watts) -> bool {
 
 std::vector<uint8_t> get_head_params() {
     std::vector<uint8_t> pb_data(HeadParams_size);
-    if (!application.heater.is_hotplate_connected() ||
-        !application.heater.get_head_params(pb_data))
+    if (!heater.is_hotplate_connected() ||
+        !heater.get_head_params(pb_data))
     {
         throw std::runtime_error("Hotplate is not connected");
     }
@@ -89,8 +90,8 @@ std::vector<uint8_t> get_head_params() {
 }
 
 auto set_head_params(std::vector<uint8_t> pb_data) -> bool {
-    if (!application.heater.is_hotplate_connected() ||
-        !application.heater.set_head_params(pb_data))
+    if (!heater.is_hotplate_connected() ||
+        !heater.set_head_params(pb_data))
     {
         throw std::runtime_error("Hotplate is not connected");
     }

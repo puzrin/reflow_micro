@@ -3,10 +3,11 @@
 #include <array>
 #include <atomic>
 #include <cstdint>
-#include "freertos/FreeRTOS.h"
-#include "freertos/timers.h"
-#include "driver/ledc.h"
-#include "driver/gpio.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/timers.h>
+#include <driver/ledc.h>
+#include <driver/gpio.h>
+
 #include "lib/rtttl.hpp"
 
 class BuzzerDriver {
@@ -17,7 +18,7 @@ public:
     static constexpr uint8_t GPIO_PIN_B = 8;
     static constexpr ledc_channel_t PWM_CHANNEL_B = LEDC_CHANNEL_3;
 
-    #ifdef HW_DEMO_ESP32_C3_SUPERMINI
+    #if defined(HW_DEMO_ESP32_C3_SUPERMINI)
     static constexpr bool doubleOutput = false;
     static constexpr uint8_t IDLE_LEVEL = 0;
     #else

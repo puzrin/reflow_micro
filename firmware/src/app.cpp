@@ -7,6 +7,7 @@
 #include "components/button.hpp"
 #include "components/buzzer.hpp"
 #include "components/fan.hpp"
+#include "heater/heater.hpp"
 #include "logger.hpp"
 #include "app_states/adrc_test.hpp"
 #include "app_states/bonding.hpp"
@@ -71,7 +72,7 @@ void App::setup() {
 }
 
 void App::showIdleBackground() {
-    #ifdef HW_DEMO_ESP32_C3_SUPERMINI
+    #if defined(HW_DEMO_ESP32_C3_SUPERMINI)
     blinker.background({10});
     #else
     blinker.background({0, 100, 0});
@@ -81,7 +82,7 @@ void App::showIdleBackground() {
 void App::showLongPressProgress() {
     int animation_time = ButtonConstants::LONG_PRESS_THRESHOLD - ButtonConstants::SHORT_PRESS_THRESHOLD;
 
-    #ifdef HW_DEMO_ESP32_C3_SUPERMINI
+    #if defined(HW_DEMO_ESP32_C3_SUPERMINI)
     blinker.once({{10, 0}, blinker.flowTo(255, animation_time)});
     #else
     blinker.once({{{0, 100, 0}, 0}, blinker.flowTo({255, 255, 255}, animation_time)});
@@ -89,7 +90,7 @@ void App::showLongPressProgress() {
 }
 
 void App::showBondingLoop() {
-    #ifdef HW_DEMO_ESP32_C3_SUPERMINI
+    #if defined(HW_DEMO_ESP32_C3_SUPERMINI)
     blinker.loop({{10, 150}, {0, 250}});
     #else
     blinker.loop({{{0, 0, 255}, 150}, {{0, 0, 0}, 250}});
@@ -97,7 +98,7 @@ void App::showBondingLoop() {
 }
 
 void App::showReflowStart() {
-    #ifdef HW_DEMO_ESP32_C3_SUPERMINI
+    #if defined(HW_DEMO_ESP32_C3_SUPERMINI)
     blinker.once({{0, 200}, {255, 300}, {0, 200}});
     #else
     blinker.once({{{0, 0, 0}, 200}, {{0, 255, 0}, 300}, {{0, 0, 0}, 200}});
@@ -105,7 +106,7 @@ void App::showReflowStart() {
 }
 
 void App::showLedTest() {
-    #ifdef HW_DEMO_ESP32_C3_SUPERMINI
+    #if defined(HW_DEMO_ESP32_C3_SUPERMINI)
     // Nothing at demo board
     #else
     // R / G / B / W cycle

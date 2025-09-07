@@ -1,4 +1,5 @@
 #include "app.hpp"
+#include "proto/generated/types.pb.h"
 
 class Idle_State : public etl::fsm_state<App, Idle_State, DeviceState_Idle,
     AppCmd::Reflow, AppCmd::SensorBake, AppCmd::AdrcTest, AppCmd::StepResponse, AppCmd::Button> {

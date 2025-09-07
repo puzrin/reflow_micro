@@ -1,16 +1,16 @@
 #include "step_response.hpp"
+#include "heater/heater.hpp"
 #include "logger.hpp"
 
 auto StepResponse_State::on_enter_state() -> etl::fsm_state_id_t {
     APP_LOGI("State => StepResponse");
 
     auto& app = get_fsm_context();
-    auto& heater = app.heater;
 
     log.clear();
     log.push_back({0, heater.get_temperature()});
 
-    auto status = app.heater.task_start(HISTORY_ID_STEP_RESPONSE, [this](int32_t dt_ms, int32_t time_ms) {
+    auto status = heater.task_start(HISTORY_ID_STEP_RESPONSE, [this](int32_t dt_ms, int32_t time_ms) {
         task_iterator(dt_ms, time_ms);
     });
     if (!status) { return DeviceState_Idle; }
@@ -35,7 +35,7 @@ auto StepResponse_State::on_event_unknown(const etl::imessage& event) -> etl::fs
 }
 
 void StepResponse_State::on_exit_state() {
-    get_fsm_context().heater.task_stop();
+    heater.task_stop();
 }
 
 void StepResponse_State::task_iterator(int32_t /*dt_ms*/, int32_t time_ms) {
@@ -43,7 +43,6 @@ void StepResponse_State::task_iterator(int32_t /*dt_ms*/, int32_t time_ms) {
     if (time_ms < log.size() * 1000) { return; }
 
     auto& app = get_fsm_context();
-    auto& heater = app.heater;
     //static constexpr float time_inv_multiplier = 1.0f / 1000;
 
     log.push_back({heater.get_temperature(), heater.get_power()});

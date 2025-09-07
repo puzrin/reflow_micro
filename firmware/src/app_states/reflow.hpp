@@ -1,4 +1,5 @@
 #include "app.hpp"
+#include "proto/generated/types.pb.h"
 
 class Timeline {
 private:

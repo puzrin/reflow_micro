@@ -1,4 +1,5 @@
 #include "components/profiles_config.hpp"
+#include "heater/heater.hpp"
 #include "logger.hpp"
 #include "reflow.hpp"
 
@@ -52,13 +53,13 @@ auto Reflow_State::on_enter_state() -> etl::fsm_state_id_t {
 
     // Load timeline and try to execute the task
     timeline.load(*profile);
-    auto status = app.heater.task_start(profile->id, [this](int32_t dt_ms, int32_t time_ms) {
+    auto status = heater.task_start(profile->id, [this](int32_t dt_ms, int32_t time_ms) {
         task_iterator(dt_ms, time_ms);
     });
     if (!status) { return DeviceState_Idle; }
 
     // Enable ADRC & blink about success
-    app.heater.temperature_control_on();
+    heater.temperature_control_on();
     app.showReflowStart();
     app.beepReflowStarted();
 
@@ -89,7 +90,7 @@ auto Reflow_State::on_event_unknown(const etl::imessage& event) -> etl::fsm_stat
 }
 
 void Reflow_State::on_exit_state() {
-    get_fsm_context().heater.task_stop();
+    heater.task_stop();
 }
 
 void Reflow_State::task_iterator(int32_t /*dt_ms*/, int32_t time_ms) {
@@ -100,10 +101,10 @@ void Reflow_State::task_iterator(int32_t /*dt_ms*/, int32_t time_ms) {
     //}
 
     if (time_ms >= timeline.get_max_time()) {
-        app.heater.task_stop();
+        heater.task_stop();
         app.enqueue_message(AppCmd::Succeeded{});
         return;
     }
 
-    app.heater.set_temperature(timeline.interpolate(time_ms));
+    heater.set_temperature(timeline.interpolate(time_ms));
 }

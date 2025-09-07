@@ -4,7 +4,7 @@
 #include <atomic>
 #include <cmath>
 #include "lib/adrc.hpp"
-#include "components/heater_base.hpp"
+#include "heater_base.hpp"
 
 class ChargerProfileMock {
 public:

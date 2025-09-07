@@ -1,11 +1,11 @@
 #include <vector>
 #include <atomic>
 #include <functional>
-#include "prefs.hpp"
+#include "components/prefs.hpp"
+#include "components/history.hpp"
+#include "lib/adrc.hpp"
 #include "proto/generated/types.pb.h"
 #include "proto/generated/defaults.hpp"
-#include "lib/adrc.hpp"
-#include "history.hpp"
 
 using HeaterTaskIteratorFn = std::function<void(uint32_t, uint32_t)>;
 

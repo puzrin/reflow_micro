@@ -1,4 +1,5 @@
 #include "adrc_test.hpp"
+#include "heater/heater.hpp"
 #include "logger.hpp"
 
 
@@ -6,7 +7,6 @@ auto AdrcTest_State::on_enter_state() -> etl::fsm_state_id_t {
     APP_LOGI("State => AdrcTest");
 
     auto& app = get_fsm_context();
-    auto& heater = app.heater;
 
     heater.set_temperature(app.last_cmd_data);
     if (!heater.task_start(HISTORY_ID_ADRC_TEST_MODE)) { return DeviceState_Idle; }
@@ -23,7 +23,7 @@ auto AdrcTest_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_
     return No_State_Change;
 }
 auto AdrcTest_State::on_event(const AppCmd::AdrcTest& event) -> etl::fsm_state_id_t {
-    get_fsm_context().heater.set_temperature(event.temperature);
+    heater.set_temperature(event.temperature);
     return No_State_Change;
 }
 
@@ -32,4 +32,4 @@ auto AdrcTest_State::on_event_unknown(const etl::imessage& event) -> etl::fsm_st
     return No_State_Change;
 }
 
-void AdrcTest_State::on_exit_state() { get_fsm_context().heater.task_stop(); }
+void AdrcTest_State::on_exit_state() { heater.task_stop(); }

@@ -1,4 +1,5 @@
 #include "app.hpp"
+#include "proto/generated/types.pb.h"
 
 class SensorBake_State : public etl::fsm_state<App, SensorBake_State, DeviceState_SensorBake,
     AppCmd::Stop, AppCmd::Button, AppCmd::SensorBake> {

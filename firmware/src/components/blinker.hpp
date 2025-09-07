@@ -8,11 +8,12 @@
 // PWM2+PWM3 / T2: Buzzer
 //
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/timers.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/timers.h>
+
 #include "lib/blinker_engine.hpp"
 
-#ifdef HW_DEMO_ESP32_C3_SUPERMINI
+#if defined(HW_DEMO_ESP32_C3_SUPERMINI)
 
 #include "driver/ledc.h"
 

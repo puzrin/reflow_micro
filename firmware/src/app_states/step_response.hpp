@@ -1,4 +1,5 @@
 #include "app.hpp"
+#include "proto/generated/types.pb.h"
 
 class StepResponse_State : public etl::fsm_state<App, StepResponse_State, DeviceState_StepResponse,
     AppCmd::Stop, AppCmd::Button> {

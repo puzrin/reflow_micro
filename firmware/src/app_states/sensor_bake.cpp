@@ -1,11 +1,12 @@
 #include "sensor_bake.hpp"
+#include "heater/heater.hpp"
 #include "logger.hpp"
 
 auto SensorBake_State::on_enter_state() -> etl::fsm_state_id_t {
     APP_LOGI("State => SensorBake");
 
     auto& app = get_fsm_context();
-    auto& heater = app.heater;
+
     if (!heater.task_start(HISTORY_ID_SENSOR_BAKE_MODE)) { return DeviceState_Idle; }
 
     heater.set_power(app.last_cmd_data);
@@ -23,7 +24,7 @@ auto SensorBake_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_i
 }
 
 auto SensorBake_State::on_event(const AppCmd::SensorBake& event) -> etl::fsm_state_id_t {
-    get_fsm_context().heater.set_power(event.watts);
+    heater.set_power(event.watts);
     return No_State_Change;
 }
 
@@ -33,5 +34,5 @@ auto SensorBake_State::on_event_unknown(const etl::imessage& event) -> etl::fsm_
 }
 
 void SensorBake_State::on_exit_state() {
-    get_fsm_context().heater.task_stop();
+    heater.task_stop();
 }
