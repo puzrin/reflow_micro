@@ -25,7 +25,45 @@ uint8_t BuzzerDriver::get_min_pwm_resolution(uint32_t freq_hz) {
     return bits;
 }
 
+void BuzzerDriver::set_duty(uint32_t duty) {
+    ledc_set_duty(LEDC_LOW_SPEED_MODE, PWM_CHANNEL_A, duty);
+    ledc_update_duty(LEDC_LOW_SPEED_MODE, PWM_CHANNEL_A);
+    if (doubleOutput) {
+        ledc_set_duty(LEDC_LOW_SPEED_MODE, PWM_CHANNEL_B, duty);
+        ledc_update_duty(LEDC_LOW_SPEED_MODE, PWM_CHANNEL_B);
+    }
+}
+
 void BuzzerDriver::sound(uint16_t freq_hz) {
+    if (!initialized) {
+        // - Set channels only once to avoid warnings.
+        // - Any valid timer required for channel(s) setup.
+        ledc_timer_config_t t{};
+        t.speed_mode      = LEDC_LOW_SPEED_MODE;
+        t.timer_num       = (ledc_timer_t)PWM_TIMER_CHANNEL;
+        t.duty_resolution = LEDC_TIMER_10_BIT;   // any
+        t.freq_hz         = 1000;                // any
+        t.clk_cfg         = LEDC_USE_APB_CLK;
+        ESP_ERROR_CHECK(ledc_timer_config(&t));
+
+        ledc_channel_config_t ch{};
+        ch.speed_mode = LEDC_LOW_SPEED_MODE;
+        ch.timer_sel  = (ledc_timer_t)PWM_TIMER_CHANNEL;
+        ch.duty       = 0;
+        ch.channel    = PWM_CHANNEL_A;
+        ch.gpio_num   = GPIO_PIN_A;
+        ESP_ERROR_CHECK(ledc_channel_config(&ch));
+
+        if (doubleOutput) {
+            ch.channel  = PWM_CHANNEL_B;
+            ch.gpio_num = GPIO_PIN_B;
+            ch.flags.output_invert = 1;
+            ESP_ERROR_CHECK(ledc_channel_config(&ch));
+        }
+
+        initialized = true;
+    }
+
     if (freq_hz == 0) {
         ledc_stop(LEDC_LOW_SPEED_MODE, PWM_CHANNEL_A, IDLE_LEVEL);
         if (doubleOutput) {
@@ -36,29 +74,17 @@ void BuzzerDriver::sound(uint16_t freq_hz) {
     }
 
     auto pwm_bits = get_min_pwm_resolution(freq_hz);
+    set_duty(0); // dim click
 
-    ledc_timer_config_t timer_conf{};
-    timer_conf.speed_mode = LEDC_LOW_SPEED_MODE;
-    timer_conf.duty_resolution = static_cast<ledc_timer_bit_t>(pwm_bits);
-    timer_conf.timer_num = static_cast<ledc_timer_t>(PWM_TIMER_CHANNEL);
-    timer_conf.freq_hz = freq_hz;
-    timer_conf.clk_cfg = LEDC_USE_APB_CLK;
-    ledc_timer_config(&timer_conf);
+    ledc_timer_config_t t{};
+    t.speed_mode = LEDC_LOW_SPEED_MODE;
+    t.duty_resolution = static_cast<ledc_timer_bit_t>(pwm_bits);
+    t.timer_num = static_cast<ledc_timer_t>(PWM_TIMER_CHANNEL);
+    t.freq_hz = freq_hz;
+    t.clk_cfg = LEDC_USE_APB_CLK;
+    ESP_ERROR_CHECK(ledc_timer_config(&t));
 
-    ledc_channel_config_t channel_conf{};
-    channel_conf.gpio_num = GPIO_PIN_A;
-    channel_conf.speed_mode = LEDC_LOW_SPEED_MODE;
-    channel_conf.channel = PWM_CHANNEL_A;
-    channel_conf.timer_sel = static_cast<ledc_timer_t>(PWM_TIMER_CHANNEL);
-    channel_conf.duty = 1u << (pwm_bits - 1); // 50% duty cycle
-    ledc_channel_config(&channel_conf);
-
-    if (doubleOutput) {
-        channel_conf.gpio_num = GPIO_PIN_B;
-        channel_conf.channel = PWM_CHANNEL_B;
-        channel_conf.flags.output_invert = 1; // Invert output for channel B
-        ledc_channel_config(&channel_conf);
-    }
+    set_duty(1u << (pwm_bits - 1)); // 50%
 }
 
 // ======================== Buzzer ========================

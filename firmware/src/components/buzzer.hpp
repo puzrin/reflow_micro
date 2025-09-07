@@ -30,8 +30,9 @@ public:
     void sound(uint16_t freq_hz);
 
 private:
-    void set_duty(uint8_t duty_percent);
+    void set_duty(uint32_t duty);
     uint8_t get_min_pwm_resolution(uint32_t freq_hz);
+    bool initialized{false};
 };
 
 class Buzzer {
