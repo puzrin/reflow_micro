@@ -22,10 +22,15 @@ void stack_monitor_start() {
                         taskStatusArray[i].pcTaskName,
                         uint32_t(stackHighWaterMark));
                 }
+                APP_LOGI("Free memory: {}; Minimum free memory: {}; Max free block: {}",
+                    heap_caps_get_free_size(MALLOC_CAP_8BIT),
+                    heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT),
+                    heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
+
                 APP_LOGI("---------------------------------------------------");
             }
 
             vTaskDelay(pdMS_TO_TICKS(60 * 1000));
         }
-    }, "StackMonitorTask", 1024 * 4, NULL, 0, NULL);
+    }, "StackMonitorTask", 1024 * 2, NULL, 0, NULL);
 }
