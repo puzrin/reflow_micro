@@ -5,16 +5,15 @@
 #include "components/history.hpp"
 #include "lib/adrc.hpp"
 #include "proto/generated/types.pb.h"
-#include "proto/generated/defaults.hpp"
 
 using HeaterTaskIteratorFn = std::function<void(uint32_t, uint32_t)>;
 
 class HeaterControlBase {
 public:
-    auto get_head_params(std::vector<uint8_t>& pb_data) -> bool;
-    auto get_head_params(HeadParams& params) -> bool;
-    auto set_head_params(const std::vector<uint8_t>& pb_data) -> bool;
-    auto set_head_params(const HeadParams& params) -> bool;
+    virtual bool get_head_params_pb(std::vector<uint8_t>& pb_data) = 0;
+    virtual bool set_head_params_pb(const std::vector<uint8_t>& pb_data) = 0;
+    virtual bool get_head_params(HeadParams& params) = 0;
+    virtual bool set_head_params(const HeadParams& params) = 0;
 
     void get_history(int32_t client_history_version, float from, std::vector<uint8_t>& pb_data);
 
@@ -53,13 +52,6 @@ protected:
     std::atomic<float> temperature_setpoint{0};
 
 private:
-    AsyncPreference<std::vector<uint8_t>> head_params{
-        PrefsWriter::getInstance(),
-        AsyncPreferenceKV::getInstance(),
-        PREFS_NAMESPACE,
-        "head",
-        std::vector<uint8_t>{std::begin(DEFAULT_HEAD_PARAMS_PB), std::end(DEFAULT_HEAD_PARAMS_PB)}
-    };
     std::atomic<bool> is_task_active{false};
     HeaterTaskIteratorFn task_iterator{nullptr};
     int32_t task_time_ms{0};

@@ -82,7 +82,7 @@ auto run_step_response(float watts) -> bool {
 std::vector<uint8_t> get_head_params() {
     std::vector<uint8_t> pb_data(HeadParams_size);
     if (heater.get_head_status() != HeadStatus_HeadConnected ||
-        !heater.get_head_params(pb_data))
+        !heater.get_head_params_pb(pb_data))
     {
         throw std::runtime_error("Hotplate is not connected");
     }
@@ -92,7 +92,7 @@ std::vector<uint8_t> get_head_params() {
 
 auto set_head_params(std::vector<uint8_t> pb_data) -> bool {
     if (heater.get_head_status() != HeadStatus_HeadConnected ||
-        !heater.set_head_params(pb_data))
+        !heater.set_head_params_pb(pb_data))
     {
         throw std::runtime_error("Hotplate is not connected");
     }

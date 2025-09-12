@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <stdexcept>
 #include <cmath>
+
+#include "components/pb2struct.hpp"
 #include "heater_control_mock.hpp"
 #include "proto/generated/defaults.hpp"
 
@@ -78,6 +80,28 @@ HeaterControlMock::HeaterControlMock()
         .set_size(0.08F, 0.07F, 0.0028F);
 
     temperature = get_room_temp();
+}
+
+auto HeaterControlMock::get_head_params_pb(std::vector<uint8_t>& pb_data) -> bool {
+    pb_data = head_params.get();
+    return true;
+}
+
+auto HeaterControlMock::set_head_params_pb(const std::vector<uint8_t> &pb_data) -> bool {
+    head_params.set(pb_data);
+    return true;
+}
+
+auto HeaterControlMock::get_head_params(HeadParams& params) -> bool {
+    return pb2struct(head_params.get(), params, HeadParams_fields);
+}
+
+auto HeaterControlMock::set_head_params(const HeadParams& params) -> bool {
+    std::vector<uint8_t> pb_data(HeadParams_size);
+    if (!struct2pb(params, pb_data, HeadParams_fields, HeadParams_size)) { return false; }
+
+    head_params.set(pb_data);
+    return true;
 }
 
 void HeaterControlMock::validate_calibration_points() {
