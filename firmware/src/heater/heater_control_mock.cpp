@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <cmath>
-#include "heater_mock.hpp"
+#include "heater_control_mock.hpp"
 #include "proto/generated/defaults.hpp"
 
 auto ChargerMock::add(const ChargerProfileMock& profile) -> ChargerMock& {
@@ -60,7 +60,7 @@ static auto make_charger_140w_with_pps() -> ChargerMock {
     return charger;
 }
 
-HeaterMock::HeaterMock()
+HeaterControlMock::HeaterControlMock()
     : size{0.08F, 0.07F, 0.0038F}
     , charger{make_charger_140w_with_pps()}
 {
@@ -80,7 +80,7 @@ HeaterMock::HeaterMock()
     temperature = get_room_temp();
 }
 
-void HeaterMock::validate_calibration_points() {
+void HeaterControlMock::validate_calibration_points() {
     std::sort(calibration_points.begin(), calibration_points.end(),
               [](const CalibrationPoint& a, const CalibrationPoint& b) { return a.T < b.T; });
 
@@ -91,7 +91,7 @@ void HeaterMock::validate_calibration_points() {
     }
 }
 
-auto HeaterMock::calculate_resistance(float temp) const -> float {
+auto HeaterControlMock::calculate_resistance(float temp) const -> float {
     if (calibration_points.empty()) {
         throw std::runtime_error("No calibration points defined.");
     }
@@ -109,7 +109,7 @@ auto HeaterMock::calculate_resistance(float temp) const -> float {
     return interpolate(temp, points);
 }
 
-auto HeaterMock::calculate_heat_capacity() const -> float {
+auto HeaterControlMock::calculate_heat_capacity() const -> float {
     const float material_shc = 897;     // J/kg/K for Aluminum 6061
     const float material_density = 2700; // kg/m3 for Aluminum 6061
     const float volume = size.x * size.y * size.z;
@@ -117,7 +117,7 @@ auto HeaterMock::calculate_heat_capacity() const -> float {
     return mass * material_shc;
 }
 
-auto HeaterMock::calculate_heat_transfer_coefficient() const -> float {
+auto HeaterControlMock::calculate_heat_transfer_coefficient() const -> float {
     std::vector<CalibrationPoint> points_with_power;
     std::copy_if(calibration_points.begin(), calibration_points.end(),
                  std::back_inserter(points_with_power),
@@ -142,13 +142,13 @@ auto HeaterMock::calculate_heat_transfer_coefficient() const -> float {
     return interpolate(temperature, points);
 }
 
-auto HeaterMock::get_room_temp() const -> float {
+auto HeaterControlMock::get_room_temp() const -> float {
     auto it = std::find_if(calibration_points.begin(), calibration_points.end(),
                           [](const CalibrationPoint& p) { return p.W == 0; });
     return it != calibration_points.end() ? it->T : 25.0f;
 }
 
-auto HeaterMock::scale_r_to(float new_base) -> HeaterMock& {
+auto HeaterControlMock::scale_r_to(float new_base) -> HeaterControlMock& {
     if (calibration_points.empty()) {
         throw std::runtime_error("No calibration points to scale");
     }
@@ -160,36 +160,36 @@ auto HeaterMock::scale_r_to(float new_base) -> HeaterMock& {
     return *this;
 }
 
-auto HeaterMock::calibrate_TR(float T, float R) -> HeaterMock& {
+auto HeaterControlMock::calibrate_TR(float T, float R) -> HeaterControlMock& {
     calibration_points.push_back({T, R, 0});
     temperature = T;
     validate_calibration_points();
     return *this;
 }
 
-auto HeaterMock::calibrate_TWV(float T, float W, float V) -> HeaterMock& {
+auto HeaterControlMock::calibrate_TWV(float T, float W, float V) -> HeaterControlMock& {
     const float R = (V * V) / W;
     calibration_points.push_back({T, R, W});
     validate_calibration_points();
     return *this;
 }
 
-auto HeaterMock::set_size(float x, float y, float z) -> HeaterMock& {
+auto HeaterControlMock::set_size(float x, float y, float z) -> HeaterControlMock& {
     size = {x, y, z};
     return *this;
 }
 
-auto HeaterMock::reset() -> HeaterMock& {
+auto HeaterControlMock::reset() -> HeaterControlMock& {
     temperature = get_room_temp();
     return *this;
 }
 
 // Need separate thread, because can send events to app (guarded with mutexes)
-void HeaterMock::setup() {
+void HeaterControlMock::setup() {
     // Work at 10x speed for convenience
     xTaskCreate(
         [](void* params) {
-            auto* self = static_cast<HeaterMock*>(params);
+            auto* self = static_cast<HeaterControlMock*>(params);
             while (true) {
                 self->tick(100);
                 vTaskDelay(pdMS_TO_TICKS(10));
@@ -198,7 +198,7 @@ void HeaterMock::setup() {
     );
 }
 
-void HeaterMock::tick(int32_t dt_ms) {
+void HeaterControlMock::tick(int32_t dt_ms) {
     // Iterate temperature
     static constexpr float dt_inv_multiplier = 1.0F / 1000.0F;
     const float dt = static_cast<float>(dt_ms) * dt_inv_multiplier;
@@ -213,5 +213,5 @@ void HeaterMock::tick(int32_t dt_ms) {
     temperature = curr_temp + temp_change;
 
     // Call base method with main logic
-    HeaterBase::tick(dt_ms);
+    HeaterControlBase::tick(dt_ms);
 }

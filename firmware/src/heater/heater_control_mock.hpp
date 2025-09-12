@@ -6,7 +6,7 @@
 
 #include "app.hpp"
 #include "lib/adrc.hpp"
-#include "heater_base.hpp"
+#include "heater_control_base.hpp"
 
 class ChargerProfileMock {
 public:
@@ -35,7 +35,7 @@ private:
 };
 
 
-class HeaterMock: public HeaterBase {
+class HeaterControlMock: public HeaterControlBase {
 private:
     std::atomic<float> temperature;
 
@@ -55,7 +55,7 @@ private:
     ChargerMock charger;
 
 public:
-    HeaterMock();
+    HeaterControlMock();
 
     auto get_health_status() -> DeviceHealthStatus override { return DeviceHealthStatus_DevOK; }
     auto get_activity_status() -> DeviceActivityStatus override {
@@ -78,9 +78,9 @@ public:
     void tick(int32_t dt_ms) override;
 
     // Mock-related methods
-    auto calibrate_TR(float T, float R) -> HeaterMock&;
-    auto calibrate_TWV(float T, float W, float V) -> HeaterMock&;
-    auto scale_r_to(float new_base) -> HeaterMock&;
-    auto reset() -> HeaterMock&;
-    auto set_size(float x, float y, float z) -> HeaterMock&;
+    auto calibrate_TR(float T, float R) -> HeaterControlMock&;
+    auto calibrate_TWV(float T, float W, float V) -> HeaterControlMock&;
+    auto scale_r_to(float new_base) -> HeaterControlMock&;
+    auto reset() -> HeaterControlMock&;
+    auto set_size(float x, float y, float z) -> HeaterControlMock&;
 };

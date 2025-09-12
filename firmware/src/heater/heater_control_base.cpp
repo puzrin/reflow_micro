@@ -1,30 +1,30 @@
-#include "heater_base.hpp"
+#include "heater_control_base.hpp"
 #include "components/pb2struct.hpp"
 #include <cmath>
 #include <algorithm>
 #include <memory>
 
-auto HeaterBase::get_head_params(std::vector<uint8_t>& pb_data) -> bool {
+auto HeaterControlBase::get_head_params(std::vector<uint8_t>& pb_data) -> bool {
     if (get_head_status() != HeadStatus_HeadConnected) { return false; }
 
     pb_data = head_params.get();
     return true;
 }
 
-auto HeaterBase::get_head_params(HeadParams& params) -> bool {
+auto HeaterControlBase::get_head_params(HeadParams& params) -> bool {
     if (get_head_status() != HeadStatus_HeadConnected) { return false; }
 
     return pb2struct(head_params.get(), params, HeadParams_fields);
 }
 
-auto HeaterBase::set_head_params(const std::vector<uint8_t> &pb_data) -> bool {
+auto HeaterControlBase::set_head_params(const std::vector<uint8_t> &pb_data) -> bool {
     if (get_head_status() != HeadStatus_HeadConnected) { return false; }
 
     head_params.set(pb_data);
     return true;
 }
 
-auto HeaterBase::set_head_params(const HeadParams& params) -> bool {
+auto HeaterControlBase::set_head_params(const HeadParams& params) -> bool {
     if (get_head_status() != HeadStatus_HeadConnected) { return false; }
 
     std::vector<uint8_t> pb_data(HeadParams_size);
@@ -34,7 +34,7 @@ auto HeaterBase::set_head_params(const HeadParams& params) -> bool {
     return true;
 }
 
-void HeaterBase::get_history(int32_t client_history_version, float from, std::vector<uint8_t>& pb_data) {
+void HeaterControlBase::get_history(int32_t client_history_version, float from, std::vector<uint8_t>& pb_data) {
     size_t from_idx{0};
     size_t chunk_length{0};
     auto history_chunk = std::make_unique<HistoryChunk>();
@@ -85,14 +85,14 @@ void HeaterBase::get_history(int32_t client_history_version, float from, std::ve
 }
 
 
-auto HeaterBase::load_all_params() -> bool {
+auto HeaterControlBase::load_all_params() -> bool {
     HeadParams p;
     if (!get_head_params(p)) { return false; }
     adrc.set_params(p.adrc_b0, p.adrc_response, p.adrc_N, p.adrc_M);
     return true;
 }
 
-void HeaterBase::temperature_control_on() {
+void HeaterControlBase::temperature_control_on() {
     // If task was is running - it already loaded params, don't repeat
     if (!is_task_active) { load_all_params(); }
 
@@ -100,12 +100,12 @@ void HeaterBase::temperature_control_on() {
     temperature_control_flag = true;
 }
 
-void HeaterBase::temperature_control_off() {
+void HeaterControlBase::temperature_control_off() {
     temperature_control_flag = false;
     set_power(0);
 }
 
-void HeaterBase::tick(int32_t dt_ms) {
+void HeaterControlBase::tick(int32_t dt_ms) {
     // If temperature controller active - use it to update power
     if (temperature_control_flag) {
         static constexpr float dt_inv_multiplier = 1.0F / 1000;
@@ -129,7 +129,7 @@ void HeaterBase::tick(int32_t dt_ms) {
     if (task_iterator) task_iterator(dt_ms, task_time_ms);
 }
 
-auto HeaterBase::task_start(int32_t task_id, HeaterTaskIteratorFn ticker) -> bool {
+auto HeaterControlBase::task_start(int32_t task_id, HeaterTaskIteratorFn ticker) -> bool {
     if (is_task_active) { return false; }
     if (get_head_status() != HeadStatus_HeadConnected) { return false; }
     if (!load_all_params()) { return false; }
@@ -149,7 +149,7 @@ auto HeaterBase::task_start(int32_t task_id, HeaterTaskIteratorFn ticker) -> boo
     return true;
 }
 
-void HeaterBase::task_stop() {
+void HeaterControlBase::task_stop() {
     is_task_active = false;
     task_iterator = nullptr;
     temperature_control_off();

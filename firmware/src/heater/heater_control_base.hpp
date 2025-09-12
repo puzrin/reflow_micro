@@ -9,7 +9,7 @@
 
 using HeaterTaskIteratorFn = std::function<void(uint32_t, uint32_t)>;
 
-class HeaterBase {
+class HeaterControlBase {
 public:
     auto get_head_params(std::vector<uint8_t>& pb_data) -> bool;
     auto get_head_params(HeadParams& params) -> bool;
