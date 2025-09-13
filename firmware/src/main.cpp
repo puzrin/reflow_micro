@@ -5,16 +5,12 @@
 #include "logger.hpp"
 #include "rpc/rpc.hpp"
 
-extern "C" {
-    void app_main(void);
-}
-
 void etl_error_log(const etl::exception& e) {
     APP_LOGE("ETL Error: {}, file: {}, line: {}",
         e.what(), e.file_name(), e.line_number());
 }
 
-extern "C" void app_main() {
+extern "C" void app_main(void) {
     logger_start();
 
 #ifdef ETL_LOG_ERRORS
@@ -41,4 +37,7 @@ extern "C" void app_main() {
     rpc_start();
 
     stack_monitor_start();
+
+    // Main task no longer needed once initialization completes.
+    vTaskDelete(nullptr);
 }
