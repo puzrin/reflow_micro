@@ -13,6 +13,13 @@
 
 class Head : public afsm::fsm<Head> {
 public:
+    // We have 2.5v ref voltage and 560R +PT100 divider. That gives ~
+    // [0.32..0.5] V range for [-50..+400] C.
+    //
+    // Set 2 levels to detect shorted and floating sensor.
+    static constexpr uint32_t SENSOR_SHORTED_LEVEL_MV = 150;
+    static constexpr uint32_t SENSOR_FLOATING_LEVEL_MV = 700;
+
     using EEBuffer = etl::vector<uint8_t, 256>;
 
     static constexpr float UNKNOWN_TEMPERATURE = etl::numeric_limits<float>::max();
@@ -29,11 +36,12 @@ public:
     auto get_head_status() const -> HeadStatus { return head_status.load(); }
     int32_t get_temperature_x10() const;
 
-    uint32_t read_sensor_mv() const;
+    void update_sensor_mv();
 
     etl::atomic<HeadStatus> head_status{HeadStatus_HeadDisconnected};
     uint32_t debounce_counter{0};
     etl::atomic<HeaterType> heater_type{HeaterType_MCH};
+    etl::atomic<uint32_t> last_sensor_value_mv{SENSOR_FLOATING_LEVEL_MV};
 
     EepromStore eeprom_store{};
     DataGuard<EEBuffer> head_params{};

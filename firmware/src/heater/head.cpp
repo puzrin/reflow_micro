@@ -9,13 +9,6 @@
 
 Head head;
 
-// We have 2.5v ref voltage and 560R +PT100 divider. That gives ~
-// [0.32..0.5] V range for [-50..+400] C.
-//
-// Set 2 levels to detect shorted and floating sensor.
-static constexpr uint32_t SENSOR_SHORTED_LEVEL_MV = 150;
-static constexpr uint32_t SENSOR_FLOATING_LEVEL_MV = 700;
-
 static constexpr uint32_t TASK_TICK_MS = 20;
 static constexpr uint32_t SENSOR_DEBOUNCE_MS = 100;
 static constexpr uint32_t ERROR_RESTORE_MS = 1000;
@@ -41,7 +34,7 @@ public:
     }
 
     static auto on_run_state(Head& head) -> state_id_t {
-        if (head.read_sensor_mv() < SENSOR_FLOATING_LEVEL_MV) {
+        if (head.last_sensor_value_mv.load() <= Head::SENSOR_FLOATING_LEVEL_MV) {
             return HeadState::Initializing;
         }
         return No_State_Change;
@@ -61,7 +54,7 @@ public:
     }
 
     static auto on_run_state(Head& head) -> state_id_t {
-        if (head.read_sensor_mv() > SENSOR_FLOATING_LEVEL_MV) {
+        if (head.last_sensor_value_mv.load() >= Head::SENSOR_FLOATING_LEVEL_MV) {
             return HeadState::Detached;
         }
 
@@ -69,7 +62,7 @@ public:
 
         if (head.debounce_counter * TASK_TICK_MS >= SENSOR_DEBOUNCE_MS)
         {
-            head.heater_type = (head.read_sensor_mv() < SENSOR_SHORTED_LEVEL_MV)
+            head.heater_type = (head.last_sensor_value_mv.load() <= Head::SENSOR_SHORTED_LEVEL_MV)
                 ? HeaterType_MCH : HeaterType_PCB;
 
             if (!head.eeprom_store.read(head.head_params.value)) {
@@ -105,7 +98,7 @@ public:
     }
 
     static auto on_run_state(Head& head) -> state_id_t {
-        if (head.read_sensor_mv() > SENSOR_FLOATING_LEVEL_MV) {
+        if (head.last_sensor_value_mv.load() >= Head::SENSOR_FLOATING_LEVEL_MV) {
             return HeadState::Detached;
         }
 
@@ -125,7 +118,7 @@ public:
     }
 
     static auto on_run_state(Head& head) -> state_id_t {
-        if (head.read_sensor_mv() > SENSOR_FLOATING_LEVEL_MV) {
+        if (head.last_sensor_value_mv.load() >= Head::SENSOR_FLOATING_LEVEL_MV) {
             return HeadState::Detached;
         }
 
@@ -177,6 +170,8 @@ void Head::task_loop() {
         }
     }
 
+    update_sensor_mv();
+
     // Run state machine
     run();
 }
@@ -207,14 +202,21 @@ void Head::adc_init() {
     ESP_ERROR_CHECK(adc_cali_create_scheme_curve_fitting(&cf, &adc_cali_handle));
 }
 
-uint32_t Head::read_sensor_mv() const {
+void Head::update_sensor_mv() {
     int raw = 0;
-    ESP_ERROR_CHECK(adc_oneshot_read(adc1_handle, ADC_CHANNEL_4, &raw));
+
+    for (;;) {
+        auto res = adc_oneshot_read(adc1_handle, ADC_CHANNEL_4, &raw);
+        if (res == ESP_OK) { break; }
+
+        APP_LOGE("Sensor ADC read failure [{}], retrying...", esp_err_to_name(res));
+        vTaskDelay(1);
+    }
 
     int mv = 0;
     ESP_ERROR_CHECK(adc_cali_raw_to_voltage(adc_cali_handle, raw, &mv));
-    return (uint32_t)mv; // calibrated
 
+    last_sensor_value_mv.store((uint32_t)mv);
 }
 
 bool Head::get_head_params_pb(std::vector<uint8_t>& pb_data) {
@@ -247,7 +249,7 @@ bool Head::set_head_params_pb(const EEBuffer& pb_data) {
 }
 
 int32_t Head::get_temperature_x10() const {
-    uint32_t mv = read_sensor_mv();
+    uint32_t mv = last_sensor_value_mv.load();
 
     // Safety check, shuld never happen due to state machine
     if (mv < SENSOR_SHORTED_LEVEL_MV || mv > SENSOR_FLOATING_LEVEL_MV) {
