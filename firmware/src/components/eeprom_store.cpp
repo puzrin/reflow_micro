@@ -16,7 +16,7 @@ namespace {
     static_assert(sizeof(Header) == 8, "Header must be exactly 8 bytes");
 }
 
-bool EepromStore::read(std::vector<uint8_t>& data) {
+bool EepromStore::read(etl::ivector<uint8_t>& data) {
     // Read header
     Header header;
     if (!ee_read_at(0, reinterpret_cast<uint8_t*>(&header), sizeof(header))) {
@@ -53,7 +53,7 @@ bool EepromStore::read(std::vector<uint8_t>& data) {
     return true;
 }
 
-bool EepromStore::write(const std::vector<uint8_t>& data) {
+bool EepromStore::write(const etl::ivector<uint8_t>& data) {
     // Check size constraints
     if (data.size() > MAX_SIZE - sizeof(Header)) {
         return false;
