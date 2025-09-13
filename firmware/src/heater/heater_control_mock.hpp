@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include "app.hpp"
+#include "components/prefs.hpp"
 #include "lib/adrc.hpp"
 #include "heater_control_base.hpp"
 #include "proto/generated/defaults.hpp"
@@ -67,9 +68,9 @@ public:
     HeaterControlMock();
 
     bool get_head_params_pb(std::vector<uint8_t>& pb_data) override;
-    virtual bool set_head_params_pb(const std::vector<uint8_t>& pb_data) override;
-    virtual bool get_head_params(HeadParams& params) override;
-    virtual bool set_head_params(const HeadParams& params) override;
+    bool set_head_params_pb(const std::vector<uint8_t>& pb_data) override;
+    bool get_head_params(HeadParams& params) override;
+    bool set_head_params(const HeadParams& params) override;
 
     auto get_health_status() -> DeviceHealthStatus override { return DeviceHealthStatus_DevOK; }
     auto get_activity_status() -> DeviceActivityStatus override {

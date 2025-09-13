@@ -4,9 +4,8 @@
 #include "heater_control_mock.hpp"
 using Heater = HeaterControlMock;
 #else
-// temporary stub
-#include "heater_control_mock.hpp"
-using Heater = HeaterControlMock;
+#include "heater_control.hpp"
+using Heater = HeaterControl;
 #endif
 
 inline Heater heater;
