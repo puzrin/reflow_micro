@@ -1,4 +1,5 @@
 #include "buzzer.hpp"
+#include "time.hpp"
 
 Buzzer buzzer;
 
@@ -122,7 +123,7 @@ void Buzzer::tick() {
 
         last_version_ = current_version;
         tone_index_ = 0;
-        start_time_ = xTaskGetTickCount();
+        start_time_ = Time::now();
         in_gap_ = false;
 
         if (active_tones_.size > 0) {
@@ -140,11 +141,8 @@ void Buzzer::tick() {
         return;
     }
 
-    TickType_t current_time = xTaskGetTickCount();
-    TickType_t elapsed = current_time - start_time_;
-
     if (in_gap_) {
-        if (elapsed >= pdMS_TO_TICKS(NOTE_GAP_MS)) {
+        if (Time(start_time_).expired(NOTE_GAP_MS)) {
             tone_index_++;
 
             if (tone_index_ >= active_tones_.size) {
@@ -153,13 +151,13 @@ void Buzzer::tick() {
             }
 
             driver_.sound(active_tones_.data[tone_index_].freq_hz);
-            start_time_ = current_time;
+            start_time_ = Time::now();
             in_gap_ = false;
         }
     } else {
-        if (elapsed >= pdMS_TO_TICKS(active_tones_.data[tone_index_].duration_ms)) {
+        if (Time(start_time_).expired(active_tones_.data[tone_index_].duration_ms)) {
             driver_.sound(0);
-            start_time_ = current_time;
+            start_time_ = Time::now();
             in_gap_ = true;
         }
     }

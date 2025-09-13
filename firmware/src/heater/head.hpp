@@ -39,7 +39,7 @@ public:
     void update_sensor_mv();
 
     etl::atomic<HeadStatus> head_status{HeadStatus_HeadDisconnected};
-    uint32_t debounce_counter{0};
+    uint32_t debounce_start{0};
     etl::atomic<HeaterType> heater_type{HeaterType_MCH};
     etl::atomic<uint32_t> last_sensor_value_mv{SENSOR_FLOATING_LEVEL_MV};
 

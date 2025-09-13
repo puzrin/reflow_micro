@@ -2,6 +2,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
+#include "components/time.hpp"
 #include "head.hpp"
 #include "logger.hpp"
 #include "lib/pt100.hpp"
@@ -49,7 +50,7 @@ public:
         APP_LOGI("Head Initializing");
 
         head.head_status.store(HeadStatus_HeadInitializing);
-        head.debounce_counter = 0;
+        head.debounce_start = Time::now();
         return No_State_Change;
     }
 
@@ -58,9 +59,7 @@ public:
             return HeadState::Detached;
         }
 
-        head.debounce_counter++;
-
-        if (head.debounce_counter * TASK_TICK_MS >= SENSOR_DEBOUNCE_MS)
+        if (Time(head.debounce_start).expired(SENSOR_DEBOUNCE_MS))
         {
             head.heater_type = (head.last_sensor_value_mv.load() <= Head::SENSOR_SHORTED_LEVEL_MV)
                 ? HeaterType_MCH : HeaterType_PCB;
@@ -113,7 +112,7 @@ public:
     static auto on_enter_state(Head& head) -> state_id_t {
         APP_LOGE("Head Error");
         head.head_status.store(HeadStatus_HeadError);
-        head.debounce_counter = 0;
+        head.debounce_start = Time::now();
         return No_State_Change;
     }
 
@@ -122,9 +121,7 @@ public:
             return HeadState::Detached;
         }
 
-        head.debounce_counter++;
-
-        if (head.debounce_counter * TASK_TICK_MS >= ERROR_RESTORE_MS) {
+        if (Time(head.debounce_start).expired(ERROR_RESTORE_MS)) {
             return HeadState::Detached;
         }
 

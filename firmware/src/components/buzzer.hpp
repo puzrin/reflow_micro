@@ -52,7 +52,7 @@ private:
     rtttl::ToneSeq active_tones_{nullptr, 0};
 
     size_t tone_index_{0};
-    TickType_t start_time_{0};
+    uint32_t start_time_{0};
     bool in_gap_{false};
 
     BuzzerDriver driver_;
