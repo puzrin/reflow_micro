@@ -1,4 +1,6 @@
 #include <esp_crc.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
 #include "eeprom_store.hpp"
 #include "components/i2c_io.hpp"
@@ -117,6 +119,8 @@ bool EepromStore::ee_write_at(uint16_t addr, const uint8_t* buf, size_t len) {
         current_addr += chunk_size;
         current_buf += chunk_size;
         bytes_left -= chunk_size;
+
+        vTaskDelay(pdMS_TO_TICKS(10)); // EEPROM write delay
     }
 
     return true;

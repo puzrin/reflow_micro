@@ -73,11 +73,13 @@ public:
                 ? HeaterType_MCH : HeaterType_PCB;
 
             if (!head.eeprom_store.read(head.head_params.value)) {
+                APP_LOGE("Failed to read EEPROM");
                 return HeadState::Error;
             }
 
             // If EEPROM is empty, use defaults
             if (head.head_params.value.empty()) {
+                APP_LOGI("No head params found, fallback to defaults");
                 head.head_params.value.assign(
                     std::begin(DEFAULT_HEAD_PARAMS_PB),
                     std::end(DEFAULT_HEAD_PARAMS_PB)
