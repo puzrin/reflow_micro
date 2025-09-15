@@ -1,0 +1,55 @@
+name: Firmware Tests
+
+on:
+  push:
+    paths:
+      - 'firmware/**'
+      - '.github/workflows/firmware-tests.yml'
+  pull_request:
+    paths:
+      - 'firmware/**'
+      - '.github/workflows/firmware-tests.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      PLATFORMIO_DISABLE_PROGRESSBAR: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio/.cache
+            ~/.platformio/packages
+            ~/.platformio/platforms
+            ~/.platformio/penv
+          key: pio-${{ runner.os }}-${{ hashFiles('firmware/platformio.ini') }}
+          restore-keys: |
+            pio-${{ runner.os }}-
+
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install -U platformio
+        working-directory: firmware
+
+      - name: Run unit tests (native)
+        run: pio test --environment native_test
+        working-directory: firmware
+
+      - name: Ensure build passes (main)
+        run: pio run --environment main
+        working-directory: firmware
+
+      - name: Ensure build passes (demo)
+        run: pio run --environment demo
+        working-directory: firmware

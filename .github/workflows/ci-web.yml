@@ -1,0 +1,33 @@
+name: Web Tests
+
+on:
+  push:
+    paths:
+      - 'webapp/**'
+      - '.github/workflows/web-tests.yml'
+  pull_request:
+    paths:
+      - 'webapp/**'
+      - '.github/workflows/web-tests.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'webapp/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: webapp
+
+      - name: Run tests (lint + type-check + node:test)
+        run: npm test
+        working-directory: webapp
