@@ -9,12 +9,9 @@
 #define PD_LOG_FN_LVL_VERBOSE   jetlog::level::verbose
 
 #define PD_LOG_DEFAULT ERROR
-
-#define PD_LOG_TC INFO
 #define PD_LOG_DPM INFO
+//#define PD_LOG_TC INFO
 // #define PD_LOG_PE INFO
-// #define PD_LOG_PRL INFO
-
 
 #define USE_FUSB302_RTOS
 #define USE_FUSB302_RTOS_HAL_ESP32
