@@ -1,4 +1,4 @@
-include <utils.scad>;
+include <lib/utils.scad>;
 
 $fn = 64;
 
@@ -15,7 +15,7 @@ module aligner (last) {
     rcube([6, w, 8], r = 0.5, center=false);
 
     tr_x(-10) rcube([16, w, 3], r = 3, center=false);
-    
+
     if (!last) {
         tr_xy(4, w-1) cube([2, margin+2, 2]);
     }

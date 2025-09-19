@@ -1,4 +1,4 @@
-include <utils.scad>;
+include <lib/utils.scad>;
 
 h = 1.21;
 w = 2.5; // bridge between holes
@@ -42,7 +42,7 @@ module clamp(y_bridges=1) {
             // Screw supports
             rcube([screw_support_d, screw_support_d, h], r=1);
             dupe_y() tr_y(dist/2) rcube([screw_support_d, screw_support_d, h], r=1);
-            
+
             // Body
             linear_extrude(h) square([w, dist], center = true);
 
@@ -127,7 +127,7 @@ w_space = (frame_wy - washer_wy*washer_clones) / (washer_clones+1);
 for(i = [1:washer_clones]) {
     offset = w_space + washer_wy/2;
     step = w_space + washer_wy;
-    
+
     translate([
         frame_clamps_wx + frame_wall + frame_washer_wx/2,
         offset + step*(i-1),

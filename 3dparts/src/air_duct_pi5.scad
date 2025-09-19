@@ -1,4 +1,4 @@
-include <utils.scad>;
+include <lib/utils.scad>;
 
 $fn = 64;
 

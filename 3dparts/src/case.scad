@@ -1,6 +1,6 @@
-include <utils.scad>;
 include <fan_pi5_data.scad>;
-include <Round-Anything/polyround.scad>
+include <lib/Round-Anything/polyround.scad>
+include <lib/utils.scad>;
 
 $fn = $preview ? 16 : 64;
 

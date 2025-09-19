@@ -1,4 +1,4 @@
-include <utils.scad>;
+include <lib/utils.scad>;
 
 $fn = 64;
 
@@ -23,7 +23,7 @@ difference () {
             [-r_guide/sqrt(2), w/2 - r_guide/sqrt(2)],
             [r_guide/sqrt(2), w/2 - r_guide/sqrt(2)]
         ]);
-        
+
         // drill guide
         tr_y(w/2 - r_guide*sqrt(2))
         tr_z(space)
@@ -40,12 +40,12 @@ difference () {
         [-w/2 + wall, 0],
         [0, w/2 - wall]
     ]);
-    
+
     // Nose gap
     tr_z(-e)
     tr_x(-10/2)
     cube([10,50, space]);
-    
+
     // drill guide hole
     tr_y(w/2 - r_guide*sqrt(2))
     cylinder(h=100, d=3.3);
