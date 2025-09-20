@@ -1,8 +1,8 @@
 include <fan_pi5_data.scad>;
-include <lib/Round-Anything/polyround.scad>
 include <lib/utils.scad>;
 
 $fn = $preview ? 16 : 64;
+$ra_fn = $preview ? 3 : 16;
 
 // Inserts size for PCB mount (M1.6)
 insert_d = 2.5 + 0.1;
@@ -35,8 +35,8 @@ case_wy = pcb_wy + 2*wall_side;
 case_locker = 1; // ring size to position cap to tray
 
 case_r_vert = pcb_r + wall_side;
-case_r_bottom = 1;
-case_r_top = 1;
+case_r_bottom = 2;
+case_r_top = 2;
 
 cap_stiffener_h = 12 + 4;
 
@@ -71,6 +71,24 @@ module case_back(ofs = 0) { tr_y(ofs + case_wy/2) children(); }
 // esp32 - 3.2mm, USB - 3.26mm
 assert(tray_inner_h > 3.5, "Not enougth room for PCB components");
 
+module quoter_cylinder(r=10, h=30, fn=16) {
+    ra_cube([r, r, h], r=[0, 0, r, 0], center=false, fn=fn);
+}
+
+module quoter_round_wall(r_out=10, r_in=8, h=30, fn=16) {
+    polyRoundExtrude(
+        [
+            [0, r_out, 0],
+            [r_out, r_out, r_out],
+            [r_out, 0, 0],
+            [r_in, 0, 0],
+            [r_in, r_in, r_in],
+            [0, r_in, 0]
+        ],
+        h, 0, 0, fn
+    );
+}
+
 module usb_hole() {
     // Connector sizes
     usb_w = 9.0;    // 8.94 by doc, 8.97 real
@@ -83,7 +101,7 @@ module usb_hole() {
     tr_z(tray_h-pcb_h-usb_h/2 + 0.05)
     tr_y(pcb_wy/2 - pcb_support_w -e)
     rotate_x (-90) {
-        rcube([w, h, 10], r=r);
+        ra_cube([w, h, 10], r=r, fn=$ra_fn);
 
         tr_y(-h/2)
         linear_extrude(pcb_support_w + pcb_side_margin + e)
@@ -97,14 +115,13 @@ module tray_pcb_holder() {
 
     tr_z(wall_hor-e)
     difference() {
-        linear_extrude(h)
-        rsquare([2*r, 2*r], r=[0, 0, r, r], center = true);
-
-        tr_z(h+e) mirror_z() cylinder(h=insert_h, r=insert_d/2);
+        ra_cube([2*r, 2*r, h], r=[0, 0, r, r], center = true, fn=$ra_fn);
+        tr_z(h+e) mirror_z() ra_cube([insert_d, insert_d, insert_h],
+            r=insert_d/2, fn=$ra_fn);
     }
 }
 
-module magnet_support(h = 20) {
+module magnet_supports_tray(h = 20) {
     r = magnet_d/2;
     reserve_w = 1;
     mh = magnet_h + magnet_margin_h;
@@ -114,93 +131,88 @@ module magnet_support(h = 20) {
     pin_w = 1.25;
 
     dupe_xy()
-    tr_xy(pcb_wx/2 - 3.5, pcb_wy/2 - 3.5)
+    tr_xy(pcb_wx/2 - magnet_axis_offset + e, pcb_wy/2 - magnet_axis_offset + e)
     union() {
-        difference() {
-            rotate_extrude(angle=90) square([r+reserve_w, h]);
-            tr_z(h - (mh+pin_h)) cylinder(h = mh+pin_h+e, r = r+e);
-        }
-        rotate_extrude(angle=90) square([pin_w, h - mh]);
+        quoter_cylinder(r=pin_w, h=h-mh, $ra_fn);
+        quoter_cylinder(r=magnet_axis_offset, h=h-mh-pin_h, $ra_fn);
     }
+}
+
+module magnet_supports_cap(h = 20) {
+    r = magnet_d/2;
+    reserve_w = 1;
+    mh = magnet_h + magnet_margin_h;
+    assert(mh <= tray_inner_h, "Tray inner too small for desired magnet height");
+
+    pin_h = 0.5;
+    pin_w = 1.25;
+
+    dupe_xy()
+    tr_xy(pcb_wx/2 - magnet_axis_offset + e, pcb_wy/2 - magnet_axis_offset + e)
+    union() {
+        quoter_round_wall(r+1.5, r, h = cap_inner_h, fn=$ra_fn);
+        quoter_cylinder(r=pin_w, h=h-mh, $ra_fn);
+        quoter_cylinder(r=magnet_axis_offset, h=h-mh-pin_h, $ra_fn);
+    }
+}
+
+
+module stiffener_x(len=100, center=true) {
+    fillet = 0.5;
+    w = 2;
+    l = len + 2*e;
+    center_offs = center ? -l/2 : 0;
+
+    rotate_z(90)
+    tr_z(wall_hor-e)
+    rotate_x(90)
+    tr_z(center_offs)
+    linear_extrude(l)
+    polygon([
+        [-w/2 - fillet, 0], [-w/2, fillet], [-w/2, w - fillet], [-w/2 + fillet, w],
+        [w/2 - fillet, w], [w/2, w - fillet], [w/2, fillet], [w/2 + fillet, 0]
+    ]);
+}
+
+module stiffener_y(len=100, center=true) {
+    rotate_z(90)
+    stiffener_x(len, center);
 }
 
 module _tray_base() {
     difference() {
-        rcube([case_wx, case_wy, tray_h], r = case_r_vert, rbottom = case_r_bottom);
+        ra_cube([case_wx, case_wy, tray_h], case_r_vert, 0, case_r_bottom, fn=$ra_fn);
 
         // Inner
         tr_z(wall_hor)
-        rcube(
-            [case_wx-2*wall_side-2*pcb_support_w, case_wy-2*wall_side-2*pcb_support_w, tray_h-wall_hor+e],
-            r = magnet_d/2
-        );
+        ra_cube([
+            case_wx-2*wall_side-2*pcb_support_w,
+            case_wy-2*wall_side-2*pcb_support_w,
+            tray_h-wall_hor+e
+        ], magnet_d/2, 0, 0.7, fn=$ra_fn);
 
         // PCB placement
         tr_z(tray_h-pcb_h)
-        rcube(
-            [case_wx-2*wall_side+2*pcb_side_margin, case_wy-2*wall_side+2*pcb_side_margin, pcb_h+e],
-            r = pcb_r+pcb_side_margin
-        );
-
-        // Ensure space for magnets
-        dupe_xy () {
-            translate([pcb_wx/2 - magnet_axis_offset, pcb_wy/2 - magnet_axis_offset, wall_hor])
-            cylinder(h = tray_h, d = magnet_d);
-        }
-
-    }
-}
-
-
-module tray() {
-    difference() {
-        union() {
-            _tray_base();
-
-            tr_z(wall_hor-e) magnet_support(tray_inner_h);
-
-            // Inserts holders
-            dupe_xy()
-            tr_y(insert_pcb_y_offset)
-            tr_x(-pcb_wx/2 + insert_pcb_x_offset) tray_pcb_holder();
-
-            // PCB supports
-            dupe_xy()
-            tr_xy(7, -pcb_wy/2) tr_z(wall_hor--e) cube([1.5, 1.5, tray_inner_h]);
-
-            // Button guides
-            dupe_x()
-            tr_z(wall_hor-e)
-            tr_x(btn_pusher_w/2 + 0.25)
-            tr_y(-pcb_wy/2 + btn_pusher_pcb_depth + 1)
-            mirror_y() cube([2, 4, 1.7]);
-
-            // Stiffeners
-            rcube([pcb_wx, 2.0, 2+wall_hor], r=0);
-            dupe_y() tr_y(20) rcube([pcb_wx, 2.0, 2+wall_hor], r=0);
-
-            dupe_x() {
-                tr_x(9) rcube([2.0, pcb_wy, 2+wall_hor], r=0);
-                tr_x(27) rcube([2.0, pcb_wy, 2+wall_hor], r=0);
-            }
-        }
-
-        // Button hole
-        case_front(wall_side+pcb_support_w+e) tr_z(tray_h/2)
-        rotate_x(90)
-        rcube(
-            [btn_w + 2*btn_margin, btn_h + 2*btn_margin, wall_side+pcb_support_w+2*e],
-            r=btn_h/2+btn_margin
-        );
+        ra_cube([
+            case_wx-2*wall_side+2*pcb_side_margin,
+            case_wy-2*wall_side+2*pcb_side_margin,
+            pcb_h+e
+        ], r=pcb_r+pcb_side_margin, fn=$ra_fn);
 
         // USB connector
         usb_hole();
 
+        // Button hole
+        case_front(wall_side+pcb_support_w+e) tr_z(tray_h/2)
+        rotate_x(90)
+        ra_cube(
+            [btn_w + 2*btn_margin, btn_h + 2*btn_margin, wall_side+pcb_support_w+2*e],
+            r=btn_h/2+btn_margin, fn=$ra_fn
+        );
+
         // Bottom heels
         dupe_xy() tr_xy(case_wx/2 - 7.5, case_wy/2 - 7.5) tr_z(-e) cylinder(h=1, d=6.2);
 
-        // Partially remove stifffeners for pi5 fan & air duct
-        translate([-9+1, -38/2, wall_hor]) cube([52.5, 38, 2+e]);
         // Extra space for fan mounting
         for (i = fan_mount_coords) {
             tr_xy(5, -15)
@@ -213,7 +225,40 @@ module tray() {
 
         // Partially remove stifffeners for pi5 fan connector
         //tr_xy(-pcb_wx/2 + 68.5, -pcb_wy/2 + 21) tr_z(wall_hor) cylinder(h=3, r=7);
+    }
+}
 
+
+module tray() {
+    _tray_base();
+
+    tr_z(wall_hor-e) magnet_supports_tray(tray_inner_h);
+
+    // Inserts holders
+    dupe_xy()
+    tr_xy(-pcb_wx/2 + insert_pcb_x_offset, insert_pcb_y_offset)
+    tray_pcb_holder();
+
+    // PCB supports
+    dupe_xy()
+    tr_xy(7, -pcb_wy/2) tr_z(wall_hor--e) cube([1.5, 1.5, tray_inner_h]);
+
+    // Button guides
+    dupe_x()
+    tr_z(wall_hor-e)
+    tr_x(btn_pusher_w/2 + 0.25)
+    tr_y(-pcb_wy/2 + btn_pusher_pcb_depth + 1)
+    mirror_y() cube([2, 4, 1.7]);
+
+    // Stiffeners
+    mirror_x() tr_x(9) stiffener_x(pcb_wx/2 - 9, false);
+    dupe_y() tr_y(20) stiffener_x(pcb_wx);
+
+    tr_x(-9) stiffener_y(pcb_wy);
+    tr_x(-27) stiffener_y(pcb_wy);
+    dupe_y() {
+        tr_xy(9, 20) stiffener_y(pcb_wy/2-20, false);
+        tr_xy(27, 20) stiffener_y(pcb_wy/2-20, false);
     }
 }
 
@@ -241,41 +286,34 @@ module cap_stiffener_y() {
 module cap() {
     union() {
         difference() {
-            rcube([case_wx, case_wy, cap_h],
-                r = case_r_vert, rbottom = case_r_bottom);
+            ra_cube([case_wx, case_wy, cap_h],
+                case_r_vert, 0, case_r_bottom, fn=$ra_fn);
 
-            tr_z(wall_hor) rcube([pcb_wx+cap_pcb_margin*2, pcb_wy+cap_pcb_margin*2, cap_h], r = magnet_d/2);
-
-            // Ensure space for magnets
-            dupe_xy () {
-                translate([pcb_wx/2 - magnet_axis_offset, pcb_wy/2 - magnet_axis_offset, wall_hor])
-                cylinder(h = cap_h, d = magnet_d);
-            }
+            // Inner
+            tr_z(wall_hor)
+            ra_cube([pcb_wx+cap_pcb_margin*2, pcb_wy+cap_pcb_margin*2, cap_h],
+                magnet_d/2, 0, 0.7, fn=$ra_fn);
 
             // Small cone conductors for alu cover
             gap = 0.6;
 
-            tr_z(cap_h)
-            hull () {
-                cube([pcb_wx + gap*2, pcb_wy-2*(magnet_d/2+pcb_support_w), e], center=true);
-                tr_z(-gap) cube([pcb_wx, pcb_wy-2*(magnet_d/2+pcb_support_w), e], center=true);
+            tr_z(cap_h+e)
+            mirror_z()
+            linear_extrude(gap, scale=[pcb_wx/(pcb_wx + gap*2), 1])
+            square([pcb_wx + gap*2, pcb_wy-2*(magnet_d/2+pcb_support_w)], center=true);
 
-            };
-
-            tr_z(cap_h)
-            hull () {
-                cube([pcb_wx-2*(magnet_d/2+pcb_support_w), pcb_wy + gap*2, e], center=true);
-                tr_z(-gap) cube([pcb_wx-2*(magnet_d/2+pcb_support_w), pcb_wy, e], center=true);
-
-            };
-
+            tr_z(cap_h+e)
+            mirror_z()
+            linear_extrude(gap, scale=[1, pcb_wy/(pcb_wy + gap*2)])
+            square([pcb_wx-2*(magnet_d/2+pcb_support_w), pcb_wy + gap*2], center=true);
+            
             tr_z(-e)
             rotate_z(90)
             mirror_x()
             logo();
         }
 
-        tr_z(wall_hor-e) magnet_support(cap_inner_h);
+        tr_z(wall_hor-e) magnet_supports_cap(cap_inner_h);
 
         // Stiffeneres
         dupe_y() {
@@ -306,24 +344,19 @@ module button() {
         union () {
             // Front part, 1mm out of case
             tr_z(btn_inner_depth - e)
-            tr_xy(-btn_w/2, -btn_h/2)
-            polyRoundExtrude([
-                [0, 0, btn_h/2],
-                [0, btn_h, btn_h/2],
-                [btn_w, btn_h, btn_h/2],
-                [btn_w, 0, btn_h/2]
-            ], wall_side + pcb_support_w + btn_protrusion, .5, 0, 16);
+            ra_cube([btn_w, btn_h, wall_side + pcb_support_w + btn_protrusion],
+                btn_h/2, .5, 0, fn=$ra_fn);
 
             // Inner
-            linear_extrude(btn_inner_depth)
-            rsquare([btn_pusher_w, btn_back_h], r=1.0);
+            ra_cube([btn_pusher_w, btn_back_h, btn_inner_depth],
+                1.0, 0, 0, fn=$ra_fn);
 
             // Pusher
             p_space = 0.3; // total top/bottom margin, 0.15mm each,
             p_h = tray_inner_h - p_space;
 
             tr_y(-tray_inner_h/2 + btn_middle_h)
-            rcube([btn_pusher_w, p_h, btn_pusher_base_w], r=1.0);
+            ra_cube([btn_pusher_w, p_h, btn_pusher_base_w], 1.0, fn=$ra_fn);
         }
 
         // Light mirror
@@ -377,7 +410,7 @@ module logo() {
     ];
 
     tr_xy(-w/2, -h/2)
-    polyRoundExtrude(radii_points, 0.5, 0.2, -0.2, 16);
+    polyRoundExtrude(radii_points, 0.5, 0.2, -0.2, $ra_fn);
 }
 
 DRAW_TRAY = 0;

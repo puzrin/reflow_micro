@@ -1,6 +1,6 @@
 include <lib/utils.scad>;
 
-$fn = 64;
+$fn = $preview ? 16 : 64;
 
 draw_top = 0;
 draw_bottom = 0;
@@ -36,7 +36,7 @@ module bottom () {
             }
 
             // mounting
-            rcube([6, 32, wall_base], r=3);
+            ra_cube([6, 32, wall_base], r=3);
         }
 
         // inner
@@ -54,7 +54,7 @@ module bottom () {
         // mount holes
         dupe_y() tr_y(mnt_y) {
             tr_z(-e) cylinder(mnt_wall+2*e, d = mnt_hole);
-            tr_z(mnt_wall) cylinder(100, d = 4.0);
+            tr_z(mnt_wall+e) cylinder(100, d = 4.0);
         }
     }
 }
@@ -74,7 +74,7 @@ module top () {
             }
 
             // mounting
-            rcube([6, 32, wall_base], r=3);
+            ra_cube([6, 32, wall_base], r=3);
 
             // orientation key
             tr_x(-x/2 - wall)
@@ -98,7 +98,6 @@ module top () {
         // mount holes
         dupe_y() tr_y(mnt_y) {
             tr_z(-e) cylinder(mnt_wall+2*e, d = mnt_hole);
-            tr_z(mnt_wall) cylinder(100, d = 4.5);
         }
     }
 }

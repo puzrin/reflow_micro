@@ -1,5 +1,8 @@
 include <lib/utils.scad>;
 
+$fn = $preview ? 16 : 64;
+$ra_fn = $preview ? 3 : 16;
+
 h = 1.21;
 w = 2.5; // bridge between holes
 dist = 48; // space between edge holes
@@ -22,8 +25,6 @@ washer_h = h;
 washer_pin_wx = 2.1;
 washer_pin_h = 1.1;
 
-$fn = 64;
-
 // Intermadiate vars
 clamp_wy = dist + screw_support_d;
 clamp_wx = screw_support_d;
@@ -40,8 +41,8 @@ module clamp(y_bridges=1) {
     difference() {
         union() {
             // Screw supports
-            rcube([screw_support_d, screw_support_d, h], r=1);
-            dupe_y() tr_y(dist/2) rcube([screw_support_d, screw_support_d, h], r=1);
+            ra_cube([screw_support_d, screw_support_d, h], r=1, fn=$ra_fn);
+            dupe_y() tr_y(dist/2) ra_cube([screw_support_d, screw_support_d, h], r=1, fn=$ra_fn);
 
             // Body
             linear_extrude(h) square([w, dist], center = true);
@@ -63,17 +64,17 @@ module washer() {
     difference() {
         union() {
             // Central part
-            rcube([washer_wx, washer_wx, washer_h], r=1);
-            rcube([2.5, washer_wy, washer_h], r=0.3);
+            ra_cube([washer_wx, washer_wx, washer_h], r=1, fn=$ra_fn);
+            ra_cube([2.5, washer_wy, washer_h], r=0.3, fn=$ra_fn);
             // Pin
             translate([-washer_pin_wx/2, -washer_wy/2, washer_h - e])
-            rcube([washer_pin_wx, 1, washer_pin_h], r=0.2, center=false);
+            ra_cube([washer_pin_wx, 1, washer_pin_h], r=0.2, center=false, fn=$ra_fn);
 
             // Side bridges
-            rcube([washer_wx + 2*frame_space + 2*e, bridge_w, bridge_h], r=0);
+            ra_cube([washer_wx + 2*frame_space + 2*e, bridge_w, bridge_h], r=0, fn=$ra_fn);
             // Bottom bridge
             //tr_y(-frame_space/2 - washer_wy/2)
-            //rcube([bridge_w, frame_space + 2*e, bridge_h], r=0);
+            //ra_cube([bridge_w, frame_space + 2*e, bridge_h], r=0, fn=$ra_fn);
         }
         // Holes
         tr_z(-e) cylinder(h=h+e*2, d=screw_d);
@@ -86,19 +87,19 @@ module washer() {
 difference() {
     tr_xy(-frame_wall, -frame_wall)
     union() {
-        rcube([
+        ra_cube([
             frame_all_wx + frame_wall*2,
             frame_wy + frame_wall*2,
             frame_height
-        ], center=false, r=2);
+        ], center=false, r=2, fn=$ra_fn);
     }
     // Clamps inner
     tr_z(-e)
-    rcube([frame_clamps_wx, frame_wy, frame_height+2*e], center=false);
+    ra_cube([frame_clamps_wx, frame_wy, frame_height+2*e], center=false, fn=$ra_fn);
 
     // Washers inner
     translate([frame_clamps_wx + frame_wall, 0, -e])
-    rcube([frame_washer_wx, frame_wy, frame_height+2*e], center=false);
+    ra_cube([frame_washer_wx, frame_wy, frame_height+2*e], center=false, fn=$ra_fn);
 
 }
 
@@ -117,7 +118,7 @@ for(i = [1:clones]) {
 /*tr_y(frame_wy/2)
 dupe_y()
 tr_xy(frame_clamps_wx/2, dist/4)
-rcube([frame_clamps_wx + 2*e, bridge_w, bridge_h], r=0);
+ra_cube([frame_clamps_wx + 2*e, bridge_w, bridge_h], r=0, fn=$ra_fn);
 */
 
 // Washers
