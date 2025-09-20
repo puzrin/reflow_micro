@@ -153,6 +153,22 @@ module magnet_supports_cap(h = 20) {
         quoter_round_wall(r+1.5, r, h = cap_inner_h, fn=$ra_fn);
         quoter_cylinder(r=pin_w, h=h-mh, $ra_fn);
         quoter_cylinder(r=magnet_axis_offset, h=h-mh-pin_h, $ra_fn);
+        
+        guide_top = [
+            [r, 0],
+            [r-1, -1],
+            [-magnet_axis_offset, -1],
+            [-magnet_axis_offset, 1],
+            [r-1, 1],
+        ];
+        
+        tr_z(h-mh-pin_h)
+        rotate_z(-135)
+        hull () {
+            linear_extrude(e) polygon(guide_top);
+            tr_z(-2) linear_extrude(e) polygon(guide_top);
+            tr_z(-12) tr_x(-magnet_axis_offset) ra_cube([e, 2, e], r=0, fn=$ra_fn);
+        }
     }
 }
 
