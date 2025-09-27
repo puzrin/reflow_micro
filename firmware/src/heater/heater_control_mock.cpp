@@ -210,22 +210,25 @@ auto HeaterControlMock::reset() -> HeaterControlMock& {
 
 // Need separate thread, because can send events to app (guarded with mutexes)
 void HeaterControlMock::setup() {
-    static constexpr int32_t TICK_PERIOD_MS = 10;
+    static constexpr int32_t TICK_PERIOD_MS = 20;
+    prev_tick_ms = get_time_ms() - TICK_PERIOD_MS;
+
     xTaskCreate(
         [](void* params) {
             auto* self = static_cast<HeaterControlMock*>(params);
             while (true) {
                 // Work at 10x speed for convenience
-                self->tick(TICK_PERIOD_MS * 10);
+                self->tick();
                 vTaskDelay(pdMS_TO_TICKS(TICK_PERIOD_MS));
             }
         }, "HeaterControlMock", 1024*4, this, 4, nullptr
     );
 }
 
-void HeaterControlMock::tick(int32_t dt_ms) {
+void HeaterControlMock::tick() {
     // Iterate temperature
-    static constexpr float dt_inv_multiplier = 1.0F / 1000.0F;
+    uint32_t dt_ms = get_time_ms() - prev_tick_ms;
+    static constexpr float dt_inv_multiplier = 0.001f;
     const float dt = static_cast<float>(dt_ms) * dt_inv_multiplier;
 
     const float curr_temp = temperature;
@@ -238,5 +241,5 @@ void HeaterControlMock::tick(int32_t dt_ms) {
     temperature = curr_temp + temp_change;
 
     // Call base method with main logic
-    HeaterControlBase::tick(dt_ms);
+    HeaterControlBase::tick();
 }

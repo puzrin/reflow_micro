@@ -2,6 +2,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
+#include "components/i2c_io.hpp"
 #include "components/time.hpp"
 #include "head.hpp"
 #include "logger.hpp"
@@ -61,6 +62,13 @@ public:
 
         if (Time(head.debounce_start).expired(SENSOR_DEBOUNCE_MS))
         {
+            // MCH head has real sensor (PT100).
+            // If pin is shorted => use TCR-based estimates (consider heater
+            // type as PCB).
+            //
+            // The difference is, PCB-based heater has much better heat
+            // distribution. For MCH heaters using TCR-based estimates may lead
+            // to errors, difficult to fix.
             head.heater_type = (head.last_sensor_value_mv.load() <= Head::SENSOR_SHORTED_LEVEL_MV)
                 ? HeaterType_MCH : HeaterType_PCB;
 
@@ -144,6 +152,7 @@ Head::Head() {
 }
 
 void Head::setup() {
+    i2c_init();
     // Configure ADC on IO4 (ADC1_CH4)
     adc_init();
     // Now we can start the FSM.

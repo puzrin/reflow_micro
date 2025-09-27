@@ -42,7 +42,7 @@ TEST(ProfileSelectorTest, UpgradeToAPDOWithHeadroom) {
     ps.set_pdo_index(0).set_load_mohms(3000).set_target_power_mw(8000);
 
     ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 2); // prefer APDO
+    EXPECT_EQ(ps.better_index, 2u); // prefer APDO
 }
 
 TEST(ProfileSelectorTest, ApdoMinVGuardForcesSafeFallback) {
@@ -56,7 +56,7 @@ TEST(ProfileSelectorTest, ApdoMinVGuardForcesSafeFallback) {
     ps.set_pdo_index(1).set_load_mohms(3000).set_target_power_mw(5000);
 
     ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 0); // drop to safe base
+    EXPECT_EQ(ps.better_index, 0u); // drop to safe base
 }
 
 TEST(ProfileSelectorTest, UpgradeToAnyHigherWhenNoApdoMatches) {
@@ -70,7 +70,7 @@ TEST(ProfileSelectorTest, UpgradeToAnyHigherWhenNoApdoMatches) {
     ps.set_pdo_index(0).set_load_mohms(6000).set_target_power_mw(4000);
 
     ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 1); // pick 9V FIXED
+    EXPECT_EQ(ps.better_index, 1u); // pick 9V FIXED
 }
 
 TEST(ProfileSelectorTest, DowngradeFixedToApdoToAvoidPwm) {
@@ -84,7 +84,7 @@ TEST(ProfileSelectorTest, DowngradeFixedToApdoToAvoidPwm) {
     ps.set_pdo_index(0).set_load_mohms(20000).set_target_power_mw(3000);
 
     ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 1);
+    EXPECT_EQ(ps.better_index, 1u);
 }
 
 TEST(ProfileSelectorTest, DowngradeFixedToLowerFixedWhenApdoNotSuitable) {
@@ -99,7 +99,7 @@ TEST(ProfileSelectorTest, DowngradeFixedToLowerFixedWhenApdoNotSuitable) {
     ps.set_pdo_index(0).set_load_mohms(27000).set_target_power_mw(2600);
 
     ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 1); // lower fixed selected
+    EXPECT_EQ(ps.better_index, 1u); // lower fixed selected
 }
 
 TEST(ProfileSelectorTest, BestEffortWhenTargetTooHigh) {
@@ -116,7 +116,7 @@ TEST(ProfileSelectorTest, BestEffortWhenTargetTooHigh) {
     ps.set_pdo_index(0).set_load_mohms(30000).set_target_power_mw(10000);
 
     ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 2); // strongest safe FIXED (12V)
+    EXPECT_EQ(ps.better_index, 2u); // strongest safe FIXED (12V)
 }
 
 TEST(ProfileSelectorTest, BestEffortPrefersPpsOverFixedWhenAllInsufficient) {
@@ -135,7 +135,7 @@ TEST(ProfileSelectorTest, BestEffortPrefersPpsOverFixedWhenAllInsufficient) {
     ps.set_pdo_index(0).set_load_mohms(10000).set_target_power_mw(100000);
 
     ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 3); // prefer PPS over 20V FIXED in best-effort
+    EXPECT_EQ(ps.better_index, 3u); // prefer PPS over 20V FIXED in best-effort
 }
 
 TEST(ProfileSelectorTest, CandidateFilteredBy110PercentCurrentMargin) {
@@ -152,7 +152,7 @@ TEST(ProfileSelectorTest, CandidateFilteredBy110PercentCurrentMargin) {
     ps.set_pdo_index(1).set_load_mohms(5200).set_target_power_mw(15000);
 
     ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 2);
+    EXPECT_EQ(ps.better_index, 2u);
 }
 
 TEST(ProfileSelectorTest, VoltageVsCurrentLimitSelection) {
@@ -169,7 +169,7 @@ TEST(ProfileSelectorTest, VoltageVsCurrentLimitSelection) {
     ps.set_pdo_index(1).set_load_mohms(4400).set_target_power_mw(17200);
 
     ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 2);
+    EXPECT_EQ(ps.better_index, 2u);
 }
 
 TEST(ProfileSelectorTest, ApdoPriorityLastWins) {
@@ -186,7 +186,7 @@ TEST(ProfileSelectorTest, ApdoPriorityLastWins) {
     ps.set_pdo_index(1).set_load_mohms(10000).set_target_power_mw(8000);
 
     ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 3);
+    EXPECT_EQ(ps.better_index, 3u);
 }
 
 TEST(ProfileSelectorTest, EprHolesAndAvsGuardFallsBackToSafeNonPwm) {
@@ -213,7 +213,7 @@ TEST(ProfileSelectorTest, EprHolesAndAvsGuardFallsBackToSafeNonPwm) {
     ps.set_pdo_index(10).set_load_mohms(30000).set_target_power_mw(6000);
 
     ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 2);
+    EXPECT_EQ(ps.better_index, 2u);
 }
 
 int main(int argc, char **argv) {

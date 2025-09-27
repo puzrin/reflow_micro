@@ -16,7 +16,10 @@ public:
     // We have 2.5v ref voltage and 560R +PT100 divider. That gives ~
     // [0.32..0.5] V range for [-50..+400] C.
     //
-    // Set 2 levels to detect shorted and floating sensor.
+    // Set 2 levels to detect shorted and floating sensor:
+    // - Open => Not attached
+    // - Shorted => With embedded sensor
+    // - In between => With PT100 sensor
     static constexpr uint32_t SENSOR_SHORTED_LEVEL_MV = 150;
     static constexpr uint32_t SENSOR_FLOATING_LEVEL_MV = 700;
 

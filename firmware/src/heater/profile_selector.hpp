@@ -5,6 +5,8 @@
 #include <etl/vector.h>
 #include <pd/pd.h>
 
+#include "lib/isqrt.hpp"
+
 class ProfileSelector {
 public:
     struct PDO_DESCRIPTOR {
@@ -20,9 +22,18 @@ public:
         uint32_t mohms_min_110_percent{etl::numeric_limits<uint32_t>::max()};
     };
 
+    struct PDO_USAGE_PARAMS {
+        uint32_t mv{0};
+        uint32_t duty_x1000{0};
+    };
+
+    // If we use APDO, set minimal value a bit above 5 V, to exclude device
+    // power drop due PWM noise.
+    static constexpr uint32_t MIN_APDO_USAGE_MV = 6000;
+
     etl::vector<PDO_DESCRIPTOR, pd::MaxPdoObjects> descriptors;
-    int32_t current_index{0};
-    int32_t better_index{0};
+    uint32_t current_index{0};
+    uint32_t better_index{0};
     uint32_t load_mohms{0};
     uint32_t target_power_mw{0};
 
@@ -90,7 +101,7 @@ public:
         return mw_max(idx) * 90 / 100;
     }
 
-    
+
     // Hysteresis and guards, to avoid oscillation and PWM noise:
     // - Upgrade when target > 95% of current Pmax (5% headroom left).
     // - Candidates must provide ≥10% headroom (power and current checks).
@@ -103,6 +114,13 @@ public:
         if (descriptors.empty() || load_mohms == 0) { return false; }
 
         uint32_t new_index = current_index;
+
+        // Safety check (this should never happen)
+        if (new_index >= descriptors.size() ||
+            descriptors[new_index].pdo_variant == pd::PDO_VARIANT::UNKNOWN)
+        {
+            new_index = 0;
+        }
 
         // Emergency case 1: we are close to overcurrent. Force downgrade to
         // first PDO (PD mandates 5 V FIXED at index 0), then continue with exact match.
@@ -167,10 +185,6 @@ public:
                 if (d.pdo_variant == pd::PDO_VARIANT::UNKNOWN) { continue; }
                 if (load_mohms < d.mohms_min_110_percent) { continue; } // require 10% current margin
 
-                // Decline more weak profiles
-                auto mw_tmp = mw_max_90_percent(i); // consider 10% headroom
-                if (mw_tmp > current_max_mw) { new_index = i; }
-
                 // Avoid APDO needing PWM at minV (>5 V): if P(minV) > target·1.03
                 // we might get “stuck” in APDO without an overcurrent downgrade.
                 if ((d.pdo_variant == pd::PDO_VARIANT::APDO_PPS ||
@@ -182,6 +196,14 @@ public:
                         continue;
                     }
                 }
+
+                // Decline more weak profiles
+                auto mw_tmp = mw_max_90_percent(i); // consider 10% headroom
+                if (mw_tmp > current_max_mw) {
+                    new_index = i;
+                    current_max_mw = mw_tmp;
+                }
+
                 if (mw_tmp > target_power_mw) { // candidate exceeds target with 10% headroom
                     better_index = i;
                     return better_index != current_index;
@@ -239,4 +261,67 @@ public:
         better_index = new_index;
         return better_index != current_index;
     }
+
+    auto get_pdo_usage_params(uint32_t idx) -> PDO_USAGE_PARAMS {
+        PDO_USAGE_PARAMS params{};
+
+        if (idx >= descriptors.size() || load_mohms == 0) {
+            return params;
+        }
+
+        auto& d = descriptors[idx];
+
+        // Calculate voltage to get target power or max available
+        if (d.pdo_variant == pd::PDO_VARIANT::FIXED) {
+            auto mv = d.mv_min;
+            auto max_mw = (mv * mv) / load_mohms;
+
+            if (target_power_mw > max_mw) {
+                params.duty_x1000 = 1000;
+            } else {
+                if (max_mw == 0) {
+                    // This is dead branch, formal check for division by zero
+                    params.duty_x1000 = 0;
+                } else {
+                    params.duty_x1000 = target_power_mw * 1000 / max_mw;
+                }
+            }
+
+            params.mv = mv;
+            return params;
+        }
+
+        if (d.pdo_variant == pd::PDO_VARIANT::APDO_PPS ||
+            d.pdo_variant == pd::PDO_VARIANT::APDO_SPR_AVS ||
+            d.pdo_variant == pd::PDO_VARIANT::APDO_EPR_AVS)
+        {
+            // For APDO, calculate voltage to get target power
+            // V = sqrt(P * R)
+            auto possible_mw = etl::min(target_power_mw, mw_max(idx));
+            // 32 bits should not overflow but use 64 bits for sure.
+            // Sqrt speed will be ~ the same
+            uint32_t ideal_mv = isqrt64(static_cast<uint64_t>(possible_mw) * load_mohms);
+
+            params.mv = etl::clamp<uint32_t>(ideal_mv, d.mv_min, d.mv_max);
+            if (params.mv < MIN_APDO_USAGE_MV) { params.mv = MIN_APDO_USAGE_MV; }
+
+            auto max_duty_mw = (params.mv * params.mv / load_mohms);
+
+            if (max_duty_mw == 0) {
+                // This is dead branch, formal check for division by zero
+                params.duty_x1000 = 0;
+            } else {
+                params.duty_x1000 = possible_mw * 1000 / max_duty_mw;
+            }
+
+            // Add this to cut down on rounding errors
+            if (params.duty_x1000 > 1000) { params.duty_x1000 = 1000; }
+
+            return params;
+        }
+
+        // Unknown PDO type, return zeroes
+        return params;
+    }
 };
+

@@ -4,24 +4,41 @@
 #include "power.hpp"
 
 void HeaterControl::setup() {
-    static constexpr int32_t TICK_PERIOD_MS = 10;
+    static constexpr int32_t TICK_PERIOD_MS = 50;
+    prev_tick_ms = get_time_ms() - TICK_PERIOD_MS;
+
+    power.setup();
+    head.setup();
+
     xTaskCreate(
         [](void* params) {
             auto* self = static_cast<HeaterControl*>(params);
             while (true) {
-                self->tick(TICK_PERIOD_MS);
+                self->tick();
                 vTaskDelay(pdMS_TO_TICKS(TICK_PERIOD_MS));
             }
         }, "HeaterControl", 1024*4, this, 4, nullptr
     );
-
-    power.setup();
-    head.setup();
 }
 
-void HeaterControl::tick(int32_t dt_ms) {
-    // Call base method with main logic
-    HeaterControlBase::tick(dt_ms);
+void HeaterControl::tick() {
+    power.receive(MsgToPower_SysTick{});
+
+    if (get_health_status() != DeviceHealthStatus_DevOK) {
+        if (is_task_active) {
+            application.enqueue_message(AppCmd::Stop{});
+        }
+        return;
+    }
+
+    // Pause control if PD profile in transition.
+    if (get_power_status() != PowerStatus_PwrOK) { return; }
+
+    HeaterControlBase::tick();
+}
+
+void HeaterControl::set_power(float power_w) {
+    power.set_power_mw(static_cast<uint32_t>(power_w * 1000));
 }
 
 bool HeaterControl::get_head_params_pb(std::vector<uint8_t>& pb_data) {
@@ -87,8 +104,12 @@ auto HeaterControl::get_amperes() -> float {
     return power.get_peak_ma() * 0.001f;
 }
 
+auto HeaterControl::get_duty_cycle() -> float {
+    return power.get_duty_x1000() * 0.001f;
+}
+
 auto HeaterControl::get_power() -> float {
-    return get_volts() * get_amperes() * power.get_duty_millis() * 0.001f;
+    return get_volts() * get_amperes() * power.get_duty_x1000() * 0.001f;
 }
 
 auto HeaterControl::get_resistance() -> float {
@@ -100,5 +121,8 @@ auto HeaterControl::get_resistance() -> float {
 }
 
 auto HeaterControl::get_max_power() -> float {
-    return power.get_max_power_mw() * 0.001f;
+    power.lock();
+    auto max_power = power.get_max_power_mw();
+    power.unlock();
+    return max_power * 0.001f;
 }

@@ -6,6 +6,7 @@
 
 #include "app.hpp"
 #include "components/prefs.hpp"
+#include "components/time.hpp"
 #include "lib/adrc.hpp"
 #include "heater_control_base.hpp"
 #include "proto/generated/defaults.hpp"
@@ -64,6 +65,8 @@ private:
         std::vector<uint8_t>{std::begin(DEFAULT_HEAD_PARAMS_PB), std::end(DEFAULT_HEAD_PARAMS_PB)}
     };
 
+    std::atomic<float> power_setpoint{0};
+
 public:
     HeaterControlMock();
 
@@ -88,9 +91,16 @@ public:
         const float r = get_resistance();
         return r > 0 ? std::sqrt(get_power() / r) : 0;
     }
-
+    auto get_duty_cycle() -> float override { return 1.0F; }
+    uint32_t get_time_ms() const override {
+        // Increase simulation speed 10x
+        return Time::now() * 10;
+    }
+    void set_power(float power) override {
+        power_setpoint = (power < 0 ? 0 : power);
+    }
     void setup() override;
-    void tick(int32_t dt_ms) override;
+    void tick() override;
 
     // Mock-related methods
     auto calibrate_TR(float T, float R) -> HeaterControlMock&;

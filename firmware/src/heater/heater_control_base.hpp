@@ -33,14 +33,15 @@ public:
     virtual auto get_power() -> float = 0;
     virtual auto get_volts() -> float = 0;
     virtual auto get_amperes() -> float = 0;
-    virtual auto get_duty_cycle() -> float { return 1.0F; }
+    virtual auto get_duty_cycle() -> float = 0;
 
-    virtual void set_power(float power) { power_setpoint = (power < 0 ? 0 : power); }
+    virtual uint32_t get_time_ms() const = 0;
+    virtual void set_power(float power) = 0;
     virtual void set_temperature(float temp) { temperature_setpoint = temp; }
     virtual void temperature_control_on();
     virtual void temperature_control_off();
 
-    virtual void tick(int32_t dt_ms);
+    virtual void tick();
 
     // "task" machinery, by default record history.
 
@@ -50,17 +51,17 @@ public:
 protected:
     ADRC adrc{};
     std::atomic<bool> temperature_control_flag{false};
-    std::atomic<float> power_setpoint{0};
     std::atomic<float> temperature_setpoint{0};
+    std::atomic<bool> is_task_active{false};
+    int32_t prev_tick_ms{0};
 
 private:
-    std::atomic<bool> is_task_active{false};
     HeaterTaskIteratorFn task_iterator{nullptr};
-    int32_t task_time_ms{0};
+    int32_t task_start_ts{0};
     History history{};
     int32_t history_version{0};
     int32_t history_task_id{0};
-    int32_t history_last_recorded_ts{0};
+    int32_t history_last_recorded_ts{0}; // in seconds
     static constexpr int32_t history_y_multiplier = 100;
     static constexpr float history_y_multiplier_inv = 1.0F / history_y_multiplier;
 };
