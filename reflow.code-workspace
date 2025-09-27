@@ -1,17 +1,21 @@
 {
 	"folders": [
 		{
+			"name": "Root",
+			"path": "."
+		},
+		{
 			"name": "webapp",
 			"path": "webapp"
 		},
 		{
 			"name": "firmware",
 			"path": "firmware"
-		},
-		{
-			"name": "Root",
-			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"files.associations": {
+			"cstdint": "cpp"
+		}
+	}
 }
