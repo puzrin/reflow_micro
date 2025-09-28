@@ -65,7 +65,7 @@ auto HeaterControlBase::load_all_params() -> bool {
 
 void HeaterControlBase::temperature_control_on() {
     // If task was is running - it already loaded params, don't repeat
-    if (!is_task_active) { load_all_params(); }
+    if (!is_task_active.load()) { load_all_params(); }
 
     adrc.reset_to(get_temperature());
     temperature_control_flag = true;
@@ -77,7 +77,7 @@ void HeaterControlBase::temperature_control_off() {
 }
 
 void HeaterControlBase::tick() {
-    if (!is_task_active) { return; }
+    if (!is_task_active.load()) { return; }
 
     uint32_t now = get_time_ms();
     uint32_t dt_ms = now - prev_tick_ms;
@@ -107,7 +107,7 @@ void HeaterControlBase::tick() {
 }
 
 auto HeaterControlBase::task_start(int32_t task_id, HeaterTaskIteratorFn ticker) -> bool {
-    if (is_task_active) { return false; }
+    if (is_task_active.load()) { return false; }
     if (get_head_status() != HeadStatus_HeadConnected) { return false; }
     if (!load_all_params()) { return false; }
 
@@ -122,12 +122,12 @@ auto HeaterControlBase::task_start(int32_t task_id, HeaterTaskIteratorFn ticker)
     history.add(0, lround(get_temperature() * history_y_multiplier));
 
     task_iterator = ticker;
-    is_task_active = true;
+    is_task_active.store(true);
     return true;
 }
 
 void HeaterControlBase::task_stop() {
-    is_task_active = false;
+    is_task_active.store(false);
     task_iterator = nullptr;
     temperature_control_off();
     set_power(0);

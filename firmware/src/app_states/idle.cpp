@@ -52,6 +52,11 @@ auto Idle_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
     return No_State_Change;
 }
 
+auto Idle_State::on_event(const AppCmd::Stop&) -> etl::fsm_state_id_t {
+    // This empty handler exists only to dim unknown event reporting
+    return No_State_Change;
+}
+
 auto Idle_State::on_event_unknown(const etl::imessage& event) -> etl::fsm_state_id_t {
     get_fsm_context().LogUnknownEvent(event);
     return No_State_Change;

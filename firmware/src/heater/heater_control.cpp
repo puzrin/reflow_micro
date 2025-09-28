@@ -25,7 +25,7 @@ void HeaterControl::tick() {
     power.receive(MsgToPower_SysTick{});
 
     if (get_health_status() != DeviceHealthStatus_DevOK) {
-        if (is_task_active) {
+        if (is_task_active.load()) {
             application.enqueue_message(AppCmd::Stop{});
         }
         return;
