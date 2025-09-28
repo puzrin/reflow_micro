@@ -1,4 +1,6 @@
 #include <esp_check.h>
+#include <esp_adc/adc_cali_scheme.h>
+#include <soc/soc_caps.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
@@ -183,46 +185,119 @@ void Head::task_loop() {
 }
 
 void Head::adc_init() {
-    // Create ADC unit
-    adc_oneshot_unit_init_cfg_t unit_cfg = {
-        .unit_id = ADC_UNIT_1,
-        .clk_src = ADC_DIGI_CLK_SRC_DEFAULT,
-        .ulp_mode = ADC_ULP_MODE_DISABLE
-    };
-    ESP_ERROR_CHECK(adc_oneshot_new_unit(&unit_cfg, &adc1_handle));
+    // Calculate derived parameters
+    constexpr uint32_t adc_sample_freq_hz = TEMPERATURE_SAMPLE_FREQ_HZ * ADC_OVERSAMPLING_COUNT;
+    constexpr uint32_t conv_frame_size = ADC_OVERSAMPLING_COUNT * SOC_ADC_DIGI_RESULT_BYTES;
+    constexpr uint32_t dma_buffer_size = conv_frame_size * 2;
 
-    // IO4 -> ADC1_CH4, 12 bit, 0 dB
-    adc_oneshot_chan_cfg_t ch_cfg = {
-        .atten = ADC_ATTEN_DB_0,
-        .bitwidth = ADC_BITWIDTH_12
-    };
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, ADC_CHANNEL_4, &ch_cfg));
+    // Compile-time checks for hardware limits
+    static_assert(adc_sample_freq_hz <= SOC_ADC_SAMPLE_FREQ_THRES_HIGH,
+                  "ADC sample frequency exceeds hardware limit");
+    static_assert(adc_sample_freq_hz >= SOC_ADC_SAMPLE_FREQ_THRES_LOW,
+                  "ADC sample frequency below hardware limit");
+    static_assert(conv_frame_size % SOC_ADC_DIGI_RESULT_BYTES == 0,
+                  "Frame size must be multiple of SOC_ADC_DIGI_RESULT_BYTES");
+    static_assert(ADC_OVERSAMPLING_COUNT >= 10,
+                  "Too few samples for meaningful averaging");
 
-    // Calibration (curve fitting, fallback to line fitting)
-    adc_cali_curve_fitting_config_t cf = {
-        .unit_id = ADC_UNIT_1,
-        .chan = ADC_CHANNEL_4, // actually unused, exists only to dim warnings
-        .atten = ADC_ATTEN_DB_0,
-        .bitwidth = ADC_BITWIDTH_12
-    };
+    APP_LOGI("ADC config: %uHz sample rate, %u samples per callback, frame size %u bytes",
+             adc_sample_freq_hz, ADC_OVERSAMPLING_COUNT, conv_frame_size);
+
+    // Create ADC handle
+    adc_continuous_handle_cfg_t adc_config{};
+    adc_config.max_store_buf_size = dma_buffer_size;
+    adc_config.conv_frame_size = conv_frame_size;
+    adc_config.flags.flush_pool = 0;
+    ESP_ERROR_CHECK(adc_continuous_new_handle(&adc_config, &adc_handle));
+
+    // Configure ADC
+    adc_digi_pattern_config_t adc_pattern[1]{};
+    adc_pattern[0].atten = ADC_ATTEN_DB_0;
+    adc_pattern[0].channel = ADC_CHANNEL_4;
+    adc_pattern[0].unit = ADC_UNIT_1;
+    adc_pattern[0].bit_width = ADC_BITWIDTH_12;
+
+    adc_continuous_config_t dig_cfg{};
+    dig_cfg.pattern_num = 1;
+    dig_cfg.adc_pattern = adc_pattern;
+    dig_cfg.sample_freq_hz = adc_sample_freq_hz;
+    dig_cfg.conv_mode = ADC_CONV_SINGLE_UNIT_1;
+    dig_cfg.format = ADC_DIGI_OUTPUT_FORMAT_TYPE2;
+    ESP_ERROR_CHECK(adc_continuous_config(adc_handle, &dig_cfg));
+
+    // Setup calibration
+    adc_cali_curve_fitting_config_t cf{};
+    cf.unit_id = ADC_UNIT_1;
+    cf.chan = ADC_CHANNEL_4;
+    cf.atten = ADC_ATTEN_DB_0;
+    cf.bitwidth = ADC_BITWIDTH_12;
     ESP_ERROR_CHECK(adc_cali_create_scheme_curve_fitting(&cf, &adc_cali_handle));
+
+    // Register callback
+    adc_continuous_evt_cbs_t cbs{};
+    cbs.on_conv_done = adc_conv_done_callback;
+    cbs.on_pool_ovf = nullptr;
+    ESP_ERROR_CHECK(adc_continuous_register_event_callbacks(adc_handle, &cbs, this));
+
+    // Start continuous conversion
+    ESP_ERROR_CHECK(adc_continuous_start(adc_handle));
+}
+
+bool IRAM_ATTR Head::adc_conv_done_callback(adc_continuous_handle_t handle,
+                                           const adc_continuous_evt_data_t *edata,
+                                           void *user_data) {
+    Head* self = static_cast<Head*>(user_data);
+
+    uint32_t sum = 0;
+    uint32_t count = 0;
+
+    // Average all samples in this frame
+    for (uint32_t i = 0; i < edata->size; i += SOC_ADC_DIGI_RESULT_BYTES) {
+        adc_digi_output_data_t *p = (adc_digi_output_data_t*)&edata->conv_frame_buffer[i];
+
+        if (p->type2.channel == ADC_CHANNEL_4) {
+            sum += p->type2.data;
+            count++;
+        }
+    }
+
+    if (count > 0) {
+        uint16_t avg_raw = static_cast<uint16_t>(sum / count);
+
+        // Store in ring buffer as raw ADC value
+        self->temp_ring_buffer[self->ring_buffer_idx] = avg_raw;
+        self->ring_buffer_idx = (self->ring_buffer_idx + 1) % TEMPERATURE_RING_BUFFER_SIZE;
+        auto prev_count = self->ring_buffer_count.load();
+        if (prev_count < TEMPERATURE_RING_BUFFER_SIZE) {
+            self->ring_buffer_count.store(static_cast<uint8_t>(prev_count + 1));
+        }
+    }
+
+    return false; // Don't yield from ISR
 }
 
 void Head::update_sensor_mv() {
-    int raw = 0;
+    // Calculate average from ring buffer (raw values)
+    uint32_t sum = 0;
 
-    for (;;) {
-        auto res = adc_oneshot_read(adc1_handle, ADC_CHANNEL_4, &raw);
-        if (res == ESP_OK) { break; }
-
-        APP_LOGE("Sensor ADC read failure [{}], retrying...", esp_err_to_name(res));
-        vTaskDelay(1);
+    uint32_t valid_count = ring_buffer_count.load();
+    if (valid_count == 0) {
+        return;
     }
 
-    int mv = 0;
-    ESP_ERROR_CHECK(adc_cali_raw_to_voltage(adc_cali_handle, raw, &mv));
+    for (uint32_t i = 0; i < valid_count; i++) {
+        sum += temp_ring_buffer[i];
+    }
 
-    last_sensor_value_mv.store((uint32_t)mv);
+    uint32_t avg_raw = sum / valid_count;
+
+    int mv = 0;
+    esp_err_t err = adc_cali_raw_to_voltage(adc_cali_handle, static_cast<int>(avg_raw), &mv);
+    if (err != ESP_OK) {
+        return;
+    }
+
+    last_sensor_value_mv.store(static_cast<uint32_t>(mv));
 }
 
 bool Head::get_head_params_pb(std::vector<uint8_t>& pb_data) {

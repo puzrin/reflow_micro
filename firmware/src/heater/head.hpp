@@ -1,6 +1,6 @@
 #pragma once
 
-#include <esp_adc/adc_oneshot.h>
+#include <esp_adc/adc_continuous.h>
 #include <esp_adc/adc_cali.h>
 #include <etl/limits.h>
 #include <etl/atomic.h>
@@ -22,6 +22,15 @@ public:
     // - In between => With PT100 sensor
     static constexpr uint32_t SENSOR_SHORTED_LEVEL_MV = 150;
     static constexpr uint32_t SENSOR_FLOATING_LEVEL_MV = 700;
+
+    // User-configurable ADC parameters
+
+    // Temperature update frequency
+    static constexpr uint32_t TEMPERATURE_SAMPLE_FREQ_HZ = 20;
+    // Samples to average (improves accuracy ~32x)
+    static constexpr uint32_t ADC_OVERSAMPLING_COUNT = 1000;
+    // Ring buffer size for additional smoothing
+    static constexpr uint32_t TEMPERATURE_RING_BUFFER_SIZE = 10;
 
     using EEBuffer = etl::vector<uint8_t, 256>;
 
@@ -52,9 +61,17 @@ public:
 private:
     void task_loop();
     void adc_init();
+    static bool IRAM_ATTR adc_conv_done_callback(adc_continuous_handle_t handle,
+                                                const adc_continuous_evt_data_t *edata,
+                                                void *user_data);
 
-    adc_oneshot_unit_handle_t adc1_handle{nullptr};
+    adc_continuous_handle_t adc_handle{nullptr};
     adc_cali_handle_t adc_cali_handle{nullptr};
+
+    // Temperature ring buffer for final smoothing
+    etl::array<uint16_t, TEMPERATURE_RING_BUFFER_SIZE> temp_ring_buffer{};
+    uint8_t ring_buffer_idx{0};
+    etl::atomic<uint8_t> ring_buffer_count{0};
 };
 
 extern Head head;
