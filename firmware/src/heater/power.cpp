@@ -141,6 +141,7 @@ public:
         pwr.set_power_status(PowerStatus::PowerStatus_PwrOK);
         // Reset lock for sure
         pwr.is_apdo_updating = false;
+        pwr.prev_apdo_mv = 0;
         // Don't start PWM/Profile here, wait for SysTick to kick in.
         // This will cause small delay on first entry, but that's acceptable.
         return No_State_Change;
@@ -162,6 +163,7 @@ public:
 
         // Local APDO update complete, and SRC is ready.
         // PWM stays intact, because been updated prior to APDO adjusting.
+        pwr.prev_apdo_mv = pwr.next_apdo_mv;
         pwr.is_apdo_updating = false;
         return No_State_Change;
     }
@@ -216,12 +218,20 @@ public:
             // Update APDO contract without state change. Lock next ticks
             // until update finishes.
 
-            // Note, state can be terminated from outside to init/off only.
-            // The means stack was reset/disabled and no pending PS_RDY
-            // will be left.
-            pwr.is_apdo_updating = true;
-            // NOTE: trigger function MUST be async to avoid deadlock
-            dpm.trigger_by_position(idx + 1, params.mv);
+            //
+            // Avoid unnecessary APDO updates if voltage didn't change much
+            //
+            auto mv = (params.mv + 50) / 100 * 100; // Round tp 0.1V precision
+            if (mv != pwr.prev_apdo_mv) {
+                pwr.next_apdo_mv = mv;
+                APP_LOGI("prev mV [{}], next mV [{}]", pwr.prev_apdo_mv, pwr.next_apdo_mv);
+                // Note, state can be terminated from outside to init/off only.
+                // The means stack was reset/disabled and no pending PS_RDY
+                // will be left.
+                pwr.is_apdo_updating = true;
+                // NOTE: trigger function MUST be async to avoid deadlock
+                dpm.trigger_by_position(idx + 1, params.mv);
+            }
         }
 
         return No_State_Change;
@@ -454,6 +464,5 @@ void DPM_EventListener::on_receive(const pd::MsgToDpm_NewPowerLevelAccepted& msg
 }
 
 void DPM_EventListener::on_receive_unknown(const etl::imessage& msg) {
-    APP_LOGD("PD event: Unknown event! msg id [{}]", msg.get_message_id());
-    power.receive(msg);
+    APP_LOGV("PD event: Unknown event! msg id [{}]", msg.get_message_id());
 }

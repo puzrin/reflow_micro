@@ -90,6 +90,8 @@ public:
     DPM_EventListener dpm_event_listener{*this};
     pd::PDO_LIST source_caps{};
     bool is_apdo_updating{false};
+    uint32_t prev_apdo_mv{0};
+    uint32_t next_apdo_mv{0};
 
     Pwm pwm{};
     ProfileSelector profile_selector{};

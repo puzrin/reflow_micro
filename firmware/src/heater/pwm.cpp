@@ -72,8 +72,10 @@ public:
         if (pwm.tick_count >= Pwm::PWM_MIN_PULSE_TICKS) {
             uint16_t adc_v_raw;
             uint16_t adc_i_raw;
+
             if (pwm.ina226_read_reg16(0x02, adc_v_raw) &&
-                pwm.ina226_read_reg16(0x04, adc_i_raw)) {
+                pwm.ina226_read_reg16(0x04, adc_i_raw))
+            {
                 pwm.adc_buffer[pwm.adc_count % Pwm::ADC_FILTER_SIZE] = {
                     .v_raw = adc_v_raw,
                     .i_raw = static_cast<int16_t>(adc_i_raw)
