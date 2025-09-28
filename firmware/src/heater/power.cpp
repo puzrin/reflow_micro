@@ -198,6 +198,7 @@ public:
 
         // If completely new PDO required - go to switching state.
         if (pwr.profile_selector.better_pdo_available()) {
+            APP_LOGI("Power: switch to better PDO (position {})", pwr.profile_selector.better_index + 1);
             return PWR_STATE::WaitContractChange;
         }
 
@@ -224,7 +225,8 @@ public:
             auto mv = (params.mv + 50) / 100 * 100; // Round tp 0.1V precision
             if (mv != pwr.prev_apdo_mv) {
                 pwr.next_apdo_mv = mv;
-                APP_LOGI("prev mV [{}], next mV [{}]", pwr.prev_apdo_mv, pwr.next_apdo_mv);
+                //APP_LOGI("Power: prev mV [{}], next mV [{}]", pwr.prev_apdo_mv, pwr.next_apdo_mv);
+
                 // Note, state can be terminated from outside to init/off only.
                 // The means stack was reset/disabled and no pending PS_RDY
                 // will be left.
@@ -305,11 +307,11 @@ void Power::setup() {
 }
 
 void Power::log_state() {
-    APP_LOGD("Power state => {}", pwr_state_to_desc(get_state_id()));
+    APP_LOGD("Power: state => {}", pwr_state_to_desc(get_state_id()));
 }
 
 void Power::log_unknown_event(const etl::imessage& msg) {
-    APP_LOGD("POWER: Unknown event! msg id [{}], state id [{}]", msg.get_message_id(), get_state_id());
+    APP_LOGD("Power: Unknown event! msg id [{}], state id [{}]", msg.get_message_id(), get_state_id());
 }
 
 uint32_t Power::get_peak_mv() {
@@ -350,7 +352,7 @@ bool Power::is_consumer_valid(const Pwm::CONSUMER_INFO& ci) {
 }
 
 void Power::log_pdos() {
-    APP_LOGI("Source capabilities received [{}]", source_caps.size());
+    APP_LOGI("Power: Source capabilities received [{}]", source_caps.size());
 
     using namespace pd::dobj_utils;
 
@@ -394,12 +396,12 @@ void Power::log_pdos() {
 }
 
 void DPM_EventListener::on_receive(const pd::MsgToDpm_Startup&) {
-    APP_LOGD("PD event: Startup");
+    APP_LOGD("Power: PD Startup");
     power.transition_to(PWR_STATE::Initializing);
 }
 
 void DPM_EventListener::on_receive(const pd::MsgToDpm_TransitToDefault&) {
-    APP_LOGD("PD event: Transit to default");
+    APP_LOGD("Power: PD Transit to default");
     power.transition_to(PWR_STATE::Initializing);
 }
 
@@ -421,48 +423,36 @@ void DPM_EventListener::on_receive(const pd::MsgToDpm_SelectCapDone&) {
     pd::RDO_ANY rdo{port.rdo_contracted};
     auto pdo_pos = rdo.obj_position;
 
-    APP_LOGI("PD event: Source capability selected, PDO position {} [index {}]",
-        pdo_pos, pdo_pos - 1);
-
     power.lock();
     power.profile_selector.set_pdo_index(pdo_pos - 1);
     power.unlock();
 }
 
 void DPM_EventListener::on_receive(const pd::MsgToDpm_SrcDisabled&) {
-    APP_LOGE("PD event: SRC disabled (USB PD not supported)");
     power.transition_to(PWR_STATE::Fault);
 }
 
 void DPM_EventListener::on_receive(const pd::MsgToDpm_Alert& msg) {
-    APP_LOGE("PD event: MsgToDpm_Alert, value={}", msg.value);
+    APP_LOGE("Power: PD Alert [0x{:08X}]", msg.value);
 }
 
 void DPM_EventListener::on_receive(const pd::MsgToDpm_SnkReady& msg) {
-    APP_LOGD("PD event: Sink ready");
     power.receive(msg);
 }
 
 void DPM_EventListener::on_receive(const pd::MsgToDpm_CableDetached& msg) {
-    APP_LOGD("PD event: Cable detached");
     power.transition_to(PWR_STATE::Off);
 }
 
 void DPM_EventListener::on_receive(const pd::MsgToDpm_HandshakeDone& msg) {
-    APP_LOGD("PD event: Handshake done");
     power.receive(msg);
 }
 
 void DPM_EventListener::on_receive(const pd::MsgToDpm_NewPowerLevelRejected& msg) {
-    APP_LOGE("PD event: MsgToDpm_NewPowerLevelRejected");
-    power.receive(msg);
-}
-
-void DPM_EventListener::on_receive(const pd::MsgToDpm_NewPowerLevelAccepted& msg) {
-    APP_LOGD("PD event: MsgToDpm_NewPowerLevelAccepted");
+    APP_LOGE("Power: PD new power level rejected (MsgToDpm_NewPowerLevelRejected)");
     power.receive(msg);
 }
 
 void DPM_EventListener::on_receive_unknown(const etl::imessage& msg) {
-    APP_LOGV("PD event: Unknown event! msg id [{}]", msg.get_message_id());
+    //APP_LOGV("Power: Unknown msg (id={})", msg.get_message_id());
 }

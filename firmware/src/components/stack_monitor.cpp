@@ -9,6 +9,8 @@ void stack_monitor_start() {
         TaskStatus_t taskStatusArray[MAX_TASKS];
 
         while (true) {
+            vTaskDelay(pdMS_TO_TICKS(120 * 1000));
+
             UBaseType_t actualNumber = uxTaskGetSystemState(taskStatusArray, MAX_TASKS, NULL);
 
             if(actualNumber > MAX_TASKS) {
@@ -29,8 +31,6 @@ void stack_monitor_start() {
 
                 APP_LOGI("---------------------------------------------------");
             }
-
-            vTaskDelay(pdMS_TO_TICKS(60 * 1000));
         }
     }, "StackMonitorTask", 1024 * 2, NULL, 0, NULL);
 }
