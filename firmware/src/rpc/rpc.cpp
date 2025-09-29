@@ -160,7 +160,10 @@ public:
 
 
 void ble_init() {
-    const std::string name = bleNameStore.get().substr(0, 20); // Limit name length
+    const std::string name = bleNameStore.get().substr(0, 29); // Limit name length
+    // This name is used in Device Name (0x1800/0x2A00), always created by NimBLE
+    // But we still need it in advertisement, to show in device selection dialog
+    // BEFORE device been connected.
     NimBLEDevice::init(name);
     NimBLEDevice::setPower(9); // Set the power level to maximum, 9dbm for esp32-c3
     // By default NimBLE already set MTU tu 255. No need to tune it manually.
@@ -209,11 +212,16 @@ void ble_init() {
 
     service->start();
 
-    // Configure advertising
+    // Configure advertising. Since we should support legacy (v4) clients,
+    // we have only "normal" advertising + scan response (31 + 32 bytes),
+    // to place data records.
+    // SERVICE_UUID + prefs should fit into adv packet. Name will go to scan resp.
     NimBLEAdvertising *pAdvertising = NimBLEDevice::getAdvertising();
     pAdvertising->addServiceUUID(SERVICE_UUID);
     pAdvertising->enableScanResponse(true);
     pAdvertising->setPreferredParams(0x06, 0x06);
+    // This name is showed in connection dialog
+    pAdvertising->setName(name);
     NimBLEDevice::startAdvertising();
 
     APP_LOGI("BLE initialized");
@@ -279,6 +287,18 @@ auto pair(const std::vector<uint8_t> client_id) -> std::vector<uint8_t> {
 }
 
 } // namespace
+
+void update_ble_name(const std::string& name) {
+    bleNameStore.set(name);
+
+    std::string n = name.substr(0, 29); // Limit name length
+
+    NimBLEDevice::setDeviceName(n);
+
+    auto adv = NimBLEDevice::getAdvertising();
+    adv->setName(n);
+    adv->refreshAdvertisingData();
+}
 
 void pairing_enable() { pairing_enabled_flag = true; }
 void pairing_disable() { pairing_enabled_flag = false; }
