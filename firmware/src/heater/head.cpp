@@ -31,7 +31,7 @@ namespace HeadState {
 class HeadDetached_state : public afsm::state<Head, HeadDetached_state, HeadState::Detached> {
 public:
     static auto on_enter_state(Head& head) -> state_id_t {
-        APP_LOGI("Head Detached");
+        APP_LOGI("Head: Detached");
 
         head.head_status.store(HeadStatus_HeadDisconnected);
         return No_State_Change;
@@ -50,7 +50,7 @@ public:
 class HeadInitializing_state : public afsm::state<Head, HeadInitializing_state, HeadState::Initializing> {
 public:
     static auto on_enter_state(Head& head) -> state_id_t {
-        APP_LOGI("Head Initializing");
+        APP_LOGI("Head: Initializing");
 
         head.head_status.store(HeadStatus_HeadInitializing);
         head.debounce_start = Time::now();
@@ -75,13 +75,13 @@ public:
                 ? HeaterType_MCH : HeaterType_PCB;
 
             if (!head.eeprom_store.read(head.head_params.value)) {
-                APP_LOGE("Failed to read EEPROM");
+                APP_LOGE("Head: Failed to read EEPROM");
                 return HeadState::Error;
             }
 
             // If EEPROM is empty, use defaults
             if (head.head_params.value.empty()) {
-                APP_LOGI("No head params found, fallback to defaults");
+                APP_LOGI("Head: No head params found, fallback to defaults");
                 head.head_params.value.assign(
                     std::begin(DEFAULT_HEAD_PARAMS_PB),
                     std::end(DEFAULT_HEAD_PARAMS_PB)
@@ -100,7 +100,7 @@ public:
 class HeadAttached_state : public afsm::state<Head, HeadAttached_state, HeadState::Attached> {
 public:
     static auto on_enter_state(Head& head) -> state_id_t {
-        APP_LOGI("Head Attached");
+        APP_LOGI("Head: Attached");
 
         head.head_status.store(HeadStatus_HeadConnected);
         return No_State_Change;
@@ -120,7 +120,7 @@ public:
 class HeadError_state : public afsm::state<Head, HeadError_state, HeadState::Error> {
 public:
     static auto on_enter_state(Head& head) -> state_id_t {
-        APP_LOGE("Head Error");
+        APP_LOGE("Head: Error");
         head.head_status.store(HeadStatus_HeadError);
         head.debounce_start = Time::now();
         return No_State_Change;
@@ -174,7 +174,7 @@ void Head::setup() {
 void Head::task_loop() {
     if (head_params.makeSnapshot()) {
         if (!eeprom_store.write(head_params.snapshot)) {
-            APP_LOGE("Failed to write EEPROM");
+            APP_LOGE("Head: Failed to write EEPROM");
         }
     }
 
@@ -199,9 +199,6 @@ void Head::adc_init() {
                   "Frame size must be multiple of SOC_ADC_DIGI_RESULT_BYTES");
     static_assert(ADC_OVERSAMPLING_COUNT >= 10,
                   "Too few samples for meaningful averaging");
-
-    APP_LOGI("ADC config: %uHz sample rate, %u samples per callback, frame size %u bytes",
-             adc_sample_freq_hz, ADC_OVERSAMPLING_COUNT, conv_frame_size);
 
     // Create ADC handle
     adc_continuous_handle_cfg_t adc_config{};
