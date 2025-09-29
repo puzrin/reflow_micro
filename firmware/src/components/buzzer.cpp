@@ -99,17 +99,17 @@ Buzzer::Buzzer() {
 }
 
 void Buzzer::play(const rtttl::ToneSeq& tones) {
-    version_.fetch_add(1, std::memory_order_release);
+    version_.fetch_add(1, etl::memory_order_release);
 
     shadow_tones_ = tones;
 
-    version_.fetch_add(1, std::memory_order_release);
+    version_.fetch_add(1, etl::memory_order_release);
 
     xTimerStart(timer_, 0);
 }
 
 void Buzzer::tick() {
-    uint32_t current_version = version_.load(std::memory_order_acquire);
+    uint32_t current_version = version_.load(etl::memory_order_acquire);
 
     if (current_version & 1) { return; }
 
@@ -118,7 +118,7 @@ void Buzzer::tick() {
 
         active_tones_ = shadow_tones_;
 
-        uint32_t check_version = version_.load(std::memory_order_acquire);
+        uint32_t check_version = version_.load(etl::memory_order_acquire);
         if (check_version != current_version) { return; }
 
         last_version_ = current_version;

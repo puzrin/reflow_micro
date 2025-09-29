@@ -1,8 +1,8 @@
 #pragma once
 
-#include <array>
-#include <atomic>
-#include <cstdint>
+#include <stddef.h>
+#include <stdint.h>
+#include <etl/atomic.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/timers.h>
 #include <driver/ledc.h>
@@ -46,7 +46,7 @@ public:
     void play(const rtttl::ToneSeq& tones);
 
 private:
-    std::atomic<uint32_t> version_{0};
+    etl::atomic<uint32_t> version_{0};
 
     rtttl::ToneSeq shadow_tones_{nullptr, 0};
     rtttl::ToneSeq active_tones_{nullptr, 0};

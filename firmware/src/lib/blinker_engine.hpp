@@ -1,18 +1,17 @@
 #pragma once
 
-#include <array>
-#include <cstdint>
-#include <initializer_list>
-#include <algorithm>
-#include <type_traits>
-#include <atomic>
+#include <stdint.h>
+#include <etl/algorithm.h>
+#include <etl/array.h>
+#include <etl/atomic.h>
+#include <etl/type_traits.h>
 
 template<int Channels>
 class IBlinkerLED {
 public:
     static constexpr int ChannelsCount = Channels;
 
-    using DataType = typename std::array<uint8_t, Channels>;
+    using DataType = typename etl::array<uint8_t, Channels>;
 
     virtual void set(const DataType& value) = 0;
 };
@@ -26,16 +25,16 @@ public:
         bool expected = false;
         if (!writerActive.compare_exchange_strong(expected, true)) { return false; }
 
-        versionCounter.fetch_add(1, std::memory_order_acquire); // Odd => write in progress
+        versionCounter.fetch_add(1, etl::memory_order_acquire); // Odd => write in progress
         buffer = value;
-        versionCounter.fetch_add(1, std::memory_order_release); // Even => write completed
+        versionCounter.fetch_add(1, etl::memory_order_release); // Even => write completed
 
-        writerActive.store(false, std::memory_order_release);
+        writerActive.store(false, etl::memory_order_release);
         return true;
     }
 
     auto read(T& output) -> bool {
-        uint32_t versionBefore = versionCounter.load(std::memory_order_acquire);
+        uint32_t versionBefore = versionCounter.load(etl::memory_order_acquire);
 
         if (versionBefore == lastReadVersion) { return false; } // No new data
 
@@ -44,7 +43,7 @@ public:
         T tempBuffer = buffer;
 
         // Re-read version to make sure data not changed
-        uint32_t versionAfter = versionCounter.load(std::memory_order_acquire);
+        uint32_t versionAfter = versionCounter.load(etl::memory_order_acquire);
         if (versionAfter != versionBefore) { return false; }
 
         output = tempBuffer;
@@ -53,8 +52,8 @@ public:
     }
 private:
     T buffer{};
-    std::atomic<uint32_t> versionCounter{0};
-    std::atomic<bool> writerActive{false};
+    etl::atomic<uint32_t> versionCounter{0};
+    etl::atomic<bool> writerActive{false};
     uint32_t lastReadVersion{0};
 };
 
@@ -72,23 +71,33 @@ public:
             : value{_value}, period{_period}, isAnimated{_isAnimated} {}
 
         // Sugar for single channel, to omit brackets
-        template<int Channels = Driver::ChannelsCount, typename = std::enable_if_t<Channels == 1>>
+        template<int Channels = Driver::ChannelsCount, typename = etl::enable_if_t<Channels == 1>>
         Action(uint8_t _singleValue, uint32_t _period, bool _isAnimated = false)
-            : value{std::array<uint8_t, 1>{_singleValue}}, period{_period}, isAnimated{_isAnimated} {}
+            : value{}, period{_period}, isAnimated{_isAnimated} {
+            value[0] = _singleValue;
+        }
     };
 
-    void loop(const std::initializer_list<Action>& actions) { updateSequence(actions, true); }
+    template<size_t N>
+    void loop(const Action (&actions)[N]) { updateSequence(actions, actions + N, true); }
 
-    void once(const std::initializer_list<Action>& actions) { updateSequence(actions, false); }
+    template<typename Iterable>
+    void loop(const Iterable& actions) { updateSequence(actions.begin(), actions.end(), true); }
+
+    template<size_t N>
+    void once(const Action (&actions)[N]) { updateSequence(actions, actions + N, false); }
+
+    template<typename Iterable>
+    void once(const Iterable& actions) { updateSequence(actions.begin(), actions.end(), false); }
 
     void background(const typename Driver::DataType& value) {
-        const typename Driver::DataType val = std::move(value);
-        backgroundQueue.write(val);
+        backgroundQueue.write(value);
     }
     // Sugar for single channel, to omit brackets
-    template<int Channels = Driver::ChannelsCount, typename = std::enable_if_t<Channels == 1>>
+    template<int Channels = Driver::ChannelsCount, typename = etl::enable_if_t<Channels == 1>>
     void background(const uint8_t value) {
-        typename Driver::DataType val = {value};
+        typename Driver::DataType val{};
+        val[0] = value;
         backgroundQueue.write(val);
     }
 
@@ -96,7 +105,7 @@ public:
 
     static auto flowTo(const typename Driver::DataType target, uint32_t duration) -> Action { return {target, duration, true}; }
     // Sugar for single channel, to omit brackets
-    template<int Channels = Driver::ChannelsCount, typename = std::enable_if_t<Channels == 1>>
+    template<int Channels = Driver::ChannelsCount, typename = etl::enable_if_t<Channels == 1>>
     static auto flowTo(uint8_t target, uint32_t duration) -> Action { return {target, duration, true}; }
 
     static inline const Action OFF = { typename Driver::DataType{}, 0 };
@@ -120,7 +129,7 @@ public:
 
         if (working) {
             const auto& action = sequence.actions[currentActionIdx];
-            actionProgress = std::min(actionProgress + elapsed, action.period);
+            actionProgress = etl::min(actionProgress + elapsed, action.period);
 
             // Calculate & set led value
             if (action.isAnimated) {
@@ -155,17 +164,24 @@ public:
 
 private:
     struct Sequence {
-        std::array<Action, 20> actions;
-        size_t length;
-        bool looping;
+        static constexpr size_t MaxActions = 20;
+        etl::array<Action, MaxActions> actions;
+        size_t length{0};
+        bool looping{false};
     };
 
-    void updateSequence(const std::initializer_list<Action>& actionsList, bool looping) {
-        Sequence seq;
+    template<typename Iterator>
+    void updateSequence(Iterator begin, Iterator end, bool looping) {
+        Sequence seq{};
         seq.looping = looping;
-        std::copy(actionsList.begin(), actionsList.end(), seq.actions.begin());
-        seq.length = actionsList.size();
 
+        size_t index = 0;
+        for (Iterator it = begin; it != end && index < Sequence::MaxActions; ++it) {
+            seq.actions[index] = *it;
+            ++index;
+        }
+
+        seq.length = index;
         sequenceQueue.write(seq);
     }
 

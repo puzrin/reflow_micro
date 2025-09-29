@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <atomic>
+#include <etl/atomic.h>
 #include <functional>
 #include "components/prefs.hpp"
 #include "components/history.hpp"
@@ -50,9 +50,9 @@ public:
 
 protected:
     ADRC adrc{};
-    std::atomic<bool> temperature_control_flag{false};
-    std::atomic<float> temperature_setpoint{0};
-    std::atomic<bool> is_task_active{false};
+    etl::atomic<bool> temperature_control_flag{false};
+    etl::atomic<float> temperature_setpoint{0};
+    etl::atomic<bool> is_task_active{false};
     int32_t prev_tick_ms{0};
 
 private:

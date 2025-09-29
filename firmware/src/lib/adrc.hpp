@@ -1,7 +1,6 @@
 #pragma once
 
-#include <algorithm>
-#include <cmath>
+#include <etl/algorithm.h>
 
 class ADRC {
 private:
@@ -32,7 +31,7 @@ public:
         const float u = (kp * e - z2) / b0;
 
         // Anti-windup [0, u_max]
-        const float u_output = std::max(0.0F, std::min(u, u_max));
+        const float u_output = etl::max(0.0f, etl::min(u, u_max));
 
         // ESO update, with respect to real output
         const float e_obs = y - z1;

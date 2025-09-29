@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cstdint>
-#include <functional>
+#include <stdint.h>
+#include <etl/delegate.h>
 
 namespace ButtonConstants {
 
@@ -32,10 +32,13 @@ enum class ButtonEventId {
 template <typename Driver>
 class ButtonEngine {
 public:
-    template <typename Handler>
-    void setEventHandler(Handler&& handler) {
-        eventHandler = std::forward<Handler>(handler);
+    using ButtonEventHandler = etl::delegate<void(ButtonEventId)>;
+
+    void setEventHandler(const ButtonEventHandler& handler) {
+        eventHandler = handler;
     }
+
+    void resetEventHandler() { eventHandler.clear(); }
 
     void tick(uint32_t ms_timestamp) {
         using namespace ButtonConstants;
@@ -159,7 +162,7 @@ private:
     };
 
     Driver driver{};
-    std::function<void(ButtonEventId)> eventHandler{nullptr};
+    ButtonEventHandler eventHandler{};
 
     State state{START};
     bool unfilteredBtn{false};
@@ -171,6 +174,6 @@ private:
     uint8_t shortPressesCounter{0};
 
     void handleEvent(ButtonEventId event) {
-        if (eventHandler) eventHandler(event);
+        if (eventHandler) { eventHandler(event); }
     }
 };

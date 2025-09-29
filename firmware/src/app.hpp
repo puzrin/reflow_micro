@@ -95,6 +95,7 @@ private:
     SemaphoreHandle_t message_lock{xSemaphoreCreateMutex()};
     QueueHandle_t message_queue{nullptr};
     void message_consumer_loop();
+    void handleButtonEvent(ButtonEventId event);
 };
 
 extern App application;

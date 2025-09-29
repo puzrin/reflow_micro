@@ -55,12 +55,7 @@ void App::setup() {
     heater.setup();
 
     button.setup();
-    button.setEventHandler([this](ButtonEventId event) {
-        if (event == ButtonEventId::BUTTON_PRESS_START) {
-            this->beepButtonPress();
-        }
-        this->enqueue_message(AppCmd::Button{event});
-    });
+    button.setEventHandler(Button::ButtonEventHandler::create<App, &App::handleButtonEvent>(*this));
 
     showIdleBackground();
 
@@ -75,6 +70,13 @@ void App::showIdleBackground() {
     #else
     blinker.background({0, 100, 0});
     #endif
+}
+
+void App::handleButtonEvent(ButtonEventId event) {
+    if (event == ButtonEventId::BUTTON_PRESS_START) {
+        beepButtonPress();
+    }
+    enqueue_message(AppCmd::Button{event});
 }
 
 void App::showLongPressProgress() {
