@@ -1,3 +1,4 @@
+#include "components/fan.hpp"
 #include "components/pb2struct.hpp"
 #include "head.hpp"
 #include "heater_control.hpp"
@@ -23,6 +24,7 @@ void HeaterControl::setup() {
 
 void HeaterControl::tick() {
     power.receive(MsgToPower_SysTick{});
+    update_fan_speed();
 
     if (get_health_status() != DeviceHealthStatus_DevOK) {
         if (is_task_active.load()) {
@@ -125,4 +127,42 @@ auto HeaterControl::get_max_power() -> float {
     auto max_power = power.get_max_power_mw();
     power.unlock();
     return max_power * 0.001f;
+}
+
+void HeaterControl::update_fan_speed() {
+    constexpr int32_t C_DIFF_ON_X10 = 4 * 10;
+    constexpr int32_t C_DIFF_OFF_X10 = 3 * 10;
+    constexpr int32_t C_EDGE_ON_X10 = 40 * 10;
+
+    int32_t temperature_x10 = head.get_temperature_x10();
+    int32_t setpoint_x10 = lround(temperature_setpoint.load() * 10.0f);
+    bool working = is_task_active.load();
+
+    if (working) {
+        // Setpoint is valid only when task is active AND temperature control enabled
+        if (temperature_control_enabled.load()) {
+            //
+            // We should solve 2 problems:
+            // - Cool down reasonable fast
+            // - Avoid interference with ADRC control.
+            //
+            // Use simple logic with safe threshold and small hysteresis
+            // - If temperature > 4C above desired => full speed
+            // - If temperature < 3C above desired => off
+            //
+            // This is simple and should be ok. If not - can be improved later.
+            //
+            if (temperature_x10 > setpoint_x10 + C_DIFF_ON_X10) { fan.max(); }
+            if (temperature_x10 < setpoint_x10 + C_DIFF_OFF_X10) { fan.off(); }
+        }
+    } else {
+        // No task => always cool down to low temperature, if head attached
+        if (head.get_head_status() == HeadStatus_HeadConnected) {
+            if (temperature_x10 > C_EDGE_ON_X10) { fan.max(); }
+            else { fan.off(); }
+        } else {
+            // No head => fan not needed
+            fan.off();
+        }
+    }
 }

@@ -35,7 +35,7 @@ etl::fsm_state_pack<
 
 void App::setup() {
     blinker.setup();
-    fan.setSpeed(0);
+    fan.off();
 
     set_states(app_states);
     start();

@@ -50,7 +50,7 @@ public:
 
 protected:
     ADRC adrc{};
-    etl::atomic<bool> temperature_control_flag{false};
+    etl::atomic<bool> temperature_control_enabled{false};
     etl::atomic<float> temperature_setpoint{0};
     etl::atomic<bool> is_task_active{false};
     int32_t prev_tick_ms{0};

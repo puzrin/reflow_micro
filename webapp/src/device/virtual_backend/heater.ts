@@ -108,7 +108,7 @@ export class Heater {
     temperature_setpoint: number;
 
     adrc: ADRC = new ADRC()
-    private temperature_control_flag: boolean = false
+    private temperature_control_enabled: boolean = false
 
     constructor(x = 0.08, y = 0.07, z = 0.0038) {
         this.size = { x, y, z } // Plate dimensions in meters
@@ -189,12 +189,12 @@ export class Heater {
 
     temperature_control_on() {
         this.adrc.reset_to(this.temperature)
-        this.temperature_control_flag = true
+        this.temperature_control_enabled = true
         return this
     }
 
     temperature_control_off() {
-        this.temperature_control_flag = false
+        this.temperature_control_enabled = false
         this.set_power(0)
         this.set_temperature(this.get_room_temp())
         return this
@@ -209,7 +209,7 @@ export class Heater {
 
         this.temperature += temperature_change
 
-        if (this.temperature_control_flag) {
+        if (this.temperature_control_enabled) {
             const power = this.adrc.iterate(this.temperature, this.temperature_setpoint, this.get_max_power(), dt)
             this.set_power(power)
         }

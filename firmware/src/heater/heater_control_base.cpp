@@ -68,11 +68,11 @@ void HeaterControlBase::temperature_control_on() {
     if (!is_task_active.load()) { load_all_params(); }
 
     adrc.reset_to(get_temperature());
-    temperature_control_flag = true;
+    temperature_control_enabled = true;
 }
 
 void HeaterControlBase::temperature_control_off() {
-    temperature_control_flag = false;
+    temperature_control_enabled = false;
     set_power(0);
 }
 
@@ -83,7 +83,7 @@ void HeaterControlBase::tick() {
     uint32_t dt_ms = now - prev_tick_ms;
 
     // If temperature controller active - use it to update power
-    if (temperature_control_flag) {
+    if (temperature_control_enabled) {
         static constexpr float dt_inv_multiplier = 1.0F / 1000;
         const float dt = static_cast<float>(dt_ms) * dt_inv_multiplier;
 

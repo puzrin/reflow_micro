@@ -32,4 +32,7 @@ public:
     auto get_volts() -> float override;
     auto get_amperes() -> float override;
     auto get_duty_cycle() -> float override;
+
+private:
+    void update_fan_speed();
 };
