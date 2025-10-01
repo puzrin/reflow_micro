@@ -1,4 +1,6 @@
+#include "components/blinker.hpp"
 #include "components/fan.hpp"
+#include "components/led_colors.hpp"
 #include "components/pb2struct.hpp"
 #include "head.hpp"
 #include "heater_control.hpp"
@@ -25,6 +27,7 @@ void HeaterControl::setup() {
 void HeaterControl::tick() {
     power.receive(MsgToPower_SysTick{});
     update_fan_speed();
+    update_temperature_indicator();
 
     if (get_health_status() != DeviceHealthStatus_DevOK) {
         if (is_task_active.load()) {
@@ -165,4 +168,30 @@ void HeaterControl::update_fan_speed() {
             fan.off();
         }
     }
+}
+
+void HeaterControl::update_temperature_indicator() {
+    constexpr int32_t T_WARM = 40;
+    constexpr int32_t T_HOT = 80;
+    constexpr int32_t T_VERY_HOT = 150;
+
+    int32_t t = (head.get_temperature_x10() + 5) / 10;
+    Blinker::DataType color{};
+
+    if (t <= T_WARM)
+    {
+        if (is_task_active.load()) { color = LCD_WARM_COLOR; }
+        else { color = LCD_OK_COLOR; }
+    }
+    else if (t <= T_HOT)
+    {
+        color = blinker.interpolate(T_WARM, LCD_WARM_COLOR, T_HOT, LCD_HOT_COLOR, t);
+    }
+    else if (t <= T_VERY_HOT)
+    {
+        color = blinker.interpolate(T_HOT, LCD_HOT_COLOR, T_VERY_HOT, LCD_VERY_HOT_COLOR, t);
+    }
+    else { color = LCD_VERY_HOT_COLOR; }
+
+    blinker.background(color);
 }

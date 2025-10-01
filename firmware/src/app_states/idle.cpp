@@ -26,6 +26,8 @@ auto Idle_State::on_event(const AppCmd::StepResponse& event) -> etl::fsm_state_i
 }
 
 auto Idle_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
+    auto& app = get_fsm_context();
+
     switch (event.type) {
         case ButtonEventId::BUTTON_PRESSED_5X:
             return DeviceActivityStatus_Bonding;
@@ -33,17 +35,18 @@ auto Idle_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
         // Animate long press start
         case ButtonEventId::BUTTON_LONG_PRESS_START:
             APP_LOGI("Long press start");
-            get_fsm_context().showLongPressProgress();
+            app.showLongPressProgress();
             break;
 
         // Stops animation if long press not reached
         case ButtonEventId::BUTTON_LONG_PRESS_FAIL:
             APP_LOGI("Long press fail");
-            get_fsm_context().showOff();
+            app.showOff();
             break;
 
         case ButtonEventId::BUTTON_LONG_PRESS:
             APP_LOGI("Long press succeeded");
+            app.showOff();
             return DeviceActivityStatus_Reflow;
 
         default:

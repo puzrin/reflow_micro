@@ -35,4 +35,5 @@ public:
 
 private:
     void update_fan_speed();
+    void update_temperature_indicator();
 };

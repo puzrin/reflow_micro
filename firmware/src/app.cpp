@@ -7,6 +7,7 @@
 #include "components/button.hpp"
 #include "components/buzzer.hpp"
 #include "components/fan.hpp"
+#include "components/led_colors.hpp"
 #include "heater/heater.hpp"
 #include "logger.hpp"
 #include "app_states/adrc_test.hpp"
@@ -82,36 +83,24 @@ void App::handleButtonEvent(ButtonEventId event) {
 void App::showLongPressProgress() {
     int animation_time = ButtonConstants::LONG_PRESS_THRESHOLD - ButtonConstants::SHORT_PRESS_THRESHOLD;
 
-    #if defined(HW_DEMO_ESP32_C3_SUPERMINI)
-    blinker.once({{10, 0}, blinker.flowTo(255, animation_time)});
-    #else
-    blinker.once({{{0, 100, 0}, 0}, blinker.flowTo({255, 255, 255}, animation_time)});
-    #endif
+    blinker.once({{LCD_OK_COLOR, 0}, blinker.flowTo(LCD_WARM_COLOR, animation_time)});
 }
 
 void App::showBondingLoop() {
-    #if defined(HW_DEMO_ESP32_C3_SUPERMINI)
-    blinker.loop({{10, 150}, {0, 250}});
-    #else
-    blinker.loop({{{0, 0, 255}, 150}, {{0, 0, 0}, 250}});
-    #endif
+    blinker.loop({{LCD_BLE_COLOR, 150}, {LCD_OFF, 250}});
 }
 
 void App::showReflowStart() {
-    #if defined(HW_DEMO_ESP32_C3_SUPERMINI)
-    blinker.once({{0, 200}, {255, 300}, {0, 200}});
-    #else
-    blinker.once({{{0, 0, 0}, 200}, {{0, 255, 0}, 300}, {{0, 0, 0}, 200}});
-    #endif
+    blinker.once({{LCD_OFF, 200}, {LCD_WARM_COLOR, 300}, {LCD_OFF, 200}});
 }
 
 void App::showLedTest() {
-    #if defined(HW_DEMO_ESP32_C3_SUPERMINI)
-    // Nothing at demo board
-    #else
-    // R / G / B / W cycle
-    blinker.loop({{{255, 0, 0}, 1000}, {{0, 255, 0}, 1000}, {{0, 0, 255}, 1000}, {{128, 128, 128}, 1000}});
-    #endif
+    blinker.loop({
+        {LCD_OK_COLOR, 1000},
+        {LCD_WARM_COLOR, 1000},
+        {LCD_HOT_COLOR, 1000},
+        {LCD_VERY_HOT_COLOR, 1000}
+    });
 }
 
 void App::showOff() {
