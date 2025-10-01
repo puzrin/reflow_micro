@@ -130,4 +130,12 @@ export class BleBackend implements IBackend {
   async set_head_params(config: HeadParams): Promise<void> {
     this.bleRpcClient.invoke('set_head_params', HeadParams.encode(config).finish())
   }
+
+  async set_cpoint0(temperature: number): Promise<void> {
+    this.bleRpcClient.invoke('set_cpoint0', temperature)
+  }
+
+  async set_cpoint1(temperature: number): Promise<void> {
+    this.bleRpcClient.invoke('set_cpoint1', temperature)
+  }
 }

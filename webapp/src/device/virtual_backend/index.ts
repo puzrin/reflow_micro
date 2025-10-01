@@ -229,6 +229,22 @@ export class VirtualBackend implements IBackend {
     virtualBackendStore.rawHeadParams = HeadParams.toJSON(config)
   }
 
+  async set_cpoint0(temperature: number): Promise<void> {
+    const params = this.pick_head_params()
+    // Note, we do not implement temperature correction in simulator,
+    // just store values for proper display in UI
+    params.sensor_p0_temperature = this.heater.temperature
+    params.sensor_p0_value = temperature
+    await this.set_head_params(params)
+  }
+
+  async set_cpoint1(temperature: number): Promise<void> {
+    const params = this.pick_head_params()
+    params.sensor_p1_temperature = this.heater.temperature
+    params.sensor_p1_value = temperature
+    await this.set_head_params(params)
+  }
+
   heat_control_on() {
     const head_params = this.pick_head_params()
     this.heater.adrc.set_params(head_params.adrc_b0, head_params.adrc_response, head_params.adrc_N, head_params.adrc_M)

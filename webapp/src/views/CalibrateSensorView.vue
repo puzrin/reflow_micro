@@ -76,9 +76,7 @@ async function save_p1() {
   if (!isNumberLike(p1.value)) { show_p1_error.value = true; return }
 
   show_p1_error.value = false
-  const head_params = await device.get_head_params()
-  head_params.sensor_p1_temperature = toNumber(p1.value)
-  await device.set_head_params(head_params)
+  await device.set_cpoint1(toNumber(p1.value))
 
   saveP1Btn.value?.showSuccess()
   await loadCalibrationStatus()

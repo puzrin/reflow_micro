@@ -99,6 +99,22 @@ auto set_head_params(std::vector<uint8_t> pb_data) -> bool {
     return true;
 }
 
+auto set_cpoint0(float temperature) -> bool {
+    if (heater.get_head_status() != HeadStatus_HeadConnected) {
+        throw std::runtime_error("Hotplate is not connected");
+    }
+    // TODO: add implementation
+    return true;
+}
+
+auto set_cpoint1(float temperature) -> bool {
+    if (heater.get_head_status() != HeadStatus_HeadConnected) {
+        throw std::runtime_error("Hotplate is not connected");
+    }
+    // TODO: add implementation
+    return true;
+}
+
 } // namespace
 
 void api_methods_create() {
@@ -113,4 +129,6 @@ void api_methods_create() {
     rpc.addMethod("run_step_response", run_step_response);
     rpc.addMethod("get_head_params", get_head_params);
     rpc.addMethod("set_head_params", set_head_params);
+    rpc.addMethod("set_cpoint0", set_cpoint0);
+    rpc.addMethod("set_cpoint1", set_cpoint1);
 }
