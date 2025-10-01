@@ -118,9 +118,9 @@ async function default_adrc_params() {
       <div>
         <span
           class="mr-1"
-          :class="status.temperature > 50 ? 'text-red-500' : 'text-green-500'"
+          :class="(status.temperature_x10/10) > 50 ? 'text-red-500' : 'text-green-500'"
         >•</span>
-        <span class="font-mono">{{ status.temperature.toFixed(0) }}</span>°C
+        <span class="font-mono">{{ (status.temperature_x10/10).toFixed(0) }}</span>°C
       </div>
     </template>
 

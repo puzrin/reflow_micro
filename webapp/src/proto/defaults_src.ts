@@ -68,9 +68,9 @@ export const profiles_default: ProfilesData = {
 }
 
 export const head_default: HeadParams = {
-  sensor_p0_temperature: -1000,
+  sensor_p0_at: -1000,
   sensor_p0_value: 0,
-  sensor_p1_temperature: -1000,
+  sensor_p1_at: -1000,
   sensor_p1_value: 0,
   adrc_response: 132,
   adrc_b0: 0.0202,

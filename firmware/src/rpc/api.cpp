@@ -16,13 +16,12 @@ std::vector<uint8_t> get_status() {
         .activity = heater.get_activity_status(),
         .power = heater.get_power_status(),
         .head = heater.get_head_status(),
-        .temperature = heater.get_temperature(),
-        .watts = heater.get_power(),
-        .volts = heater.get_volts(),
-        .amperes = heater.get_amperes(),
-        .max_watts = heater.get_max_power(),
-        .duty_cycle = heater.get_duty_cycle(),
-        .resistance = heater.get_resistance()
+        .temperature_x10 = static_cast<int32_t>(heater.get_temperature() * 10),
+        .peak_mv = static_cast<uint32_t>(heater.get_volts() * 1000),
+        .peak_ma = static_cast<uint32_t>(heater.get_amperes() * 1000),
+        .duty_x1000 = static_cast<uint32_t>(heater.get_duty_cycle() * 1000),
+        .resistance_mohms = static_cast<uint32_t>(heater.get_resistance() * 1000),
+        .max_mw = static_cast<uint32_t>(heater.get_max_power() * 1000)
     };
 
     std::vector<uint8_t> buffer(DeviceInfo_size);

@@ -380,9 +380,9 @@ export interface HistoryChunk {
 
 export interface HeadParams {
   /** Temperature sensor calibration data */
-  sensor_p0_temperature: number;
+  sensor_p0_at: number;
   sensor_p0_value: number;
-  sensor_p1_temperature: number;
+  sensor_p1_at: number;
   sensor_p1_value: number;
   /** System response time (when temperature reaches 63% of final value) */
   adrc_response: number;
@@ -406,15 +406,18 @@ export interface DeviceInfo {
   activity: DeviceActivityStatus;
   power: PowerStatus;
   head: HeadStatus;
-  temperature: number;
+  temperature_x10: number;
   /** Debug info */
-  watts: number;
-  volts: number;
-  amperes: number;
-  max_watts: number;
-  /** 0..1 */
-  duty_cycle: number;
-  resistance: number;
+  peak_mv: number;
+  peak_ma: number;
+  /** PWM duty cycle [0..1000] */
+  duty_x1000: number;
+  resistance_mohms: number;
+  /**
+   * Max possible power in mW, for current heater resistance
+   * at current PD profile
+   */
+  max_mw: number;
 }
 
 function createBaseSegment(): Segment {
@@ -831,9 +834,9 @@ export const HistoryChunk: MessageFns<HistoryChunk> = {
 
 function createBaseHeadParams(): HeadParams {
   return {
-    sensor_p0_temperature: 0,
+    sensor_p0_at: 0,
     sensor_p0_value: 0,
-    sensor_p1_temperature: 0,
+    sensor_p1_at: 0,
     sensor_p1_value: 0,
     adrc_response: 0,
     adrc_b0: 0,
@@ -844,14 +847,14 @@ function createBaseHeadParams(): HeadParams {
 
 export const HeadParams: MessageFns<HeadParams> = {
   encode(message: HeadParams, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.sensor_p0_temperature !== 0) {
-      writer.uint32(13).float(message.sensor_p0_temperature);
+    if (message.sensor_p0_at !== 0) {
+      writer.uint32(13).float(message.sensor_p0_at);
     }
     if (message.sensor_p0_value !== 0) {
       writer.uint32(21).float(message.sensor_p0_value);
     }
-    if (message.sensor_p1_temperature !== 0) {
-      writer.uint32(29).float(message.sensor_p1_temperature);
+    if (message.sensor_p1_at !== 0) {
+      writer.uint32(29).float(message.sensor_p1_at);
     }
     if (message.sensor_p1_value !== 0) {
       writer.uint32(37).float(message.sensor_p1_value);
@@ -883,7 +886,7 @@ export const HeadParams: MessageFns<HeadParams> = {
             break;
           }
 
-          message.sensor_p0_temperature = reader.float();
+          message.sensor_p0_at = reader.float();
           continue;
         }
         case 2: {
@@ -899,7 +902,7 @@ export const HeadParams: MessageFns<HeadParams> = {
             break;
           }
 
-          message.sensor_p1_temperature = reader.float();
+          message.sensor_p1_at = reader.float();
           continue;
         }
         case 4: {
@@ -953,9 +956,9 @@ export const HeadParams: MessageFns<HeadParams> = {
 
   fromJSON(object: any): HeadParams {
     return {
-      sensor_p0_temperature: isSet(object.sensor_p0_temperature) ? globalThis.Number(object.sensor_p0_temperature) : 0,
+      sensor_p0_at: isSet(object.sensor_p0_at) ? globalThis.Number(object.sensor_p0_at) : 0,
       sensor_p0_value: isSet(object.sensor_p0_value) ? globalThis.Number(object.sensor_p0_value) : 0,
-      sensor_p1_temperature: isSet(object.sensor_p1_temperature) ? globalThis.Number(object.sensor_p1_temperature) : 0,
+      sensor_p1_at: isSet(object.sensor_p1_at) ? globalThis.Number(object.sensor_p1_at) : 0,
       sensor_p1_value: isSet(object.sensor_p1_value) ? globalThis.Number(object.sensor_p1_value) : 0,
       adrc_response: isSet(object.adrc_response) ? globalThis.Number(object.adrc_response) : 0,
       adrc_b0: isSet(object.adrc_b0) ? globalThis.Number(object.adrc_b0) : 0,
@@ -966,14 +969,14 @@ export const HeadParams: MessageFns<HeadParams> = {
 
   toJSON(message: HeadParams): unknown {
     const obj: any = {};
-    if (message.sensor_p0_temperature !== 0) {
-      obj.sensor_p0_temperature = message.sensor_p0_temperature;
+    if (message.sensor_p0_at !== 0) {
+      obj.sensor_p0_at = message.sensor_p0_at;
     }
     if (message.sensor_p0_value !== 0) {
       obj.sensor_p0_value = message.sensor_p0_value;
     }
-    if (message.sensor_p1_temperature !== 0) {
-      obj.sensor_p1_temperature = message.sensor_p1_temperature;
+    if (message.sensor_p1_at !== 0) {
+      obj.sensor_p1_at = message.sensor_p1_at;
     }
     if (message.sensor_p1_value !== 0) {
       obj.sensor_p1_value = message.sensor_p1_value;
@@ -998,9 +1001,9 @@ export const HeadParams: MessageFns<HeadParams> = {
   },
   fromPartial<I extends Exact<DeepPartial<HeadParams>, I>>(object: I): HeadParams {
     const message = createBaseHeadParams();
-    message.sensor_p0_temperature = object.sensor_p0_temperature ?? 0;
+    message.sensor_p0_at = object.sensor_p0_at ?? 0;
     message.sensor_p0_value = object.sensor_p0_value ?? 0;
-    message.sensor_p1_temperature = object.sensor_p1_temperature ?? 0;
+    message.sensor_p1_at = object.sensor_p1_at ?? 0;
     message.sensor_p1_value = object.sensor_p1_value ?? 0;
     message.adrc_response = object.adrc_response ?? 0;
     message.adrc_b0 = object.adrc_b0 ?? 0;
@@ -1016,13 +1019,12 @@ function createBaseDeviceInfo(): DeviceInfo {
     activity: 0,
     power: 0,
     head: 0,
-    temperature: 0,
-    watts: 0,
-    volts: 0,
-    amperes: 0,
-    max_watts: 0,
-    duty_cycle: 0,
-    resistance: 0,
+    temperature_x10: 0,
+    peak_mv: 0,
+    peak_ma: 0,
+    duty_x1000: 0,
+    resistance_mohms: 0,
+    max_mw: 0,
   };
 }
 
@@ -1040,26 +1042,23 @@ export const DeviceInfo: MessageFns<DeviceInfo> = {
     if (message.head !== 0) {
       writer.uint32(32).int32(message.head);
     }
-    if (message.temperature !== 0) {
-      writer.uint32(45).float(message.temperature);
+    if (message.temperature_x10 !== 0) {
+      writer.uint32(40).int32(message.temperature_x10);
     }
-    if (message.watts !== 0) {
-      writer.uint32(53).float(message.watts);
+    if (message.peak_mv !== 0) {
+      writer.uint32(48).uint32(message.peak_mv);
     }
-    if (message.volts !== 0) {
-      writer.uint32(61).float(message.volts);
+    if (message.peak_ma !== 0) {
+      writer.uint32(56).uint32(message.peak_ma);
     }
-    if (message.amperes !== 0) {
-      writer.uint32(69).float(message.amperes);
+    if (message.duty_x1000 !== 0) {
+      writer.uint32(64).uint32(message.duty_x1000);
     }
-    if (message.max_watts !== 0) {
-      writer.uint32(77).float(message.max_watts);
+    if (message.resistance_mohms !== 0) {
+      writer.uint32(72).uint32(message.resistance_mohms);
     }
-    if (message.duty_cycle !== 0) {
-      writer.uint32(85).float(message.duty_cycle);
-    }
-    if (message.resistance !== 0) {
-      writer.uint32(93).float(message.resistance);
+    if (message.max_mw !== 0) {
+      writer.uint32(80).uint32(message.max_mw);
     }
     return writer;
   },
@@ -1104,59 +1103,51 @@ export const DeviceInfo: MessageFns<DeviceInfo> = {
           continue;
         }
         case 5: {
-          if (tag !== 45) {
+          if (tag !== 40) {
             break;
           }
 
-          message.temperature = reader.float();
+          message.temperature_x10 = reader.int32();
           continue;
         }
         case 6: {
-          if (tag !== 53) {
+          if (tag !== 48) {
             break;
           }
 
-          message.watts = reader.float();
+          message.peak_mv = reader.uint32();
           continue;
         }
         case 7: {
-          if (tag !== 61) {
+          if (tag !== 56) {
             break;
           }
 
-          message.volts = reader.float();
+          message.peak_ma = reader.uint32();
           continue;
         }
         case 8: {
-          if (tag !== 69) {
+          if (tag !== 64) {
             break;
           }
 
-          message.amperes = reader.float();
+          message.duty_x1000 = reader.uint32();
           continue;
         }
         case 9: {
-          if (tag !== 77) {
+          if (tag !== 72) {
             break;
           }
 
-          message.max_watts = reader.float();
+          message.resistance_mohms = reader.uint32();
           continue;
         }
         case 10: {
-          if (tag !== 85) {
+          if (tag !== 80) {
             break;
           }
 
-          message.duty_cycle = reader.float();
-          continue;
-        }
-        case 11: {
-          if (tag !== 93) {
-            break;
-          }
-
-          message.resistance = reader.float();
+          message.max_mw = reader.uint32();
           continue;
         }
       }
@@ -1174,13 +1165,12 @@ export const DeviceInfo: MessageFns<DeviceInfo> = {
       activity: isSet(object.activity) ? deviceActivityStatusFromJSON(object.activity) : 0,
       power: isSet(object.power) ? powerStatusFromJSON(object.power) : 0,
       head: isSet(object.head) ? headStatusFromJSON(object.head) : 0,
-      temperature: isSet(object.temperature) ? globalThis.Number(object.temperature) : 0,
-      watts: isSet(object.watts) ? globalThis.Number(object.watts) : 0,
-      volts: isSet(object.volts) ? globalThis.Number(object.volts) : 0,
-      amperes: isSet(object.amperes) ? globalThis.Number(object.amperes) : 0,
-      max_watts: isSet(object.max_watts) ? globalThis.Number(object.max_watts) : 0,
-      duty_cycle: isSet(object.duty_cycle) ? globalThis.Number(object.duty_cycle) : 0,
-      resistance: isSet(object.resistance) ? globalThis.Number(object.resistance) : 0,
+      temperature_x10: isSet(object.temperature_x10) ? globalThis.Number(object.temperature_x10) : 0,
+      peak_mv: isSet(object.peak_mv) ? globalThis.Number(object.peak_mv) : 0,
+      peak_ma: isSet(object.peak_ma) ? globalThis.Number(object.peak_ma) : 0,
+      duty_x1000: isSet(object.duty_x1000) ? globalThis.Number(object.duty_x1000) : 0,
+      resistance_mohms: isSet(object.resistance_mohms) ? globalThis.Number(object.resistance_mohms) : 0,
+      max_mw: isSet(object.max_mw) ? globalThis.Number(object.max_mw) : 0,
     };
   },
 
@@ -1198,26 +1188,23 @@ export const DeviceInfo: MessageFns<DeviceInfo> = {
     if (message.head !== 0) {
       obj.head = headStatusToJSON(message.head);
     }
-    if (message.temperature !== 0) {
-      obj.temperature = message.temperature;
+    if (message.temperature_x10 !== 0) {
+      obj.temperature_x10 = Math.round(message.temperature_x10);
     }
-    if (message.watts !== 0) {
-      obj.watts = message.watts;
+    if (message.peak_mv !== 0) {
+      obj.peak_mv = Math.round(message.peak_mv);
     }
-    if (message.volts !== 0) {
-      obj.volts = message.volts;
+    if (message.peak_ma !== 0) {
+      obj.peak_ma = Math.round(message.peak_ma);
     }
-    if (message.amperes !== 0) {
-      obj.amperes = message.amperes;
+    if (message.duty_x1000 !== 0) {
+      obj.duty_x1000 = Math.round(message.duty_x1000);
     }
-    if (message.max_watts !== 0) {
-      obj.max_watts = message.max_watts;
+    if (message.resistance_mohms !== 0) {
+      obj.resistance_mohms = Math.round(message.resistance_mohms);
     }
-    if (message.duty_cycle !== 0) {
-      obj.duty_cycle = message.duty_cycle;
-    }
-    if (message.resistance !== 0) {
-      obj.resistance = message.resistance;
+    if (message.max_mw !== 0) {
+      obj.max_mw = Math.round(message.max_mw);
     }
     return obj;
   },
@@ -1231,13 +1218,12 @@ export const DeviceInfo: MessageFns<DeviceInfo> = {
     message.activity = object.activity ?? 0;
     message.power = object.power ?? 0;
     message.head = object.head ?? 0;
-    message.temperature = object.temperature ?? 0;
-    message.watts = object.watts ?? 0;
-    message.volts = object.volts ?? 0;
-    message.amperes = object.amperes ?? 0;
-    message.max_watts = object.max_watts ?? 0;
-    message.duty_cycle = object.duty_cycle ?? 0;
-    message.resistance = object.resistance ?? 0;
+    message.temperature_x10 = object.temperature_x10 ?? 0;
+    message.peak_mv = object.peak_mv ?? 0;
+    message.peak_ma = object.peak_ma ?? 0;
+    message.duty_x1000 = object.duty_x1000 ?? 0;
+    message.resistance_mohms = object.resistance_mohms ?? 0;
+    message.max_mw = object.max_mw ?? 0;
     return message;
   },
 };

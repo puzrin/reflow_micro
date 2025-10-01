@@ -104,9 +104,9 @@ typedef struct _HistoryChunk {
 
 typedef struct _HeadParams {
     /* Temperature sensor calibration data */
-    float sensor_p0_temperature;
+    float sensor_p0_at;
     float sensor_p0_value;
-    float sensor_p1_temperature;
+    float sensor_p1_at;
     float sensor_p1_value;
     /* System response time (when temperature reaches 63% of final value) */
     float adrc_response;
@@ -126,14 +126,15 @@ typedef struct _DeviceInfo {
     DeviceActivityStatus activity;
     PowerStatus power;
     HeadStatus head;
-    float temperature;
+    int32_t temperature_x10;
     /* Debug info */
-    float watts;
-    float volts;
-    float amperes;
-    float max_watts;
-    float duty_cycle; /* 0..1 */
-    float resistance;
+    uint32_t peak_mv;
+    uint32_t peak_ma;
+    uint32_t duty_x1000; /* PWM duty cycle [0..1000] */
+    uint32_t resistance_mohms;
+    /* Max possible power in mW, for current heater resistance
+ at current PD profile */
+    uint32_t max_mw;
 } DeviceInfo;
 
 
@@ -197,14 +198,14 @@ extern "C" {
 #define Point_init_default                       {0, 0}
 #define HistoryChunk_init_default                {0, 0, 0, {Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default, Point_init_default}}
 #define HeadParams_init_default                  {0, 0, 0, 0, 0, 0, 0, 0}
-#define DeviceInfo_init_default                  {_DeviceHealthStatus_MIN, _DeviceActivityStatus_MIN, _PowerStatus_MIN, _HeadStatus_MIN, 0, 0, 0, 0, 0, 0, 0}
+#define DeviceInfo_init_default                  {_DeviceHealthStatus_MIN, _DeviceActivityStatus_MIN, _PowerStatus_MIN, _HeadStatus_MIN, 0, 0, 0, 0, 0, 0}
 #define Segment_init_zero                        {0, 0}
 #define Profile_init_zero                        {0, "", 0, {Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero, Segment_init_zero}}
 #define ProfilesData_init_zero                   {0, {Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero, Profile_init_zero}, 0}
 #define Point_init_zero                          {0, 0}
 #define HistoryChunk_init_zero                   {0, 0, 0, {Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero, Point_init_zero}}
 #define HeadParams_init_zero                     {0, 0, 0, 0, 0, 0, 0, 0}
-#define DeviceInfo_init_zero                     {_DeviceHealthStatus_MIN, _DeviceActivityStatus_MIN, _PowerStatus_MIN, _HeadStatus_MIN, 0, 0, 0, 0, 0, 0, 0}
+#define DeviceInfo_init_zero                     {_DeviceHealthStatus_MIN, _DeviceActivityStatus_MIN, _PowerStatus_MIN, _HeadStatus_MIN, 0, 0, 0, 0, 0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define Segment_target_tag                       1
@@ -219,9 +220,9 @@ extern "C" {
 #define HistoryChunk_type_tag                    1
 #define HistoryChunk_version_tag                 2
 #define HistoryChunk_data_tag                    3
-#define HeadParams_sensor_p0_temperature_tag     1
+#define HeadParams_sensor_p0_at_tag              1
 #define HeadParams_sensor_p0_value_tag           2
-#define HeadParams_sensor_p1_temperature_tag     3
+#define HeadParams_sensor_p1_at_tag              3
 #define HeadParams_sensor_p1_value_tag           4
 #define HeadParams_adrc_response_tag             5
 #define HeadParams_adrc_b0_tag                   6
@@ -231,13 +232,12 @@ extern "C" {
 #define DeviceInfo_activity_tag                  2
 #define DeviceInfo_power_tag                     3
 #define DeviceInfo_head_tag                      4
-#define DeviceInfo_temperature_tag               5
-#define DeviceInfo_watts_tag                     6
-#define DeviceInfo_volts_tag                     7
-#define DeviceInfo_amperes_tag                   8
-#define DeviceInfo_max_watts_tag                 9
-#define DeviceInfo_duty_cycle_tag                10
-#define DeviceInfo_resistance_tag                11
+#define DeviceInfo_temperature_x10_tag           5
+#define DeviceInfo_peak_mv_tag                   6
+#define DeviceInfo_peak_ma_tag                   7
+#define DeviceInfo_duty_x1000_tag                8
+#define DeviceInfo_resistance_mohms_tag          9
+#define DeviceInfo_max_mw_tag                    10
 
 /* Struct field encoding specification for nanopb */
 #define Segment_FIELDLIST(X, a) \
@@ -276,9 +276,9 @@ X(a, STATIC,   REPEATED, MESSAGE,  data,              3)
 #define HistoryChunk_data_MSGTYPE Point
 
 #define HeadParams_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, FLOAT,    sensor_p0_temperature,   1) \
+X(a, STATIC,   SINGULAR, FLOAT,    sensor_p0_at,      1) \
 X(a, STATIC,   SINGULAR, FLOAT,    sensor_p0_value,   2) \
-X(a, STATIC,   SINGULAR, FLOAT,    sensor_p1_temperature,   3) \
+X(a, STATIC,   SINGULAR, FLOAT,    sensor_p1_at,      3) \
 X(a, STATIC,   SINGULAR, FLOAT,    sensor_p1_value,   4) \
 X(a, STATIC,   SINGULAR, FLOAT,    adrc_response,     5) \
 X(a, STATIC,   SINGULAR, FLOAT,    adrc_b0,           6) \
@@ -292,13 +292,12 @@ X(a, STATIC,   SINGULAR, UENUM,    health,            1) \
 X(a, STATIC,   SINGULAR, UENUM,    activity,          2) \
 X(a, STATIC,   SINGULAR, UENUM,    power,             3) \
 X(a, STATIC,   SINGULAR, UENUM,    head,              4) \
-X(a, STATIC,   SINGULAR, FLOAT,    temperature,       5) \
-X(a, STATIC,   SINGULAR, FLOAT,    watts,             6) \
-X(a, STATIC,   SINGULAR, FLOAT,    volts,             7) \
-X(a, STATIC,   SINGULAR, FLOAT,    amperes,           8) \
-X(a, STATIC,   SINGULAR, FLOAT,    max_watts,         9) \
-X(a, STATIC,   SINGULAR, FLOAT,    duty_cycle,       10) \
-X(a, STATIC,   SINGULAR, FLOAT,    resistance,       11)
+X(a, STATIC,   SINGULAR, INT32,    temperature_x10,   5) \
+X(a, STATIC,   SINGULAR, UINT32,   peak_mv,           6) \
+X(a, STATIC,   SINGULAR, UINT32,   peak_ma,           7) \
+X(a, STATIC,   SINGULAR, UINT32,   duty_x1000,        8) \
+X(a, STATIC,   SINGULAR, UINT32,   resistance_mohms,   9) \
+X(a, STATIC,   SINGULAR, UINT32,   max_mw,           10)
 #define DeviceInfo_CALLBACK NULL
 #define DeviceInfo_DEFAULT NULL
 
@@ -320,7 +319,7 @@ extern const pb_msgdesc_t DeviceInfo_msg;
 #define DeviceInfo_fields &DeviceInfo_msg
 
 /* Maximum encoded size of messages (where known) */
-#define DeviceInfo_size                          43
+#define DeviceInfo_size                          49
 #define HeadParams_size                          40
 #define HistoryChunk_size                        1222
 #define Point_size                               10

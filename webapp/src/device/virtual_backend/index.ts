@@ -51,13 +51,12 @@ export class VirtualBackend implements IBackend {
       activity: this.activity,
       power: PowerStatus.PwrOK,
       head: HeadStatus.HeadConnected,
-      temperature: this.heater.temperature,
-      watts: this.heater.get_power(),
-      volts: this.heater.get_volts(),
-      amperes: this.heater.get_amperes(),
-      max_watts: this.heater.get_max_power(),
-      duty_cycle: 1,
-      resistance: this.heater.get_resistance()
+      temperature_x10: Math.round(this.heater.temperature * 10),
+      peak_mv: Math.round(this.heater.get_volts() * 1000),
+      peak_ma: Math.round(this.heater.get_amperes() * 1000),
+      duty_x1000: 1,
+      resistance_mohms: Math.round(this.heater.get_resistance() * 1000),
+      max_mw: Math.round(this.heater.get_max_power() * 1000)
     }
   }
 
@@ -233,14 +232,14 @@ export class VirtualBackend implements IBackend {
     const params = this.pick_head_params()
     // Note, we do not implement temperature correction in simulator,
     // just store values for proper display in UI
-    params.sensor_p0_temperature = this.heater.temperature
+    params.sensor_p0_at = this.heater.temperature
     params.sensor_p0_value = temperature
     await this.set_head_params(params)
   }
 
   async set_cpoint1(temperature: number): Promise<void> {
     const params = this.pick_head_params()
-    params.sensor_p1_temperature = this.heater.temperature
+    params.sensor_p1_at = this.heater.temperature
     params.sensor_p1_value = temperature
     await this.set_head_params(params)
   }

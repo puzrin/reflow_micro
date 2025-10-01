@@ -36,11 +36,11 @@ async function stop() {
       <div>
         <span
           class="mr-1"
-          :class="status.temperature > 50 ? 'text-red-500' : 'text-green-500'"
+          :class="(status.temperature_x10/10) > 50 ? 'text-red-500' : 'text-green-500'"
         >
           •
         </span>
-        <span class="font-mono">{{ status.temperature.toFixed(0) }}</span>°C
+        <span class="font-mono">{{ (status.temperature_x10/10).toFixed(0) }}</span>°C
       </div>
     </template>
 
@@ -52,11 +52,12 @@ async function stop() {
           :show_history="device.history_id.value === profilesStore.selectedId" />
       </div>
       <div v-if="localSettingsStore.showDebugInfo" class="absolute top-2 right-3 text-right text-xs opacity-50">
-        <div><span class="font-mono">{{ status.watts.toFixed(1) }}</span> W</div>
-        <div><span class="font-mono">max {{ Math.round(status.max_watts) }}</span> W</div>
-        <div><span class="font-mono">{{ status.volts.toFixed(1) }}</span> V</div>
-        <div><span class="font-mono">{{ status.amperes.toFixed(2) }}</span> A</div>
-        <div><span class="font-mono">{{ status.resistance.toFixed(2) }}</span> Ω</div>
+        <div><span class="font-mono">{{ ((status.peak_mv/1000) * (status.peak_ma/1000) * (status.duty_x1000/1000)).toFixed(2) }}</span> W</div>
+        <div><span class="font-mono">max {{ (status.max_mw/1000).toFixed(1) }}</span> W</div>
+        <div><span class="font-mono">{{ (status.peak_mv/1000).toFixed(1) }}</span> V</div>
+        <div><span class="font-mono">{{ (status.peak_ma/1000).toFixed(2) }}</span> A</div>
+        <div><span class="font-mono">duty {{ (status.duty_x1000/1000).toFixed(2) }}</span></div>
+        <div><span class="font-mono">{{ status.resistance_mohms < 1000*1000 ? (status.resistance_mohms/1000).toFixed(2) : '??' }}</span> Ω</div>
       </div>
     </div>
 

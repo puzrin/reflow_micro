@@ -31,8 +31,8 @@ const power = ref(50)
 
 async function loadCalibrationStatus() {
   const head_params = await device.get_head_params()
-  p0_orig.value = head_params.sensor_p0_temperature
-  p1_orig.value = head_params.sensor_p1_temperature
+  p0_orig.value = head_params.sensor_p0_at
+  p1_orig.value = head_params.sensor_p1_at
 }
 
 onMounted(async () => { await loadCalibrationStatus() })
@@ -62,9 +62,7 @@ async function save_p0() {
   if (!isNumberLike(p0.value)) { show_p0_error.value = true; return }
 
   show_p0_error.value = false
-  const head_params = await device.get_head_params()
-  head_params.sensor_p0_temperature = toNumber(p0.value)
-  await device.set_head_params(head_params)
+  await device.set_cpoint0(toNumber(p0.value))
 
   saveP0Btn.value?.showSuccess()
   await loadCalibrationStatus()
@@ -97,9 +95,9 @@ async function save_p1() {
       <div>
         <span
           class="mr-1"
-          :class="status.temperature > 50 ? 'text-red-500' : 'text-green-500'"
+          :class="(status.temperature_x10/10) > 50 ? 'text-red-500' : 'text-green-500'"
         >•</span>
-        <span class="font-mono">{{ status.temperature.toFixed(0) }}</span>°C
+        <span class="font-mono">{{ (status.temperature_x10/10).toFixed(0) }}</span>°C
       </div>
     </template>
 

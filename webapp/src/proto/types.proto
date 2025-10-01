@@ -55,9 +55,9 @@ message HeadParams {
   //
   // Temperature sensor calibration data
   //
-  float sensor_p0_temperature = 1;
+  float sensor_p0_at = 1;
   float sensor_p0_value = 2;
-  float sensor_p1_temperature = 3;
+  float sensor_p1_at = 3;
   float sensor_p1_value = 4;
 
   //
@@ -122,12 +122,13 @@ message DeviceInfo {
   DeviceActivityStatus activity = 2;
   PowerStatus power = 3;
   HeadStatus head = 4;
-  float temperature = 5;
+  int32 temperature_x10 = 5;
   // Debug info
-  float watts = 6;
-  float volts = 7;
-  float amperes = 8;
-  float max_watts = 9;
-  float duty_cycle = 10; // 0..1
-  float resistance = 11;
+  uint32 peak_mv = 6;
+  uint32 peak_ma = 7;
+  uint32 duty_x1000 = 8; // PWM duty cycle [0..1000]
+  uint32 resistance_mohms = 9;
+  // Max possible power in mW, for current heater resistance
+  // at current PD profile
+  uint32 max_mw = 10;
 }
