@@ -16,7 +16,7 @@
     "gen:proto:cpp": "nanopb_generator --proto-path=./src/proto types.proto --output-dir ../firmware/src/proto/generated",
     "gen:proto:data": "node --import=tsimp/import ./src/proto/gen_defaults.ts",
     "gen:proto": "run-s gen:proto:ts gen:proto:cpp gen:proto:data",
-    "test": "run-p lint type-check && node --test --import=tsimp/import test/**/*.ts"
+    "test": "run-p lint type-check && vitest run"
   },
   "dependencies": {
     "@headlessui/tailwindcss": "^0.2.1",
@@ -57,6 +57,7 @@
     "tsimp": "^2.0.12",
     "typescript": "~5.6.3",
     "vite": "^5.4.10",
+    "vitest": "^3.2.4",
     "vue-tsc": "^2.1.10"
   }
 }

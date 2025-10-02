@@ -1,5 +1,4 @@
-import { test } from 'node:test';
-import { strict as assert } from 'node:assert';
+import { test, expect } from 'vitest';
 import { BleClientChunker, BleChunkHead } from '../../src/lib/ble/BleClientChunker';
 import { MockIO, bin } from './helpers';
 
@@ -9,8 +8,8 @@ test('BleClientChunker should handle single chunk response', async () => {
     const chunker = new BleClientChunker(mockIO);
     const result = await chunker.send(bin(1, 2, 3, 4));
 
-    assert.deepEqual(result, bin(5, 6, 7, 8));
-    assert.deepEqual(mockIO.getWrites(), [bin(1, 0, 0, BleChunkHead.FINAL_CHUNK_FLAG, [1, 2, 3, 4])]);
+    expect(result).toEqual(bin(5, 6, 7, 8));
+    expect(mockIO.getWrites()).toEqual([bin(1, 0, 0, BleChunkHead.FINAL_CHUNK_FLAG, [1, 2, 3, 4])]);
 });
 
 test('BleClientChunker should handle multiple chunk response', async () => {
@@ -22,8 +21,8 @@ test('BleClientChunker should handle multiple chunk response', async () => {
     const chunker = new BleClientChunker(mockIO);
     const result = await chunker.send(bin(1, 2, 3, 4));
 
-    assert.deepEqual(result, bin(5, 6, 7, 8));
-    assert.deepEqual(mockIO.getWrites(), [bin(1, 0, 0, BleChunkHead.FINAL_CHUNK_FLAG, [1, 2, 3, 4])]);
+    expect(result).toEqual(bin(5, 6, 7, 8));
+    expect(mockIO.getWrites()).toEqual([bin(1, 0, 0, BleChunkHead.FINAL_CHUNK_FLAG, [1, 2, 3, 4])]);
 });
 
 test('BleClientChunker should retry on missed chunks with correct message id', async () => {
@@ -35,8 +34,8 @@ test('BleClientChunker should retry on missed chunks with correct message id', a
     const chunker = new BleClientChunker(mockIO);
     const result = await chunker.send(bin(1, 2, 3, 4));
 
-    assert.deepEqual(result, bin(9, 10, 11, 12));
-    assert.deepEqual(mockIO.getWrites(), [
+    expect(result).toEqual(bin(9, 10, 11, 12));
+    expect(mockIO.getWrites()).toEqual([
         bin(1, 0, 0, BleChunkHead.FINAL_CHUNK_FLAG, [1, 2, 3, 4]), // Initial send
         bin(2, 0, 0, BleChunkHead.FINAL_CHUNK_FLAG, [1, 2, 3, 4])  // Retry after missed chunk
     ]);
@@ -51,12 +50,12 @@ test('BleClientChunker should handle consecutive sends with incremented message 
     const chunker = new BleClientChunker(mockIO);
 
     let result = await chunker.send(bin(1, 2, 3, 4));
-    assert.deepEqual(result, bin(5, 6, 7, 8));
-    assert.deepEqual(mockIO.getWrites()[0], bin(1, 0, 0, BleChunkHead.FINAL_CHUNK_FLAG, [1, 2, 3, 4]));
+    expect(result).toEqual(bin(5, 6, 7, 8));
+    expect(mockIO.getWrites()[0]).toEqual(bin(1, 0, 0, BleChunkHead.FINAL_CHUNK_FLAG, [1, 2, 3, 4]));
 
     result = await chunker.send(bin(5, 6, 7, 8));
-    assert.deepEqual(result, bin(9, 10, 11, 12));
-    assert.deepEqual(mockIO.getWrites()[1], bin(2, 0, 0, BleChunkHead.FINAL_CHUNK_FLAG, [5, 6, 7, 8]));
+    expect(result).toEqual(bin(9, 10, 11, 12));
+    expect(mockIO.getWrites()[1]).toEqual(bin(2, 0, 0, BleChunkHead.FINAL_CHUNK_FLAG, [5, 6, 7, 8]));
 });
 
 test('BleClientChunker should throw error on size overflow', async () => {
@@ -66,9 +65,7 @@ test('BleClientChunker should throw error on size overflow', async () => {
 
     const chunker = new BleClientChunker(mockIO);
 
-    await assert.rejects(async () => {
-        await chunker.send(bin(1, 2, 3, 4));
-    }, /Protocol error: size overflow/);
+    await expect(chunker.send(bin(1, 2, 3, 4))).rejects.toThrow(/Protocol error: size overflow/);
 });
 
 test('MockIO should throw an error when no more data to read', async () => {
@@ -77,7 +74,5 @@ test('MockIO should throw an error when no more data to read', async () => {
     const chunker = new BleClientChunker(mockIO);
     await chunker.send(bin(1, 2, 3, 4)); // First read should be fine
 
-    await assert.rejects(async () => {
-        await chunker.send(bin(1, 2, 3, 4)); // Second read should throw an error
-    }, /No more data to read/);
+    await expect(chunker.send(bin(1, 2, 3, 4))).rejects.toThrow(/No more data to read/);
 });

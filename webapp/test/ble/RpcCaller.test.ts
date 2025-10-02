@@ -1,5 +1,4 @@
-import { test } from 'node:test';
-import { strict as assert } from 'node:assert';
+import { test, expect } from 'vitest';
 import { RpcCaller } from '../../src/lib/ble/RpcCaller';
 import { type BinaryTransport } from '../../src/lib/ble/BleClientChunker';
 import { encode } from '@msgpack/msgpack';
@@ -37,7 +36,7 @@ test('RpcCaller should correctly send a request and receive a successful respons
 
     const result = await rpcClient.invoke('someMethod', 1, 2, 3);
 
-    assert.strictEqual(result, 42);
+    expect(result).toBe(42);
 });
 
 test('RpcCaller should throw an error when the response contains an error', async () => {
@@ -45,12 +44,7 @@ test('RpcCaller should throw an error when the response contains an error', asyn
     const transport = new MockTransport([mockResponse]);
     const rpcClient = new RpcCaller(transport);
 
-    await assert.rejects(
-        async () => {
-            await rpcClient.invoke('someMethod', 1, 2, 3);
-        },
-        new Error('RPC Error: Error message')
-    );
+    await expect(rpcClient.invoke('someMethod', 1, 2, 3)).rejects.toThrow(/RPC Error: Error message/);
 });
 
 test('RpcCaller should correctly handle different argument types', async () => {
@@ -60,12 +54,12 @@ test('RpcCaller should correctly handle different argument types', async () => {
 
     const result = await rpcClient.invoke('anotherMethod', true, 123, 'test');
 
-    assert.strictEqual(result, 'success');
+    expect(result).toBe('success');
 
     // Check the sent data
     const writes = transport.getWrites();
-    assert.strictEqual(writes.length, 1);
-    assert.deepStrictEqual(writes[0], json2msgp('{"method":"anotherMethod","args":[true,123,"test"]}'));
+    expect(writes).toHaveLength(1);
+    expect(writes[0]).toEqual(json2msgp('{"method":"anotherMethod","args":[true,123,"test"]}'));
 });
 
 test('RpcCaller should handle empty argument list', async () => {
@@ -75,12 +69,12 @@ test('RpcCaller should handle empty argument list', async () => {
 
     const result = await rpcClient.invoke('methodWithoutArgs');
 
-    assert.strictEqual(result, 'empty');
+    expect(result).toBe('empty');
 
     // Check the sent data
     const writes = transport.getWrites();
-    assert.strictEqual(writes.length, 1);
-    assert.deepStrictEqual(writes[0], json2msgp('{"method":"methodWithoutArgs","args":[]}'));
+    expect(writes).toHaveLength(1);
+    expect(writes[0]).toEqual(json2msgp('{"method":"methodWithoutArgs","args":[]}'));
 });
 
 test('RpcCaller should handle unicode characters correctly', async () => {
@@ -90,10 +84,10 @@ test('RpcCaller should handle unicode characters correctly', async () => {
 
     const result = await rpcClient.invoke('unicodeMethod', 'тест');
 
-    assert.strictEqual(result, 'успех');
+    expect(result).toBe('успех');
 
     // Check the sent data
     const writes = transport.getWrites();
-    assert.strictEqual(writes.length, 1);
-    assert.deepStrictEqual(writes[0], json2msgp('{"method":"unicodeMethod","args":["тест"]}'));
+    expect(writes).toHaveLength(1);
+    expect(writes[0]).toEqual(json2msgp('{"method":"unicodeMethod","args":["тест"]}'));
 });
