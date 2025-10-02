@@ -59,7 +59,7 @@ document.getElementById('bigDownloadButton')?.addEventListener('click', async ()
     const startTime = Date.now()
 
     for (let i = 0; i < total_size;) {
-        const block: Uint8Array = await rpcClient.invoke('get16K') as Uint8Array
+        const block: Uint8Array = await rpcClient.invoke('get8K') as Uint8Array
         i += block.length
         console.log(`${new Date().toLocaleTimeString()} Downloaded ${i} bytes`)
     }
