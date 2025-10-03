@@ -341,7 +341,7 @@ int32_t Head::get_temperature_x10() const {
 
     uint32_t pt100_resistance_x1000 = 560 * 1000 * mv / (2500 - mv);
 
-    return pt100_temp_x10(pt100_resistance_x1000);
+    return PT100::r2t_x10(pt100_resistance_x1000);
 }
 
 bool Head::is_attached() const {

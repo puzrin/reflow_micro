@@ -2,14 +2,14 @@
 
 #include <stdint.h>
 
-inline int32_t pt100_temp_x10(uint32_t R_mOhm) {
+class PT100 {
+public:
     // PT100 lookup table with linear interpolation. Source:
     // https://www.tnp-instruments.com/sitebuildercontent/sitebuilderfiles/pt100_385c_table.pdf
-
-    static const struct {
+    static constexpr struct TableEntry {
         int16_t temp_x10;      // Temperature in 0.1°C
         uint32_t resistance;   // Resistance in milliohms
-    } pt100_table[] = {
+    } table[] = {
         {-200 * 10, 18520},
         {-190 * 10, 22826},
         {-180 * 10, 27096},
@@ -118,32 +118,65 @@ inline int32_t pt100_temp_x10(uint32_t R_mOhm) {
         {850 * 10,  390481},
     };
 
-    const int table_size = sizeof(pt100_table) / sizeof(pt100_table[0]);
+    static constexpr int table_size = sizeof(table) / sizeof(table[0]);
 
-    // Handle out of range cases
-    if (R_mOhm <= pt100_table[0].resistance) {
-        return pt100_table[0].temp_x10;
-    }
-    if (R_mOhm >= pt100_table[table_size-1].resistance) {
-        return pt100_table[table_size-1].temp_x10;
-    }
-
-    // Find the two table entries that bracket our resistance value
-    for (int i = 0; i < table_size - 1; i++) {
-        if (R_mOhm >= pt100_table[i].resistance && R_mOhm <= pt100_table[i+1].resistance) {
-            // Linear interpolation between table[i] and table[i+1]
-            uint32_t R1 = pt100_table[i].resistance;
-            uint32_t R2 = pt100_table[i+1].resistance;
-            int32_t T1 = pt100_table[i].temp_x10;
-            int32_t T2 = pt100_table[i+1].temp_x10;
-
-            // T = T1 + (T2-T1) * (R-R1) / (R2-R1)
-            int32_t temp_x10 = T1 + ((int64_t)(T2 - T1) * (int64_t)(R_mOhm - R1)) / (int64_t)(R2 - R1);
-
-            return temp_x10;
+    // Convert resistance (milliohms) to temperature (x10)
+    static int32_t r2t_x10(uint32_t R_mOhm) {
+        // Handle out of range cases
+        if (R_mOhm <= table[0].resistance) {
+            return table[0].temp_x10;
         }
+        if (R_mOhm >= table[table_size-1].resistance) {
+            return table[table_size-1].temp_x10;
+        }
+
+        // Find the two table entries that bracket our resistance value
+        for (int i = 0; i < table_size - 1; i++) {
+            if (R_mOhm >= table[i].resistance && R_mOhm <= table[i+1].resistance) {
+                // Linear interpolation between table[i] and table[i+1]
+                uint32_t R1 = table[i].resistance;
+                uint32_t R2 = table[i+1].resistance;
+                int32_t T1 = table[i].temp_x10;
+                int32_t T2 = table[i+1].temp_x10;
+
+                // T = T1 + (T2-T1) * (R-R1) / (R2-R1)
+                int32_t temp_x10 = T1 + ((int64_t)(T2 - T1) * (int64_t)(R_mOhm - R1)) / (int64_t)(R2 - R1);
+
+                return temp_x10;
+            }
+        }
+
+        // Should never reach here
+        return 0;
     }
 
-    // Should never reach here
-    return 0;
-}
+    // Convert temperature (x10) to resistance (milliohms)
+    static uint32_t x10_t2r(int32_t temp_x10) {
+        // Handle out of range cases
+        if (temp_x10 <= table[0].temp_x10) {
+            return table[0].resistance;
+        }
+        if (temp_x10 >= table[table_size-1].temp_x10) {
+            return table[table_size-1].resistance;
+        }
+
+        // Find the two table entries that bracket our temperature value
+        for (int i = 0; i < table_size - 1; i++) {
+            if (temp_x10 >= table[i].temp_x10 && temp_x10 <= table[i+1].temp_x10) {
+                // Linear interpolation between table[i] and table[i+1]
+                int32_t T1 = table[i].temp_x10;
+                int32_t T2 = table[i+1].temp_x10;
+                uint32_t R1 = table[i].resistance;
+                uint32_t R2 = table[i+1].resistance;
+
+                // R = R1 + (R2-R1) * (T-T1) / (T2-T1)
+                uint32_t R_mOhm = R1 + ((int64_t)(R2 - R1) * (int64_t)(temp_x10 - T1)) / (int64_t)(T2 - T1);
+
+                return R_mOhm;
+            }
+        }
+
+        // Should never reach here
+        return 100000;  // Return 0°C resistance as fallback
+    }
+};
