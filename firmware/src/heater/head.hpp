@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "components/eeprom_store.hpp"
+#include "components/TemperatureProcessor.hpp"
 #include "lib/data_guard.hpp"
 #include "proto/generated/types.pb.h"
 
@@ -21,7 +22,7 @@ public:
     // - Shorted => With embedded sensor
     // - In between => With PT100 sensor
     static constexpr uint32_t SENSOR_SHORTED_LEVEL_MV = 150;
-    static constexpr uint32_t SENSOR_FLOATING_LEVEL_MV = 700;
+    static constexpr uint32_t SENSOR_FLOATING_LEVEL_MV = 800;
 
     // User-configurable ADC parameters
 
@@ -46,7 +47,7 @@ public:
     bool set_head_params_pb(const EEBuffer& pb_data);
 
     auto get_head_status() const -> HeadStatus { return head_status.load(); }
-    int32_t get_temperature_x10() const;
+    int32_t get_temperature_x10();
 
     void update_sensor_mv();
 
@@ -57,6 +58,7 @@ public:
 
     EepromStore eeprom_store{};
     DataGuard<EEBuffer> head_params{};
+    TemperatureProcessor temp_processor{};
 
 private:
     void task_loop();

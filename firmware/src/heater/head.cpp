@@ -74,6 +74,12 @@ public:
             head.heater_type = (head.last_sensor_value_mv.load() <= Head::SENSOR_SHORTED_LEVEL_MV)
                 ? HeaterType_MCH : HeaterType_PCB;
 
+            // Set temperature sensor type based on heater type
+            auto sensor_type = (head.heater_type.load() == HeaterType_MCH)
+                ? TemperatureProcessor::SensorType::TCR  // MCH: no PT100, use heater resistance
+                : TemperatureProcessor::SensorType::RTD; // PCB: has PT100 sensor
+            head.temp_processor.set_sensor_type(sensor_type);
+
             if (!head.eeprom_store.read(head.head_params.value)) {
                 APP_LOGE("Head: Failed to read EEPROM");
                 return HeadState::Error;
@@ -326,22 +332,16 @@ bool Head::set_head_params_pb(const EEBuffer& pb_data) {
     return true;
 }
 
-int32_t Head::get_temperature_x10() const {
+int32_t Head::get_temperature_x10() {
     uint32_t mv = last_sensor_value_mv.load();
 
-    // Safety check, shuld never happen due to state machine
+    // Safety check, should never happen due to state machine
     if (mv < SENSOR_SHORTED_LEVEL_MV || mv > SENSOR_FLOATING_LEVEL_MV) {
         return 0;
     }
 
-    // We have voltage divider with 560R resistor and 2.5V reference voltage.
-    // So Vout = Vin * Rpt100 / (Rfixed + Rpt100)
-    // => Rpt100 = Rfixed * Vout / (Vin - Vout)
-    // Vin = 2.5V
-
-    uint32_t pt100_resistance_x1000 = 560 * 1000 * mv / (2500 - mv);
-
-    return PT100::r2t_x10(pt100_resistance_x1000);
+    // Use TemperatureProcessor for calibrated temperature measurement
+    return temp_processor.get_temperature_x10(mv);
 }
 
 bool Head::is_attached() const {
