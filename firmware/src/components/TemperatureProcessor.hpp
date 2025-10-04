@@ -29,9 +29,9 @@ public:
         rebuild();
     }
 
-    int32_t get_temperature_x10(uint32_t at) {
-        if (sensor_type == SensorType::RTD) { return get_rtd_temperature_x10(at); }
-        else { return get_tcr_temperature_x10(at); }
+    int32_t get_temperature_x10(uint32_t sensor_value) {
+        if (sensor_type == SensorType::RTD) { return get_rtd_temperature_x10(sensor_value); }
+        else { return get_tcr_temperature_x10(sensor_value); }
     }
 
 private:

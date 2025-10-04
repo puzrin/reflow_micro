@@ -102,7 +102,9 @@ auto set_cpoint0(float temperature) -> bool {
     if (heater.get_head_status() != HeadStatus_HeadConnected) {
         throw std::runtime_error("Hotplate is not connected");
     }
-    // TODO: add implementation
+    if (!heater.set_calibration_point_0(temperature)) {
+        throw std::runtime_error("Failed to set calibration point 0");
+    }
     return true;
 }
 
@@ -110,7 +112,9 @@ auto set_cpoint1(float temperature) -> bool {
     if (heater.get_head_status() != HeadStatus_HeadConnected) {
         throw std::runtime_error("Hotplate is not connected");
     }
-    // TODO: add implementation
+    if (!heater.set_calibration_point_1(temperature)) {
+        throw std::runtime_error("Failed to set calibration point 1");
+    }
     return true;
 }
 

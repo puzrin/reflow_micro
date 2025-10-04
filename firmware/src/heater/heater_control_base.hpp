@@ -16,6 +16,8 @@ public:
     virtual bool set_head_params_pb(const std::vector<uint8_t>& pb_data) = 0;
     virtual bool get_head_params(HeadParams& params) = 0;
     virtual bool set_head_params(const HeadParams& params) = 0;
+    virtual bool set_calibration_point_0(float temperature) = 0;
+    virtual bool set_calibration_point_1(float temperature) = 0;
 
     void get_history(int32_t client_history_version, float from, std::vector<uint8_t>& pb_data);
 

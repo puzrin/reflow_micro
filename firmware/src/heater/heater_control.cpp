@@ -55,18 +55,43 @@ bool HeaterControl::set_head_params_pb(const std::vector<uint8_t>& pb_data) {
 }
 
 bool HeaterControl::get_head_params(HeadParams& params) {
-    Head::EEBuffer pb_data{};
-    if (!head.get_head_params_pb(pb_data)) { return false; }
-
-    return pb2struct(pb_data, params, HeadParams_fields);
+    return head.get_head_params(params);
 }
 
 bool HeaterControl::set_head_params(const HeadParams& params) {
-    Head::EEBuffer pb_data{};
-    if (!struct2pb(params, pb_data, HeadParams_fields, HeadParams_size)) { return false; }
+    return head.set_head_params(params);
+}
 
-    head.set_head_params_pb(pb_data);
-    return true;
+bool HeaterControl::set_calibration_point_0(float temperature) {
+    HeadParams params = HeadParams_init_zero;
+    if (!get_head_params(params)) { return false; }
+
+    // RTD mode: use ADC voltage
+    if (head.heater_type.load() == HeaterType_PCB) {
+        params.sensor_p0_value = head.last_sensor_value_mv.load();
+        params.sensor_p0_at = temperature;
+        return set_head_params(params);
+    }
+
+    // TCR mode: TODO - use heater resistance from Power
+    // return power.get_load_mohm() based calibration
+    return false;
+}
+
+bool HeaterControl::set_calibration_point_1(float temperature) {
+    HeadParams params = HeadParams_init_zero;
+    if (!get_head_params(params)) { return false; }
+
+    // RTD mode: use ADC voltage
+    if (head.heater_type.load() == HeaterType_PCB) {
+        params.sensor_p1_value = head.last_sensor_value_mv.load();
+        params.sensor_p1_at = temperature;
+        return set_head_params(params);
+    }
+
+    // TCR mode: TODO - use heater resistance from Power
+    // return power.get_load_mohm() based calibration
+    return false;
 }
 
 auto HeaterControl::get_health_status() -> DeviceHealthStatus {

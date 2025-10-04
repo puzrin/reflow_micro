@@ -5,6 +5,7 @@
 #include <freertos/task.h>
 
 #include "components/i2c_io.hpp"
+#include "components/pb2struct.hpp"
 #include "components/time.hpp"
 #include "head.hpp"
 #include "logger.hpp"
@@ -74,12 +75,6 @@ public:
             head.heater_type = (head.last_sensor_value_mv.load() <= Head::SENSOR_SHORTED_LEVEL_MV)
                 ? HeaterType_MCH : HeaterType_PCB;
 
-            // Set temperature sensor type based on heater type
-            auto sensor_type = (head.heater_type.load() == HeaterType_MCH)
-                ? TemperatureProcessor::SensorType::TCR  // MCH: no PT100, use heater resistance
-                : TemperatureProcessor::SensorType::RTD; // PCB: has PT100 sensor
-            head.temp_processor.set_sensor_type(sensor_type);
-
             if (!head.eeprom_store.read(head.head_params.value)) {
                 APP_LOGE("Head: Failed to read EEPROM");
                 return HeadState::Error;
@@ -93,6 +88,9 @@ public:
                     std::end(DEFAULT_HEAD_PARAMS_PB)
                 );
             }
+
+            // Configure temperature processor with sensor type and calibration
+            head.configure_temperature_processor();
 
             return HeadState::Attached;
         }
@@ -315,6 +313,7 @@ bool Head::set_head_params_pb(const std::vector<uint8_t>& pb_data) {
 
     EEBuffer pb_data_buf{pb_data.begin(), pb_data.end()};
     head_params.writeData(pb_data_buf);
+    configure_temperature_processor();
     return true;
 }
 
@@ -329,6 +328,25 @@ bool Head::set_head_params_pb(const EEBuffer& pb_data) {
     if (get_head_status() != HeadStatus_HeadConnected) { return false; }
 
     head_params.writeData(pb_data);
+    configure_temperature_processor();
+    return true;
+}
+
+bool Head::get_head_params(HeadParams& params, bool skip_status_check) {
+    if (!skip_status_check &&
+        get_head_status() != HeadStatus_HeadConnected)
+    {
+        return false;
+    }
+
+    return pb2struct(head_params.value, params, HeadParams_fields);
+}
+
+bool Head::set_head_params(const HeadParams& params) {
+    EEBuffer pb_data{};
+    if (!struct2pb(params, pb_data, HeadParams_fields, HeadParams_size)) { return false; }
+
+    set_head_params_pb(pb_data);
     return true;
 }
 
@@ -341,9 +359,28 @@ int32_t Head::get_temperature_x10() {
     }
 
     // Use TemperatureProcessor for calibrated temperature measurement
-    return temp_processor.get_temperature_x10(mv);
+    return temperature_processor.get_temperature_x10(mv);
 }
 
 bool Head::is_attached() const {
     return get_head_status() == HeadStatus_HeadConnected;
+}
+
+void Head::configure_temperature_processor() {
+    // Set sensor type based on heater type
+    auto sensor_type = (heater_type.load() == HeaterType_MCH)
+        ? TemperatureProcessor::SensorType::TCR  // MCH: no PT100, use heater resistance
+        : TemperatureProcessor::SensorType::RTD; // PCB: has PT100 sensor
+    temperature_processor.set_sensor_type(sensor_type);
+
+    // Load calibration data
+    HeadParams params = HeadParams_init_zero;
+    if (get_head_params(params, true)) {
+        temperature_processor.set_cal_points(
+            params.sensor_p0_at,
+            params.sensor_p0_value,
+            params.sensor_p1_at,
+            params.sensor_p1_value
+        );
+    }
 }

@@ -104,6 +104,26 @@ auto HeaterControlMock::set_head_params(const HeadParams& params) -> bool {
     return true;
 }
 
+auto HeaterControlMock::set_calibration_point_0(float temperature) -> bool {
+    HeadParams params = HeadParams_init_zero;
+    if (!get_head_params(params)) { return false; }
+
+    params.sensor_p0_value = static_cast<int32_t>(this->temperature.load() * 10);
+    params.sensor_p0_at = temperature;
+
+    return set_head_params(params);
+}
+
+auto HeaterControlMock::set_calibration_point_1(float temperature) -> bool {
+    HeadParams params = HeadParams_init_zero;
+    if (!get_head_params(params)) { return false; }
+
+    params.sensor_p1_value = static_cast<int32_t>(this->temperature.load() * 10);
+    params.sensor_p1_at = temperature;
+
+    return set_head_params(params);
+}
+
 void HeaterControlMock::validate_calibration_points() {
     std::sort(calibration_points.begin(), calibration_points.end(),
               [](const CalibrationPoint& a, const CalibrationPoint& b) { return a.T < b.T; });

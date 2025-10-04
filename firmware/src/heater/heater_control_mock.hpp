@@ -74,6 +74,8 @@ public:
     bool set_head_params_pb(const std::vector<uint8_t>& pb_data) override;
     bool get_head_params(HeadParams& params) override;
     bool set_head_params(const HeadParams& params) override;
+    bool set_calibration_point_0(float temperature) override;
+    bool set_calibration_point_1(float temperature) override;
 
     auto get_health_status() -> DeviceHealthStatus override { return DeviceHealthStatus_DevOK; }
     auto get_activity_status() -> DeviceActivityStatus override {

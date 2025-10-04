@@ -45,11 +45,14 @@ public:
     bool set_head_params_pb(const std::vector<uint8_t>& pb_data);
     bool get_head_params_pb(EEBuffer& pb_data);
     bool set_head_params_pb(const EEBuffer& pb_data);
+    bool get_head_params(HeadParams& params, bool skip_status_check = false);
+    bool set_head_params(const HeadParams& params);
 
     auto get_head_status() const -> HeadStatus { return head_status.load(); }
     int32_t get_temperature_x10();
 
     void update_sensor_mv();
+    void configure_temperature_processor();
 
     etl::atomic<HeadStatus> head_status{HeadStatus_HeadDisconnected};
     uint32_t debounce_start{0};
@@ -58,7 +61,7 @@ public:
 
     EepromStore eeprom_store{};
     DataGuard<EEBuffer> head_params{};
-    TemperatureProcessor temp_processor{};
+    TemperatureProcessor temperature_processor{};
 
 private:
     void task_loop();
