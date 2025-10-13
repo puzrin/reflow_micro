@@ -54,7 +54,7 @@ export class VirtualBackend implements IBackend {
       temperature_x10: Math.round(this.heater.temperature * 10),
       peak_mv: Math.round(this.heater.get_volts() * 1000),
       peak_ma: Math.round(this.heater.get_amperes() * 1000),
-      duty_x1000: 1,
+      duty_x1000: 1000, // Always 100% in simulation
       resistance_mohms: Math.round(this.heater.get_resistance() * 1000),
       max_mw: Math.round(this.heater.get_max_power() * 1000)
     }

@@ -9,6 +9,7 @@ import HomeMenu from '@/components/HomeMenu.vue'
 import ButtonDanger from '@/components/buttons/ButtonDanger.vue'
 import ButtonPrimary from '@/components/buttons/ButtonPrimary.vue'
 import ReflowChart from '@/components/ReflowChart.vue'
+import DebugInfo from '@/components/DebugInfo.vue'
 
 const profilesStore = useProfilesStore()
 const localSettingsStore = useLocalSettingsStore()
@@ -51,14 +52,11 @@ async function stop() {
           :history="device.history.value"
           :show_history="device.history_id.value === profilesStore.selectedId" />
       </div>
-      <div v-if="localSettingsStore.showDebugInfo" class="absolute top-2 right-3 text-right text-xs opacity-50">
-        <div><span class="font-mono">{{ ((status.peak_mv/1000) * (status.peak_ma/1000) * (status.duty_x1000/1000)).toFixed(2) }}</span> W</div>
-        <div><span class="font-mono">max {{ (status.max_mw/1000).toFixed(1) }}</span> W</div>
-        <div><span class="font-mono">{{ (status.peak_mv/1000).toFixed(1) }}</span> V</div>
-        <div><span class="font-mono">{{ (status.peak_ma/1000).toFixed(2) }}</span> A</div>
-        <div><span class="font-mono">duty {{ (status.duty_x1000/1000).toFixed(2) }}</span></div>
-        <div><span class="font-mono">{{ status.resistance_mohms < 1000*1000 ? (status.resistance_mohms/1000).toFixed(2) : '??' }}</span> Ω</div>
-      </div>
+      <DebugInfo
+        v-if="localSettingsStore.showDebugInfo"
+        class="absolute top-2 right-3 text-right text-xs opacity-50"
+        :status="status"
+      />
     </div>
 
     <div class="flex justify-center">
