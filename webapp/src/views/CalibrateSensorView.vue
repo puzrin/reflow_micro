@@ -8,6 +8,7 @@ import ReflowChart from '@/components/ReflowChart.vue'
 import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
 import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
 import { DeviceActivityStatus, HeadStatus, Constants } from '@/proto/generated/types'
+import ToolbarIndicator from '@/components/ToolbarIndicator.vue'
 
 const device: Device = inject('device')!
 
@@ -92,13 +93,7 @@ async function save_p1() {
       <div class="mr-2 grow text-ellipsis overflow-hidden whitespace-nowrap">
         Calibrate temperature sensor
       </div>
-      <div>
-        <span
-          class="mr-1"
-          :class="(status.temperature_x10/10) > 50 ? 'text-red-500' : 'text-green-500'"
-        >•</span>
-        <span class="font-mono">{{ (status.temperature_x10/10).toFixed(0) }}</span>°C
-      </div>
+      <ToolbarIndicator :status="status" />
     </template>
 
     <div v-if="status.head !== HeadStatus.HeadConnected" class="text-red-800 mb-4">

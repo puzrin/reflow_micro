@@ -9,6 +9,7 @@ import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
 import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
 import { HeadParams, DeviceActivityStatus, HeadStatus, Constants } from '@/proto/generated/types'
 import { DEFAULT_HEAD_PARAMS_PB } from '@/proto/generated/defaults'
+import ToolbarIndicator from '@/components/ToolbarIndicator.vue'
 
 const device: Device = inject('device')!
 
@@ -115,13 +116,7 @@ async function default_adrc_params() {
       <div class="mr-2 grow text-ellipsis overflow-hidden whitespace-nowrap">
         Calibrate temperature controller
       </div>
-      <div>
-        <span
-          class="mr-1"
-          :class="(status.temperature_x10/10) > 50 ? 'text-red-500' : 'text-green-500'"
-        >•</span>
-        <span class="font-mono">{{ (status.temperature_x10/10).toFixed(0) }}</span>°C
-      </div>
+      <ToolbarIndicator :status="status" />
     </template>
 
     <div v-if="status.head !== HeadStatus.HeadConnected" class="text-red-800 mb-4">

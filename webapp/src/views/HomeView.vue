@@ -10,6 +10,7 @@ import ButtonDanger from '@/components/buttons/ButtonDanger.vue'
 import ButtonPrimary from '@/components/buttons/ButtonPrimary.vue'
 import ReflowChart from '@/components/ReflowChart.vue'
 import DebugInfo from '@/components/DebugInfo.vue'
+import ToolbarIndicator from '@/components/ToolbarIndicator.vue'
 
 const profilesStore = useProfilesStore()
 const localSettingsStore = useLocalSettingsStore()
@@ -34,15 +35,7 @@ async function stop() {
       <div class="mr-2 grow text-ellipsis overflow-hidden whitespace-nowrap">
           {{ profilesStore.selected?.name || '--'}}
       </div>
-      <div>
-        <span
-          class="mr-1"
-          :class="(status.temperature_x10/10) > 50 ? 'text-red-500' : 'text-green-500'"
-        >
-          •
-        </span>
-        <span class="font-mono">{{ (status.temperature_x10/10).toFixed(0) }}</span>°C
-      </div>
+      <ToolbarIndicator :status="status" />
     </template>
 
     <div class="mb-4 flex-1 flex relative items-center justify-center rounded-md bg-slate-100">
