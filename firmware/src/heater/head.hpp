@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "components/eeprom_store.hpp"
-#include "components/TemperatureProcessor.hpp"
+#include "components/temperature_processor.hpp"
 #include "lib/data_guard.hpp"
 #include "proto/generated/types.pb.h"
 

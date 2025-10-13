@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "components/TemperatureProcessor.hpp"
+#include "components/temperature_processor.hpp"
 #include "lib/pt100.hpp"
 
 // Voltage thresholds from Head class
