@@ -66,11 +66,7 @@ void App::setup() {
 }
 
 void App::showIdleBackground() {
-    #if defined(HW_DEMO_ESP32_C3_SUPERMINI)
-    blinker.background({10});
-    #else
-    blinker.background({0, 100, 0});
-    #endif
+    blinker.background(LCD_OK_COLOR);
 }
 
 void App::handleButtonEvent(ButtonEventId event) {

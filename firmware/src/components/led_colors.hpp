@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(HW_DEMO_ESP32_C3_SUPERMINI)
+#if defined(RFL_SUPERMINI_BOARD_DRIVERS)
     #define LCD_OFF             {0}
     #define LCD_OK_COLOR        {10}
     #define LCD_WARM_COLOR      {100}

@@ -18,7 +18,7 @@ public:
     static constexpr uint8_t GPIO_PIN_B = 8;
     static constexpr ledc_channel_t PWM_CHANNEL_B = LEDC_CHANNEL_3;
 
-    #if defined(HW_DEMO_ESP32_C3_SUPERMINI)
+    #if defined(RFL_SUPERMINI_BOARD_DRIVERS)
     static constexpr bool doubleOutput = false;
     static constexpr uint8_t IDLE_LEVEL = 0;
     #else

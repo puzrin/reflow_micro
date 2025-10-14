@@ -13,7 +13,7 @@
 
 #include "lib/blinker_engine.hpp"
 
-#if defined(HW_DEMO_ESP32_C3_SUPERMINI)
+#if defined(RFL_SUPERMINI_BOARD_DRIVERS)
 
 #include "driver/ledc.h"
 
@@ -77,7 +77,7 @@ public:
     }
 };
 
-#endif // HW_DEMO_ESP32_C3_SUPERMINI
+#endif // RFL_SUPERMINI_BOARD_DRIVERS
 
 class Blinker : public BlinkerEngine<LedDriver> {
 private:
