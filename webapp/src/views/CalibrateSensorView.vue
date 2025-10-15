@@ -9,6 +9,10 @@ import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
 import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
 import { DeviceActivityStatus, HeadStatus, Constants } from '@/proto/generated/types'
 import ToolbarIndicator from '@/components/ToolbarIndicator.vue'
+import { useLocalSettingsStore } from '@/stores/localSettings'
+import DebugInfo from '@/components/DebugInfo.vue'
+
+const localSettingsStore = useLocalSettingsStore()
 
 const device: Device = inject('device')!
 
@@ -36,7 +40,10 @@ async function loadCalibrationStatus() {
   p1_orig.value = head_params.sensor_p1_at
 }
 
-onMounted(async () => { await loadCalibrationStatus() })
+onMounted(async () => {
+  if (!device.is_ready.value) return
+  await loadCalibrationStatus()
+})
 
 onBeforeRouteLeave(async () => {
   if (status.value.activity === DeviceActivityStatus.SensorBake) await device.stop()
@@ -164,6 +171,11 @@ async function save_p1() {
             :history="device.history.value"
             :show_history="device.history_id.value === Constants.HISTORY_ID_SENSOR_BAKE_MODE" />
         </div>
+        <DebugInfo
+          v-if="localSettingsStore.showDebugInfo"
+          class="absolute bottom-10 right-3 text-right text-xs opacity-50"
+          :status="status"
+        />
       </div>
     </template>
   </PageLayout>

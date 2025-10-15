@@ -46,6 +46,7 @@ function configToRefs(config: HeadParams) {
 }
 
 onMounted(async () => {
+  if (!device.is_ready.value) return
   configToRefs(await device.get_head_params())
 })
 
@@ -64,7 +65,7 @@ watchDebounced(test_temperature, async () => {
 
 // Reload ADRC settings when finish any task
 watch(() => device.status.value.activity, async (newState) => {
-  if (newState === DeviceActivityStatus.Idle) {
+  if (newState === DeviceActivityStatus.Idle && device.is_ready.value) {
     configToRefs(await device.get_head_params())
   }
 })
