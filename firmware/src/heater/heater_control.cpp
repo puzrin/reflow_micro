@@ -68,7 +68,7 @@ bool HeaterControl::set_calibration_point_0(float temperature) {
 
     // RTD mode: use ADC voltage
     if (head.heater_type.load() == HeaterType_PCB) {
-        params.sensor_p0_value = head.last_sensor_value_mv.load();
+        params.sensor_p0_value = head.last_sensor_value_uv.load();
         params.sensor_p0_at = temperature;
         return set_head_params(params);
     }
@@ -84,7 +84,7 @@ bool HeaterControl::set_calibration_point_1(float temperature) {
 
     // RTD mode: use ADC voltage
     if (head.heater_type.load() == HeaterType_PCB) {
-        params.sensor_p1_value = head.last_sensor_value_mv.load();
+        params.sensor_p1_value = head.last_sensor_value_uv.load();
         params.sensor_p1_at = temperature;
         return set_head_params(params);
     }

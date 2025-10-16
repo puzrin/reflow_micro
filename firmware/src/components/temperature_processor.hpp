@@ -72,7 +72,7 @@ private:
                 break;
 
             case 1: // One calibration point
-                R_raw0 = 560.0f * p0_value / (2500.0f - p0_value) * 1000.0f;  // milliohms
+                R_raw0 = 560.0f * p0_value / (2500.0f * 1000.0f - p0_value) * 1000.0f;  // milliohms (p0_value in uV)
                 R_expected0 = PT100::x10_t2r(static_cast<int32_t>(p0_at * 10));
 
                 rtd_gain_q16 = 1 << 16;  // 1.0 in Q16
@@ -80,8 +80,8 @@ private:
                 break;
 
             case 2: // Two calibration points
-                R_raw0 = 560.0f * p0_value / (2500.0f - p0_value) * 1000.0f;  // milliohms
-                R_raw1 = 560.0f * p1_value / (2500.0f - p1_value) * 1000.0f;  // milliohms
+                R_raw0 = 560.0f * p0_value / (2500.0f * 1000.0f - p0_value) * 1000.0f;  // milliohms (p0_value in uV)
+                R_raw1 = 560.0f * p1_value / (2500.0f * 1000.0f - p1_value) * 1000.0f;  // milliohms (p1_value in uV)
                 R_expected0 = PT100::x10_t2r(static_cast<int32_t>(p0_at * 10));
                 R_expected1 = PT100::x10_t2r(static_cast<int32_t>(p1_at * 10));
 
@@ -96,9 +96,15 @@ private:
         }
     }
 
-    int32_t get_rtd_temperature_x10(uint32_t mV) const {
-        // Calculate R_raw in milliohms: R = 560Ω * mV / (2500mV - mV) * 1000
-        uint32_t R_raw = (560 * mV * 1000) / (2500 - mV);
+    int32_t get_rtd_temperature_x10(uint32_t uV) const {
+        if (uV >= 2400u * 1000u) {
+            // Prevent edge case (should never happen in normal operation)
+            return 1000 * 10; // 1000.0°C
+        }
+        // Calculate R_raw in milliohms: R = 560Ω * uV / (2500mV*1000 - uV) * 1000
+        uint32_t R_raw = static_cast<uint32_t>(
+            (static_cast<uint64_t>(560) * 1000u * uV) / static_cast<uint32_t>(2500u * 1000u - uV)
+        );
 
         // Apply calibration: R_corrected = rtd_gain * R_raw + rtd_offset
         int64_t R_corrected = (static_cast<int64_t>(rtd_gain_q16) * static_cast<int64_t>(R_raw)) >> 16;

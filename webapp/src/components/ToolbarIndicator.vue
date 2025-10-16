@@ -15,11 +15,11 @@ defineProps<{
       •
     </span>
     <span class="font-mono">
-      {{ Math.floor(status.temperature_x10 / 10) }}
+      {{ Math.trunc(status.temperature_x10 / 10) }}
     </span>
     <span class="text-[0.7em] opacity-80">.</span>
     <span class="font-mono text-[0.7em] opacity-80">
-      {{ status.temperature_x10 % 10 }}
+      {{ Math.abs(status.temperature_x10 % 10) }}
     </span>°C
   </div>
 </template>

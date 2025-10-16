@@ -39,7 +39,7 @@ public:
     }
 
     static auto on_run_state(Head& head) -> state_id_t {
-        if (head.last_sensor_value_mv.load() <= Head::SENSOR_FLOATING_LEVEL_MV) {
+        if (head.last_sensor_value_uv.load() <= Head::SENSOR_FLOATING_LEVEL_MV * 1000) {
             return HeadState::Initializing;
         }
         return No_State_Change;
@@ -59,7 +59,7 @@ public:
     }
 
     static auto on_run_state(Head& head) -> state_id_t {
-        if (head.last_sensor_value_mv.load() >= Head::SENSOR_FLOATING_LEVEL_MV) {
+        if (head.last_sensor_value_uv.load() >= Head::SENSOR_FLOATING_LEVEL_MV * 1000) {
             return HeadState::Detached;
         }
 
@@ -72,7 +72,7 @@ public:
             // The difference is, PCB-based heater has much better heat
             // distribution. For MCH heaters using TCR-based estimates may lead
             // to errors, difficult to fix.
-            head.heater_type = (head.last_sensor_value_mv.load() <= Head::SENSOR_SHORTED_LEVEL_MV)
+            head.heater_type = (head.last_sensor_value_uv.load() <= Head::SENSOR_SHORTED_LEVEL_MV * 1000)
                 ? HeaterType_MCH : HeaterType_PCB;
 
             if (!head.eeprom_store.read(head.head_params.value)) {
@@ -111,7 +111,7 @@ public:
     }
 
     static auto on_run_state(Head& head) -> state_id_t {
-        if (head.last_sensor_value_mv.load() >= Head::SENSOR_FLOATING_LEVEL_MV) {
+        if (head.last_sensor_value_uv.load() >= Head::SENSOR_FLOATING_LEVEL_MV * 1000) {
             return HeadState::Detached;
         }
 
@@ -131,7 +131,7 @@ public:
     }
 
     static auto on_run_state(Head& head) -> state_id_t {
-        if (head.last_sensor_value_mv.load() >= Head::SENSOR_FLOATING_LEVEL_MV) {
+        if (head.last_sensor_value_uv.load() >= Head::SENSOR_FLOATING_LEVEL_MV * 1000) {
             return HeadState::Detached;
         }
 
@@ -182,7 +182,7 @@ void Head::task_loop() {
         }
     }
 
-    update_sensor_mv();
+    update_sensor_uv();
 
     // Run state machine
     run();
@@ -234,6 +234,9 @@ void Head::adc_init() {
     cf.bitwidth = ADC_BITWIDTH_12;
     ESP_ERROR_CHECK(adc_cali_create_scheme_curve_fitting(&cf, &adc_cali_handle));
 
+    // Build ADC calibration lookup table with sub-mV interpolation
+    build_adc_lut();
+
     // Register callback
     adc_continuous_evt_cbs_t cbs{};
     cbs.on_conv_done = adc_conv_done_callback;
@@ -242,6 +245,34 @@ void Head::adc_init() {
 
     // Start continuous conversion
     ESP_ERROR_CHECK(adc_continuous_start(adc_handle));
+}
+
+void Head::build_adc_lut() {
+    int prev_mV = 0;
+    adc_cali_raw_to_voltage(adc_cali_handle, 0, &prev_mV);
+
+    uint32_t last_transition_idx = 0;
+    size_t grid_point = 0;
+
+    for (uint32_t raw = 1; raw <= 4095; raw++) {
+        int mV = 0;
+        adc_cali_raw_to_voltage(adc_cali_handle, raw, &mV);
+
+        if (mV != prev_mV) {
+            last_transition_idx = raw;
+            prev_mV = mV;
+        }
+
+        uint32_t next_grid_idx = (grid_point * 4095) / (ADC_INTERPOLATOR_LUT_SIZE_MAX - 1);
+
+        if (raw >= next_grid_idx && grid_point < ADC_INTERPOLATOR_LUT_SIZE_MAX) {
+            adc_interpolator.points.push_back({
+                .raw = static_cast<uint16_t>(last_transition_idx),
+                .mV = static_cast<uint16_t>(prev_mV)
+            });
+            grid_point++;
+        }
+    }
 }
 
 bool IRAM_ATTR Head::adc_conv_done_callback(adc_continuous_handle_t handle,
@@ -263,10 +294,10 @@ bool IRAM_ATTR Head::adc_conv_done_callback(adc_continuous_handle_t handle,
     }
 
     if (count > 0) {
-        uint16_t avg_raw = static_cast<uint16_t>(sum / count);
+        // Store avg_x100 to preserve fractional precision
+        uint32_t avg_x100 = (sum * 100) / count;
 
-        // Store in ring buffer as raw ADC value
-        self->temp_ring_buffer[self->ring_buffer_idx] = avg_raw;
+        self->temp_ring_buffer[self->ring_buffer_idx] = avg_x100;
         self->ring_buffer_idx = (self->ring_buffer_idx + 1) % TEMPERATURE_RING_BUFFER_SIZE;
         auto prev_count = self->ring_buffer_count.load();
         if (prev_count < TEMPERATURE_RING_BUFFER_SIZE) {
@@ -277,28 +308,22 @@ bool IRAM_ATTR Head::adc_conv_done_callback(adc_continuous_handle_t handle,
     return false; // Don't yield from ISR
 }
 
-void Head::update_sensor_mv() {
-    // Calculate average from ring buffer (raw values)
-    uint32_t sum = 0;
-
+void Head::update_sensor_uv() {
     uint32_t valid_count = ring_buffer_count.load();
     if (valid_count == 0) {
         return;
     }
 
+    // Sum all avg_x100 values from ring buffer
+    uint32_t total_sum = 0;
     for (uint32_t i = 0; i < valid_count; i++) {
-        sum += temp_ring_buffer[i];
+        total_sum += temp_ring_buffer[i];
     }
 
-    uint32_t avg_raw = sum / valid_count;
+    // Convert to microvolts using interpolator (scale = valid_count * 100)
+    uint32_t uV = adc_interpolator.to_uv(total_sum, valid_count * 100);
 
-    int mv = 0;
-    esp_err_t err = adc_cali_raw_to_voltage(adc_cali_handle, static_cast<int>(avg_raw), &mv);
-    if (err != ESP_OK) {
-        return;
-    }
-
-    last_sensor_value_mv.store(static_cast<uint32_t>(mv));
+    last_sensor_value_uv.store(uV);
 }
 
 bool Head::get_head_params_pb(std::vector<uint8_t>& pb_data) {
@@ -351,15 +376,15 @@ bool Head::set_head_params(const HeadParams& params) {
 }
 
 int32_t Head::get_temperature_x10() {
-    uint32_t mv = last_sensor_value_mv.load();
+    uint32_t uV = last_sensor_value_uv.load();
 
     // Safety check, should never happen due to state machine
-    if (mv < SENSOR_SHORTED_LEVEL_MV || mv > SENSOR_FLOATING_LEVEL_MV) {
+    if (uV <= SENSOR_SHORTED_LEVEL_MV * 1000 || uV >= SENSOR_FLOATING_LEVEL_MV * 1000) {
         return 0;
     }
 
     // Use TemperatureProcessor for calibrated temperature measurement
-    return temperature_processor.get_temperature_x10(mv);
+    return temperature_processor.get_temperature_x10(uV);
 }
 
 bool Head::is_attached() const {

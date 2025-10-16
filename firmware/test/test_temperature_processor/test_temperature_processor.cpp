@@ -6,11 +6,12 @@
 static constexpr uint32_t SENSOR_SHORTED_LEVEL_MV = 150;
 static constexpr uint32_t SENSOR_FLOATING_LEVEL_MV = 800;
 
-// Helper: Convert temperature to expected ADC millivolts for PT100
-// Inverse of above: mV = 2500 * R / (R + 560 * 1000)
-static uint32_t temp_to_mv(int32_t temp_x10) {
-    uint32_t R = PT100::x10_t2r(temp_x10);
-    return 2500 * R / (R + 560 * 1000);
+// Helper: Convert temperature to expected ADC microvolts for PT100
+// Inverse: uV = 2500000 * R_mohms / (R_mohms + 560000)
+// R is in milliohms, 560000 = 560Ω * 1000
+static uint32_t temp_to_uv(int32_t temp_x10) {
+    uint32_t R_mohms = PT100::x10_t2r(temp_x10);
+    return (uint64_t)2500000 * R_mohms / (R_mohms + 560000);
 }
 
 //=============================================================================
@@ -23,18 +24,18 @@ TEST(TemperatureProcessorTest, RTD_NoCalibration) {
     // No calibration points set
 
     // Test at room temperature ~25°C
-    uint32_t mv_25c = temp_to_mv(25 * 10);
-    int32_t result = proc.get_temperature_x10(mv_25c);
+    uint32_t uv_25c = temp_to_uv(25 * 10);
+    int32_t result = proc.get_temperature_x10(uv_25c);
     EXPECT_NEAR(result, 25 * 10, 10); // ±1°C tolerance
 
     // Test at 100°C
-    uint32_t mv_100c = temp_to_mv(100 * 10);
-    result = proc.get_temperature_x10(mv_100c);
+    uint32_t uv_100c = temp_to_uv(100 * 10);
+    result = proc.get_temperature_x10(uv_100c);
     EXPECT_NEAR(result, 100 * 10, 10);
 
     // Test at 200°C
-    uint32_t mv_200c = temp_to_mv(200 * 10);
-    result = proc.get_temperature_x10(mv_200c);
+    uint32_t uv_200c = temp_to_uv(200 * 10);
+    result = proc.get_temperature_x10(uv_200c);
     EXPECT_NEAR(result, 200 * 10, 20);
 }
 
@@ -42,19 +43,19 @@ TEST(TemperatureProcessorTest, RTD_OnePointCalibration_Offset) {
     TemperatureProcessor proc;
     proc.set_sensor_type(TemperatureProcessor::SensorType::RTD);
 
-    // Simulate ADC with -5mV offset: actual ADC reads 5mV lower than expected
-    uint32_t mv_100c_ideal = temp_to_mv(100 * 10);
-    uint32_t mv_100c_actual = mv_100c_ideal - 5;
+    // Simulate ADC with -5mV offset: actual ADC reads 5000uV lower than expected
+    uint32_t uv_100c_ideal = temp_to_uv(100 * 10);
+    uint32_t uv_100c_actual = uv_100c_ideal - 5000;
 
     // BEFORE calibration: reading is wrong due to offset
-    int32_t result_before = proc.get_temperature_x10(mv_100c_actual);
+    int32_t result_before = proc.get_temperature_x10(uv_100c_actual);
     int32_t error_before = abs(result_before - 100 * 10);
     EXPECT_GT(error_before, 10); // Should have noticeable error
 
     // AFTER calibration at 100°C
-    proc.set_cal_points(100.0f, static_cast<float>(mv_100c_actual), 0.0f, 0.0f);
+    proc.set_cal_points(100.0f, static_cast<float>(uv_100c_actual), 0.0f, 0.0f);
 
-    int32_t result_after = proc.get_temperature_x10(mv_100c_actual);
+    int32_t result_after = proc.get_temperature_x10(uv_100c_actual);
     EXPECT_NEAR(result_after, 100 * 10, 5); // Now reads correctly
 
     // Check correction improved the reading (works for both positive and negative offset)
@@ -62,8 +63,8 @@ TEST(TemperatureProcessorTest, RTD_OnePointCalibration_Offset) {
     EXPECT_GT(error_before, error_after); // Error decreased
 
     // Test at different temperature with same offset - should also improve
-    uint32_t mv_200c_actual = temp_to_mv(200 * 10) - 5;
-    result_after = proc.get_temperature_x10(mv_200c_actual);
+    uint32_t uv_200c_actual = temp_to_uv(200 * 10) - 5000;
+    result_after = proc.get_temperature_x10(uv_200c_actual);
     EXPECT_NEAR(result_after, 200 * 10, 10);
 }
 
@@ -76,32 +77,32 @@ TEST(TemperatureProcessorTest, RTD_TwoPointCalibration_Linear) {
         return static_cast<uint32_t>(ideal_mv * 1.02f + 3.0f);
     };
 
-    uint32_t mv_50c = simulate_adc(temp_to_mv(50 * 10));
-    uint32_t mv_150c = simulate_adc(temp_to_mv(150 * 10));
-    uint32_t mv_250c = simulate_adc(temp_to_mv(250 * 10));
+    uint32_t uv_50c = simulate_adc(temp_to_uv(50 * 10));
+    uint32_t uv_150c = simulate_adc(temp_to_uv(150 * 10));
+    uint32_t uv_250c = simulate_adc(temp_to_uv(250 * 10));
 
     // BEFORE calibration: readings are wrong due to gain + offset error
-    int32_t result_50_before = proc.get_temperature_x10(mv_50c);
-    int32_t result_150_before = proc.get_temperature_x10(mv_150c);
-    int32_t result_250_before = proc.get_temperature_x10(mv_250c);
+    int32_t result_50_before = proc.get_temperature_x10(uv_50c);
+    int32_t result_150_before = proc.get_temperature_x10(uv_150c);
+    int32_t result_250_before = proc.get_temperature_x10(uv_250c);
 
     EXPECT_GT(result_50_before, 50 * 10 + 10);   // Should read higher
     EXPECT_GT(result_150_before, 150 * 10 + 20); // Error grows with temp
     EXPECT_GT(result_250_before, 250 * 10 + 30);
 
     // AFTER 2-point calibration at 50°C and 250°C
-    proc.set_cal_points(50.0f, static_cast<float>(mv_50c),
-                       250.0f, static_cast<float>(mv_250c));
+    proc.set_cal_points(50.0f, static_cast<float>(uv_50c),
+                       250.0f, static_cast<float>(uv_250c));
 
     // Test at calibration points - should be corrected
-    int32_t result_50_after = proc.get_temperature_x10(mv_50c);
+    int32_t result_50_after = proc.get_temperature_x10(uv_50c);
     EXPECT_NEAR(result_50_after, 50 * 10, 5);
 
-    int32_t result_250_after = proc.get_temperature_x10(mv_250c);
+    int32_t result_250_after = proc.get_temperature_x10(uv_250c);
     EXPECT_NEAR(result_250_after, 250 * 10, 10);
 
     // Test at intermediate point - should also be corrected
-    int32_t result_150_after = proc.get_temperature_x10(mv_150c);
+    int32_t result_150_after = proc.get_temperature_x10(uv_150c);
     EXPECT_NEAR(result_150_after, 150 * 10, 10);
 
     // Verify correction improved readings
@@ -115,16 +116,16 @@ TEST(TemperatureProcessorTest, RTD_RealisticRange) {
     proc.set_sensor_type(TemperatureProcessor::SensorType::RTD);
 
     // Test across realistic soldering temperature range
-    // Max safe temp ~400°C (800mV limit with 560Ω divider and ADC_ATTEN_DB_0)
-    // 350°C → 738mV, 400°C → 780mV, both within 800mV threshold
+    // Max safe temp ~400°C (800000uV limit with 560Ω divider and ADC_ATTEN_DB_0)
+    // 350°C → 738000uV, 400°C → 780000uV, both within 800000uV threshold
     for (int32_t temp = 0; temp <= 350; temp += 50) {
-        uint32_t mv = temp_to_mv(temp * 10);
+        uint32_t uv = temp_to_uv(temp * 10);
 
         // Check voltage is in valid sensor range
-        EXPECT_GT(mv, SENSOR_SHORTED_LEVEL_MV);
-        EXPECT_LT(mv, SENSOR_FLOATING_LEVEL_MV);
+        EXPECT_GT(uv, SENSOR_SHORTED_LEVEL_MV * 1000);
+        EXPECT_LT(uv, SENSOR_FLOATING_LEVEL_MV * 1000);
 
-        int32_t result = proc.get_temperature_x10(mv);
+        int32_t result = proc.get_temperature_x10(uv);
         EXPECT_NEAR(result, temp * 10, 20);
     }
 }
@@ -219,14 +220,14 @@ TEST(TemperatureProcessorTest, DivByZero_RTD_IdenticalADCValues) {
     TemperatureProcessor proc;
     proc.set_sensor_type(TemperatureProcessor::SensorType::RTD);
 
-    uint32_t mv_100c = temp_to_mv(100 * 10);
+    uint32_t uv_100c = temp_to_uv(100 * 10);
 
     // Set two calibration points with identical ADC values (different temps)
-    proc.set_cal_points(100.0f, static_cast<float>(mv_100c),
-                       200.0f, static_cast<float>(mv_100c));
+    proc.set_cal_points(100.0f, static_cast<float>(uv_100c),
+                       200.0f, static_cast<float>(uv_100c));
 
     // Should not crash and should behave like 1-point calibration
-    int32_t result = proc.get_temperature_x10(mv_100c);
+    int32_t result = proc.get_temperature_x10(uv_100c);
     EXPECT_NEAR(result, 100 * 10, 10);
 }
 
@@ -234,15 +235,15 @@ TEST(TemperatureProcessorTest, DivByZero_RTD_IdenticalTemperatures) {
     TemperatureProcessor proc;
     proc.set_sensor_type(TemperatureProcessor::SensorType::RTD);
 
-    uint32_t mv_100c = temp_to_mv(100 * 10);
-    uint32_t mv_200c = temp_to_mv(200 * 10);
+    uint32_t uv_100c = temp_to_uv(100 * 10);
+    uint32_t uv_200c = temp_to_uv(200 * 10);
 
     // Set two calibration points with identical temperatures (different ADC)
-    proc.set_cal_points(100.0f, static_cast<float>(mv_100c),
-                       100.0f, static_cast<float>(mv_200c));
+    proc.set_cal_points(100.0f, static_cast<float>(uv_100c),
+                       100.0f, static_cast<float>(uv_200c));
 
     // Should not crash and should behave like 1-point calibration
-    int32_t result = proc.get_temperature_x10(mv_100c);
+    int32_t result = proc.get_temperature_x10(uv_100c);
     EXPECT_NEAR(result, 100 * 10, 10);
 }
 
@@ -275,9 +276,9 @@ TEST(TemperatureProcessorTest, DivByZero_CompletelyIdenticalPoints) {
 
     // RTD mode
     proc.set_sensor_type(TemperatureProcessor::SensorType::RTD);
-    uint32_t mv = temp_to_mv(100 * 10);
-    proc.set_cal_points(100.0f, static_cast<float>(mv), 100.0f, static_cast<float>(mv));
-    int32_t result = proc.get_temperature_x10(mv);
+    uint32_t uv = temp_to_uv(100 * 10);
+    proc.set_cal_points(100.0f, static_cast<float>(uv), 100.0f, static_cast<float>(uv));
+    int32_t result = proc.get_temperature_x10(uv);
     EXPECT_NEAR(result, 100 * 10, 10);
 
     // TCR mode
@@ -296,10 +297,10 @@ TEST(TemperatureProcessorTest, SwitchSensorType_RecalculatesCoefficients) {
 
     // Start with RTD
     proc.set_sensor_type(TemperatureProcessor::SensorType::RTD);
-    uint32_t mv = temp_to_mv(100 * 10);
-    proc.set_cal_points(100.0f, static_cast<float>(mv), 0.0f, 0.0f);
+    uint32_t uv = temp_to_uv(100 * 10);
+    proc.set_cal_points(100.0f, static_cast<float>(uv), 0.0f, 0.0f);
 
-    int32_t result_rtd = proc.get_temperature_x10(mv);
+    int32_t result_rtd = proc.get_temperature_x10(uv);
     EXPECT_NEAR(result_rtd, 100 * 10, 10);
 
     // Switch to TCR with different calibration
