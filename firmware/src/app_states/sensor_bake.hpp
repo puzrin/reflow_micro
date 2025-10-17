@@ -1,3 +1,5 @@
+#pragma once
+
 #include "app.hpp"
 #include "proto/generated/types.pb.h"
 
@@ -12,4 +14,9 @@ public:
     auto on_event_unknown(const etl::imessage& event) -> etl::fsm_state_id_t;
 
     void on_exit_state() override;
+
+private:
+    float last_temperature = 0.0f;
+
+    void task_iterator(int32_t dt_ms, int32_t time_ms);
 };

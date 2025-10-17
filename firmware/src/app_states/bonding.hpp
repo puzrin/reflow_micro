@@ -1,3 +1,5 @@
+#pragma once
+
 #include "app.hpp"
 #include "proto/generated/types.pb.h"
 
