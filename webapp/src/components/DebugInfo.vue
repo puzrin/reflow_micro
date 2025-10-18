@@ -13,7 +13,7 @@ defineProps<{
     <div><span class="font-mono">{{ (status.peak_mv/1000).toFixed(1) }} V</span></div>
     <div><span class="font-mono">{{ (status.peak_ma/1000).toFixed(2) }} A</span></div>
     <div><span class="font-mono">duty {{ (status.duty_x1000/10).toFixed(0) }} %</span></div>
-    <div><span class="font-mono">{{ status.resistance_mohms < 1000*1000 ? (status.resistance_mohms/1000).toFixed(2) : '??' }} Ω</span></div>
+    <div><span class="font-mono">{{ status.resistance_mohms < 1000*1000 ? (status.resistance_mohms/1000).toFixed(3) : '??' }} Ω</span></div>
     <div><span class="font-mono">t raw {{ status.temperature_x10.toFixed(0) }}</span></div>
   </div>
 </template>
