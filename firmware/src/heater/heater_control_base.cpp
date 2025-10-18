@@ -64,8 +64,7 @@ auto HeaterControlBase::load_all_params() -> bool {
 }
 
 void HeaterControlBase::temperature_control_on() {
-    // If task was is running - it already loaded params, don't repeat
-    if (!is_task_active.load()) { load_all_params(); }
+    load_all_params();
 
     adrc.reset_to(get_temperature());
     temperature_control_enabled = true;

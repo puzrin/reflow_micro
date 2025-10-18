@@ -10,6 +10,10 @@ import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
 import { HeadParams, DeviceActivityStatus, HeadStatus, Constants } from '@/proto/generated/types'
 import { DEFAULT_HEAD_PARAMS_PB } from '@/proto/generated/defaults'
 import ToolbarIndicator from '@/components/ToolbarIndicator.vue'
+import { useLocalSettingsStore } from '@/stores/localSettings'
+import DebugInfo from '@/components/DebugInfo.vue'
+
+const localSettingsStore = useLocalSettingsStore()
 
 const device: Device = inject('device')!
 
@@ -197,7 +201,8 @@ async function default_adrc_params() {
       <h2 class="text-2xl mb-4 text-slate-800">Test controller</h2>
       <div class="mb-2">
         <div class="flex gap-2 flex-nowrap w-full">
-          <input v-model="test_temperature" type="range" min="25" max="300" class="w-full" />
+          <!-- <input v-model="test_temperature" type="range" min="25" max="300" class="w-full" /> -->
+          <input v-model="test_temperature" type="number" min="25" max="300" class="w-full" />
           <ButtonNormal @click="device.run_adrc_test(toNumber(test_temperature))" :disabled="!is_idle">Run</ButtonNormal>
           <ButtonNormal @click="device.stop()" :disabled="!is_testing">Stop</ButtonNormal>
         </div>
@@ -211,6 +216,11 @@ async function default_adrc_params() {
             :history="device.history.value"
             :show_history="[Constants.HISTORY_ID_ADRC_TEST_MODE, Constants.HISTORY_ID_STEP_RESPONSE].includes(device.history_id.value)" />
         </div>
+        <DebugInfo
+          v-if="localSettingsStore.showDebugInfo"
+          class="absolute bottom-10 right-3 text-right text-xs opacity-50"
+          :status="status"
+        />
       </div>
     </template>
   </PageLayout>

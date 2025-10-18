@@ -7,7 +7,7 @@
 #include "power.hpp"
 
 void HeaterControl::setup() {
-    static constexpr int32_t TICK_PERIOD_MS = 50;
+    static constexpr int32_t TICK_PERIOD_MS = 100;
     prev_tick_ms = get_time_ms() - TICK_PERIOD_MS;
 
     power.setup();
@@ -51,7 +51,10 @@ bool HeaterControl::get_head_params_pb(std::vector<uint8_t>& pb_data) {
 }
 
 bool HeaterControl::set_head_params_pb(const std::vector<uint8_t>& pb_data) {
-    return head.set_head_params_pb(pb_data);
+    if (!head.set_head_params_pb(pb_data)) { return false; }
+    // Refetch ADRC params. Useful for calibration experiments.
+    load_all_params();
+    return true;
 }
 
 bool HeaterControl::get_head_params(HeadParams& params) {
@@ -59,7 +62,10 @@ bool HeaterControl::get_head_params(HeadParams& params) {
 }
 
 bool HeaterControl::set_head_params(const HeadParams& params) {
-    return head.set_head_params(params);
+    if (!head.set_head_params(params)) { return false; }
+    // Refetch ADRC params. Useful for calibration experiments.
+    load_all_params();
+    return true;
 }
 
 bool HeaterControl::set_calibration_point_0(float temperature) {
