@@ -75,7 +75,9 @@ public:
         auto& pwr = get_fsm_context();
         pwr.log_state();
 
-        dpm.clear_trigger();
+        auto& ps = pwr.profile_selector;
+        dpm.clear_trigger_to(ps.default_position, ps.default_mv);
+
         pwr.pwm.enable(false);
         pwr.pwm.set_consumer_info(0, 0, false);
         pwr.profile_selector.set_target_power_mw(0);
@@ -149,12 +151,13 @@ public:
 
     auto on_event(const pd::MsgToDpm_NewPowerLevelRejected&) -> etl::fsm_state_id_t {
         auto& pwr = get_fsm_context();
+        auto& ps = pwr.profile_selector;
 
         // Local APDO update failed
         pwr.is_apdo_updating = false;
         // Force re-init on failure
         // NOTE: trigger function MUST be async to avoid deadlock
-        dpm.trigger_any(Power::DEFAULT_VOLTAGE_MV, 0);
+        dpm.trigger_by_position(ps.default_position, ps.default_mv);
         return PWR_STATE::Initializing;
     }
 
@@ -170,6 +173,7 @@ public:
 
     auto on_event(const MsgToPower_SysTick&) -> etl::fsm_state_id_t {
         auto& pwr = get_fsm_context();
+        auto& ps = pwr.profile_selector;
 
         auto ci = pwr.pwm.get_consumer_info();
         auto consumer_valid = pwr.is_consumer_valid(ci);
@@ -192,7 +196,7 @@ public:
             // If head connection lost for some reasons (ejected)
             pwr.pwm.enable(false);
             // NOTE: trigger function MUST be async to avoid deadlock
-            dpm.trigger_any(Power::DEFAULT_VOLTAGE_MV, 0);
+            dpm.trigger_by_position(ps.default_position, ps.default_mv);
             return PWR_STATE::Initializing;
         }
 
@@ -263,9 +267,10 @@ public:
     }
 
     auto on_event(const pd::MsgToDpm_NewPowerLevelRejected&) -> etl::fsm_state_id_t {
+        auto& ps = get_fsm_context().profile_selector;
         // Force re-init on failure
         // NOTE: trigger function MUST be async to avoid deadlock
-        dpm.trigger_any(Power::DEFAULT_VOLTAGE_MV, 0);
+        dpm.trigger_by_position(ps.default_position, ps.default_mv);
         return PWR_STATE::Initializing;
     }
 
@@ -408,9 +413,12 @@ void DPM_EventListener::on_receive(const pd::MsgToDpm_TransitToDefault&) {
 void DPM_EventListener::on_receive(const pd::MsgToDpm_SrcCapsReceived&) {
     // Use shadow copy for eventual consistency
     power.lock();
+
     power.source_caps = port.source_caps;
     power.profile_selector.load_pdos(power.source_caps);
-    power.profile_selector.set_pdo_index(0);
+    auto & ps = power.profile_selector;
+    dpm.clear_trigger_to(ps.default_position, ps.default_mv);
+
     power.unlock();
 
     power.log_pdos();
@@ -422,6 +430,8 @@ void DPM_EventListener::on_receive(const pd::MsgToDpm_SrcCapsReceived&) {
 void DPM_EventListener::on_receive(const pd::MsgToDpm_SelectCapDone&) {
     pd::RDO_ANY rdo{port.rdo_contracted};
     auto pdo_pos = rdo.obj_position;
+
+    // APP_LOGD("===== Power: PD Select Cap done, position {}", pdo_pos);
 
     power.lock();
     power.profile_selector.set_pdo_index(pdo_pos - 1);

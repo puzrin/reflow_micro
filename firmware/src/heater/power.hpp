@@ -46,11 +46,6 @@ private:
 
 class Power: public etl::fsm {
 public:
-    // By default, ask min voltage with reserve (5000 + 1000), to keep enough
-    // device power if load causes voltage drop.
-    // If SRC has no APDO support, DPM will automatically fallback to fixed 5V.
-    static constexpr uint32_t DEFAULT_VOLTAGE_MV = ProfileSelector::MIN_APDO_USAGE_MV;
-
     Power();
     void setup();
     void log_state();

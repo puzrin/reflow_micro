@@ -9,6 +9,9 @@
 
 class ProfileSelector {
 public:
+    static constexpr uint32_t DEFAULT_MV_DESIRED = 5500;
+    static constexpr uint32_t DEFAULT_MV_FALLBACK = 5000;
+
     struct PDO_DESCRIPTOR {
         pd::PDO_VARIANT pdo_variant{pd::PDO_VARIANT::UNKNOWN};
 
@@ -27,15 +30,17 @@ public:
         uint32_t duty_x1000{0};
     };
 
-    // If we use APDO, set minimal value a bit above 5 V, to exclude device
-    // power drop due PWM noise.
-    static constexpr uint32_t MIN_APDO_USAGE_MV = 6000;
-
     etl::vector<PDO_DESCRIPTOR, pd::MaxPdoObjects> descriptors;
     uint32_t current_index{0};
     uint32_t better_index{0};
     uint32_t load_mohms{0};
     uint32_t target_power_mw{0};
+
+    // Minimal profile (voltage) to use (updated on src caps load).
+    // - 5500 mV when APDO available
+    // - 5000 mV otherwise (first PDO)
+    uint32_t default_position{1};
+    uint32_t default_mv{DEFAULT_MV_FALLBACK};
 
     void load_pdos(pd::PDO_LIST const& pdos) {
         using namespace pd::dobj_utils;
@@ -69,6 +74,23 @@ public:
 
             descriptors.push_back(desc);
         }
+
+        default_position = 1;
+        default_mv = DEFAULT_MV_FALLBACK;
+
+        // Try to find APDO with DEFAULT_MV_DESIRED support
+        if (!descriptors.empty()) {
+            for (size_t i = descriptors.size()-1; i > 0; i--) {
+                auto& d = descriptors[i];
+                if (d.mv_max >= DEFAULT_MV_DESIRED && d.mv_min <= DEFAULT_MV_DESIRED) {
+                    default_position = i + 1;
+                    default_mv = DEFAULT_MV_DESIRED;
+                    break;
+                }
+            }
+        }
+
+        set_pdo_index(0);
     };
 
     auto set_load_mohms(uint32_t R_mohms) -> ProfileSelector& {
@@ -303,7 +325,7 @@ public:
             uint32_t ideal_mv = isqrt64(static_cast<uint64_t>(possible_mw) * load_mohms);
 
             params.mv = etl::clamp<uint32_t>(ideal_mv, d.mv_min, d.mv_max);
-            if (params.mv < MIN_APDO_USAGE_MV) { params.mv = MIN_APDO_USAGE_MV; }
+            if (params.mv < default_mv) { params.mv = default_mv; }
 
             auto max_duty_mw = (params.mv * params.mv / load_mohms);
 
