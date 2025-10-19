@@ -188,6 +188,10 @@ void HeaterControl::update_fan_speed() {
             //
             if (temperature_x10 > setpoint_x10 + C_DIFF_ON_X10) { fan.max(); }
             if (temperature_x10 < setpoint_x10 + C_DIFF_OFF_X10) { fan.off(); }
+        } else {
+            // If task is working, but without temperature control - disable fan.
+            // This is valid scenario for calibration-related things.
+            fan.off();
         }
     } else {
         // No task => always cool down to low temperature, if head attached
