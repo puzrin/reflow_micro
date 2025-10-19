@@ -12,7 +12,6 @@ namespace AppCmd {
 namespace _id {
     enum {
         STOP,
-        SUCCEEDED,
         REFLOW,
         SENSOR_BAKE,
         ADRC_TEST,
@@ -32,8 +31,13 @@ namespace _id {
         const ParamType ParamName; \
     }
 
-DEFINE_SIMPLE_MSG(Stop, _id::STOP);
-DEFINE_SIMPLE_MSG(Succeeded, _id::SUCCEEDED);
+//DEFINE_SIMPLE_MSG(Stop, _id::STOP);
+class Stop : public etl::message<_id::STOP> {
+public:
+    explicit Stop(bool succeeded = false) : succeeded{succeeded} {}
+    const bool succeeded;
+};
+
 DEFINE_SIMPLE_MSG(Reflow, _id::REFLOW);
 DEFINE_PARAM_MSG(SensorBake, _id::SENSOR_BAKE, float, watts);
 DEFINE_PARAM_MSG(AdrcTest, _id::ADRC_TEST, float, temperature);
@@ -43,7 +47,6 @@ DEFINE_PARAM_MSG(Button, _id::BUTTON, ButtonEventId, type);
 
 using Packet = etl::message_packet<
     AppCmd::Stop,
-    AppCmd::Succeeded,
     AppCmd::Reflow,
     AppCmd::SensorBake,
     AppCmd::AdrcTest,
@@ -87,9 +90,9 @@ public:
     void showOff();
 
     void beepButtonPress();
-    void beepReflowStarted();
-    void beepReflowComplete();
-    void beepReflowTerminated();
+    void beepTaskStarted();
+    void beepTaskSucceeded();
+    void beepTaskTerminated();
 
 private:
     SemaphoreHandle_t message_lock{xSemaphoreCreateMutex()};

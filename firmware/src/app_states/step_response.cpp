@@ -25,18 +25,15 @@ auto StepResponse_State::on_enter_state() -> etl::fsm_state_id_t {
     }
 
     heater.set_power(app.last_cmd_data);
-    app.beepReflowStarted();
+    app.beepTaskStarted();
 
     return No_State_Change;
 }
 
-auto StepResponse_State::on_event(const AppCmd::Stop&) -> etl::fsm_state_id_t {
-    get_fsm_context().beepReflowTerminated();
-    return DeviceActivityStatus_Idle;
-}
+auto StepResponse_State::on_event(const AppCmd::Stop& stop) -> etl::fsm_state_id_t {
+    auto& app = get_fsm_context();
 
-auto StepResponse_State::on_event(const AppCmd::Succeeded&) -> etl::fsm_state_id_t {
-    get_fsm_context().beepReflowComplete();
+    stop.succeeded ? app.beepTaskSucceeded() : app.beepTaskTerminated();
     return DeviceActivityStatus_Idle;
 }
 
@@ -183,7 +180,7 @@ void StepResponse_State::task_iterator(int32_t /*dt_ms*/, int32_t time_ms) {
     p.adrc_b0 = b0;
 
     heater.set_head_params(p);
-    app.enqueue_message(AppCmd::Succeeded{});
+    app.enqueue_message(AppCmd::Stop{true});
 }
 
 size_t StepResponse_State::find_t_idx_of(float ratio) {

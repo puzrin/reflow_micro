@@ -204,7 +204,7 @@ async function default_adrc_params() {
           <!-- <input v-model="test_temperature" type="range" min="25" max="300" class="w-full" /> -->
           <input v-model="test_temperature" type="number" min="25" max="300" class="w-full" />
           <ButtonNormal @click="device.run_adrc_test(toNumber(test_temperature))" :disabled="!is_idle">Run</ButtonNormal>
-          <ButtonNormal @click="device.stop()" :disabled="!is_testing">Stop</ButtonNormal>
+          <ButtonNormal @click="device.stop(true)" :disabled="!is_testing">Stop</ButtonNormal>
         </div>
         <div class="text-xs text-slate-400 mt-0.5">Temperature {{test_temperature}}°C</div>
       </div>

@@ -19,7 +19,7 @@ export interface IBackend {
   run_sensor_bake(watts: number): Promise<void>
   run_adrc_test(temperature: number): Promise<void>
   run_step_response(watts: number): Promise<void>
-  stop(): Promise<void>
+  stop(succeeded: boolean): Promise<void>
 
   load_profiles_data(reset: boolean): Promise<ProfilesData>
   save_profiles_data(data: ProfilesData): Promise<void>
@@ -80,7 +80,7 @@ export class Device {
   async run_sensor_bake(watts: number) { await this.backend?.run_sensor_bake(watts) }
   async run_adrc_test(temperature: number) { await this.backend?.run_adrc_test(temperature) }
   async run_step_response(watts: number) { await this.backend?.run_step_response(watts) }
-  async stop() { await this.backend?.stop() }
+  async stop(succeeded: boolean = false) { await this.backend?.stop(succeeded) }
 
   async get_head_params(): Promise<HeadParams> {
     if (!this.backend) throw Error('No backend selected')

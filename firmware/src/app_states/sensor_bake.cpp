@@ -3,19 +3,21 @@
 #include "logger.hpp"
 
 auto SensorBake_State::on_enter_state() -> etl::fsm_state_id_t {
-    APP_LOGI("State => SensorBake");
-
     auto& app = get_fsm_context();
+    APP_LOGI("State => SensorBake");
 
     last_temperature = heater.get_temperature();
 
     auto status = heater.task_start(HISTORY_ID_SENSOR_BAKE_MODE, [this](int32_t dt_ms, int32_t time_ms) {
         task_iterator(dt_ms, time_ms);
     });
-    if (!status) { return DeviceActivityStatus_Idle; }
+    if (!status) {
+        app.beepTaskTerminated();
+        return DeviceActivityStatus_Idle;
+    }
 
     heater.set_power(app.last_cmd_data);
-
+    app.beepTaskStarted();
     return No_State_Change;
 }
 

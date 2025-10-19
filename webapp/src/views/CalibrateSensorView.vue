@@ -87,7 +87,7 @@ async function save_p1() {
   saveP1Btn.value?.showSuccess()
   await loadCalibrationStatus()
   p1.value = ''
-  await device.stop()
+  await device.stop(true)
 }
 </script>
 

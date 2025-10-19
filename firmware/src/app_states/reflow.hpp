@@ -23,12 +23,11 @@ public:
 
 
 class Reflow_State : public etl::fsm_state<App, Reflow_State, DeviceActivityStatus_Reflow,
-    AppCmd::Stop, AppCmd::Succeeded, AppCmd::Button> {
+    AppCmd::Stop, AppCmd::Button> {
 public:
     auto on_enter_state() -> etl::fsm_state_id_t override;
 
     auto on_event(const AppCmd::Stop& event) -> etl::fsm_state_id_t;
-    auto on_event(const AppCmd::Succeeded& event) -> etl::fsm_state_id_t;
     auto on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t;
     auto on_event_unknown(const etl::imessage& event) -> etl::fsm_state_id_t;
 

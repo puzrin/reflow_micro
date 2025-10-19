@@ -53,8 +53,8 @@ auto save_profiles_data(std::vector<uint8_t> pb_data) -> bool {
     return true;
 }
 
-auto stop() -> bool {
-    application.receive(AppCmd::Stop{});
+auto stop(bool succeeded) -> bool {
+    application.receive(AppCmd::Stop{succeeded});
     return application.get_state_id() == DeviceActivityStatus_Idle;
 }
 

@@ -43,42 +43,46 @@ auto Timeline::interpolate(int32_t offset) const -> float {
 
 
 auto Reflow_State::on_enter_state() -> etl::fsm_state_id_t {
-    APP_LOGI("State => Reflow");
-
     auto& app = get_fsm_context();
+    APP_LOGI("State => Reflow");
 
     // Pick active profile, terminate on fail
     auto profile = std::make_unique<Profile>();
-    if (!profiles_config.get_selected_profile(*profile)) { return DeviceActivityStatus_Idle; }
+    if (!profiles_config.get_selected_profile(*profile)) {
+        app.beepTaskTerminated();
+        return DeviceActivityStatus_Idle;
+    }
 
     // Load timeline and try to execute the task
     timeline.load(*profile);
     auto status = heater.task_start(profile->id, [this](int32_t dt_ms, int32_t time_ms) {
         task_iterator(dt_ms, time_ms);
     });
-    if (!status) { return DeviceActivityStatus_Idle; }
+    if (!status) {
+        app.beepTaskTerminated();
+        return DeviceActivityStatus_Idle;
+    }
 
     // Enable ADRC & blink about success
     heater.temperature_control_on();
     app.showReflowStart();
-    app.beepReflowStarted();
+    app.beepTaskStarted();
 
     return No_State_Change;
 }
 
-auto Reflow_State::on_event(const AppCmd::Stop&) -> etl::fsm_state_id_t {
-    get_fsm_context().beepReflowTerminated();
-    return DeviceActivityStatus_Idle;
-}
+auto Reflow_State::on_event(const AppCmd::Stop& stop) -> etl::fsm_state_id_t {
+    auto& app = get_fsm_context();
 
-auto Reflow_State::on_event(const AppCmd::Succeeded&) -> etl::fsm_state_id_t {
-    get_fsm_context().beepReflowComplete();
+    stop.succeeded ? app.beepTaskSucceeded() : app.beepTaskTerminated();
     return DeviceActivityStatus_Idle;
 }
 
 auto Reflow_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
+    auto& app = get_fsm_context();
+
     if (event.type == ButtonEventId::BUTTON_PRESSED_1X) {
-        get_fsm_context().beepReflowTerminated();
+        app.beepTaskTerminated();
         return DeviceActivityStatus_Idle;
     }
     return No_State_Change;
@@ -96,13 +100,9 @@ void Reflow_State::on_exit_state() {
 void Reflow_State::task_iterator(int32_t /*dt_ms*/, int32_t time_ms) {
     auto& app = get_fsm_context();
 
-    //if (time_ms % 1000 == 0) {
-    //    APP_LOGI("Reflow: time={}ms, temp={}", time_ms, timeline.interpolate(time_ms));
-    //}
-
     if (time_ms >= timeline.get_max_time()) {
         heater.task_stop();
-        app.enqueue_message(AppCmd::Succeeded{});
+        app.enqueue_message(AppCmd::Stop{true});
         return;
     }
 

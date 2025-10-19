@@ -64,3 +64,10 @@ auto Idle_State::on_event_unknown(const etl::imessage& event) -> etl::fsm_state_
     get_fsm_context().LogUnknownEvent(event);
     return No_State_Change;
 }
+
+void Idle_State::on_exit_state() {
+    auto& app = get_fsm_context();
+
+    // Ensure to disable test animations
+    app.showOff();
+}

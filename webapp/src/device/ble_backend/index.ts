@@ -104,7 +104,9 @@ export class BleBackend implements IBackend {
     await this.bleRpcClient.invoke('save_profiles_data', ProfilesData.encode(data).finish())
   }
 
-  async stop() { this.bleRpcClient.invoke('stop') }
+  async stop(succeeded: boolean) {
+    this.bleRpcClient.invoke('stop', succeeded)
+  }
 
   async run_reflow() {
     this.bleRpcClient.invoke('run_reflow')

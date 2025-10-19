@@ -7,7 +7,7 @@
 #include "proto/generated/types.pb.h"
 
 class StepResponse_State : public etl::fsm_state<App, StepResponse_State, DeviceActivityStatus_StepResponse,
-    AppCmd::Stop, AppCmd::Succeeded, AppCmd::Button> {
+    AppCmd::Stop, AppCmd::Button> {
 public:
     struct LogEntry {
         int16_t temperature_x10;  // Temperature * 10
@@ -23,7 +23,6 @@ public:
     auto on_enter_state() -> etl::fsm_state_id_t override;
 
     auto on_event(const AppCmd::Stop& event) -> etl::fsm_state_id_t;
-    auto on_event(const AppCmd::Succeeded& event) -> etl::fsm_state_id_t;
     auto on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t;
     auto on_event_unknown(const etl::imessage& event) -> etl::fsm_state_id_t;
 

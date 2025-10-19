@@ -62,7 +62,7 @@ void App::setup() {
 
     // Temporary
     showLedTest();
-    beepReflowComplete();
+    beepTaskSucceeded();
 }
 
 void App::showIdleBackground() {
@@ -91,11 +91,11 @@ void App::showReflowStart() {
 }
 
 void App::showLedTest() {
-    blinker.loop({
-        {LCD_OK_COLOR, 1000},
-        {LCD_WARM_COLOR, 1000},
-        {LCD_HOT_COLOR, 1000},
-        {LCD_VERY_HOT_COLOR, 1000}
+    blinker.once({
+        {LCD_OK_COLOR, 150},
+        {LCD_WARM_COLOR, 150},
+        {LCD_HOT_COLOR, 150},
+        {LCD_VERY_HOT_COLOR, 150}
     });
 }
 
@@ -107,15 +107,15 @@ void App::beepButtonPress() {
     buzzer.play(":b=300:64e7"_rtttl2tones);
 }
 
-void App::beepReflowStarted() {
+void App::beepTaskStarted() {
     buzzer.play(":d=32,o=6,b=200:c,g#"_rtttl2tones);
 }
 
-void App::beepReflowComplete() {
+void App::beepTaskSucceeded() {
     buzzer.play(":d=32,o=5,b=300:c6,e6,g6,b6,8c7,c6,e6,g6,b6,8c7"_rtttl2tones);
 }
 
-void App::beepReflowTerminated() {
+void App::beepTaskTerminated() {
     buzzer.play(":d=32,o=6,b=200:g,f#,f,e,d#,8d"_rtttl2tones);
 }
 
