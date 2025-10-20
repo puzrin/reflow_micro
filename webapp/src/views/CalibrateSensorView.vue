@@ -147,7 +147,7 @@ async function save_p1() {
 
       <div class="mb-8">
         <div class="flex gap-2 flex-nowrap w-full">
-          <input v-model="power" type="range" min="20" max="100" class="w-full" />
+          <input v-model="power" type="range" min="1" max="100" class="w-full" />
           <ButtonNormal @click="device.run_sensor_bake(toNumber(power))" :disabled="!is_idle">Bake</ButtonNormal>
           <ButtonNormal @click="device.stop()" :disabled="!is_baking">Stop</ButtonNormal>
         </div>

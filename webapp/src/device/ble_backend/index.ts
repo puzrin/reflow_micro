@@ -105,23 +105,28 @@ export class BleBackend implements IBackend {
   }
 
   async stop(succeeded: boolean) {
-    this.bleRpcClient.invoke('stop', succeeded)
+    const ok = await this.bleRpcClient.invoke('stop', succeeded)
+    if (!ok) { throw new Error('Failed to execute cmd "stop"') }
   }
 
   async run_reflow() {
-    this.bleRpcClient.invoke('run_reflow')
+    const ok = await this.bleRpcClient.invoke('run_reflow')
+    if (!ok) { throw new Error('Failed to execute cmd "run_reflow"') }
   }
 
   async run_sensor_bake(watts: number) {
-    this.bleRpcClient.invoke('run_sensor_bake', watts)
+    const ok = await this.bleRpcClient.invoke('run_sensor_bake', watts)
+    if (!ok) { throw new Error('Failed to execute cmd "run_sensor_bake"') }
   }
 
   async run_adrc_test(temperature: number) {
-    this.bleRpcClient.invoke('run_adrc_test', temperature)
+    const ok = await this.bleRpcClient.invoke('run_adrc_test', temperature)
+    if (!ok) { throw new Error('Failed to execute cmd "run_adrc_test"') }
   }
 
   async run_step_response(watts: number) {
-    this.bleRpcClient.invoke('run_step_response', watts)
+    const ok = await this.bleRpcClient.invoke('run_step_response', watts)
+    if (!ok) { throw new Error('Failed to execute cmd "run_step_response"') }
   }
 
   async get_head_params(): Promise<HeadParams> {
@@ -130,14 +135,14 @@ export class BleBackend implements IBackend {
   }
 
   async set_head_params(config: HeadParams): Promise<void> {
-    this.bleRpcClient.invoke('set_head_params', HeadParams.encode(config).finish())
+    await this.bleRpcClient.invoke('set_head_params', HeadParams.encode(config).finish())
   }
 
   async set_cpoint0(temperature: number): Promise<void> {
-    this.bleRpcClient.invoke('set_cpoint0', temperature)
+    await this.bleRpcClient.invoke('set_cpoint0', temperature)
   }
 
   async set_cpoint1(temperature: number): Promise<void> {
-    this.bleRpcClient.invoke('set_cpoint1', temperature)
+    await this.bleRpcClient.invoke('set_cpoint1', temperature)
   }
 }
