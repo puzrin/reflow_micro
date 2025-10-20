@@ -71,10 +71,10 @@ auto Reflow_State::on_enter_state() -> etl::fsm_state_id_t {
     return No_State_Change;
 }
 
-auto Reflow_State::on_event(const AppCmd::Stop& stop) -> etl::fsm_state_id_t {
+auto Reflow_State::on_event(const AppCmd::Stop& event) -> etl::fsm_state_id_t {
     auto& app = get_fsm_context();
 
-    stop.succeeded ? app.beepTaskSucceeded() : app.beepTaskTerminated();
+    event.succeeded ? app.beepTaskSucceeded() : app.beepTaskTerminated();
     return DeviceActivityStatus_Idle;
 }
 

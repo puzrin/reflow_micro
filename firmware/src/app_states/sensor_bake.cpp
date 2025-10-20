@@ -21,12 +21,20 @@ auto SensorBake_State::on_enter_state() -> etl::fsm_state_id_t {
     return No_State_Change;
 }
 
-auto SensorBake_State::on_event(const AppCmd::Stop&) -> etl::fsm_state_id_t {
+auto SensorBake_State::on_event(const AppCmd::Stop& event) -> etl::fsm_state_id_t {
+    auto& app = get_fsm_context();
+
+    event.succeeded ? app.beepTaskSucceeded() : app.beepTaskTerminated();
     return DeviceActivityStatus_Idle;
 }
 
 auto SensorBake_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
-    if (event.type == ButtonEventId::BUTTON_PRESSED_1X) { return DeviceActivityStatus_Idle; }
+    auto& app = get_fsm_context();
+
+    if (event.type == ButtonEventId::BUTTON_PRESSED_1X) {
+        app.beepTaskTerminated();
+        return DeviceActivityStatus_Idle;
+    }
     return No_State_Change;
 }
 
