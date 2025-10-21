@@ -2,7 +2,7 @@
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import { RouterLink } from 'vue-router'
 import { useProfilesStore } from '@/stores/profiles'
-import { inject, computed } from 'vue'
+import { inject } from 'vue'
 import { DeviceActivityStatus } from '@/proto/generated/types'
 import { Device } from '@/device'
 import MenuIcon from '@heroicons/vue/24/outline/Bars4Icon'
@@ -10,7 +10,7 @@ import CheckIcon from '@heroicons/vue/24/outline/CheckIcon'
 
 const profilesStore = useProfilesStore()
 const device: Device = inject('device')!
-const status = computed(() => device.status.value)
+const status = device.status
 
 const repoUrl = __REPO_URL__
 

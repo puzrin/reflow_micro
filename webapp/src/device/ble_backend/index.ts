@@ -28,7 +28,7 @@ export class BleBackend implements IBackend {
 
     if (!this.is_selected) return;
 
-    this.device.status.value = DeviceInfo.decode(pb_status)
+    Object.assign(this.device.status, DeviceInfo.decode(pb_status))
   }
 
   async fetch_history(): Promise<void> {

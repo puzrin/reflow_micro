@@ -17,10 +17,10 @@ const localSettingsStore = useLocalSettingsStore()
 
 const device: Device = inject('device')!
 
-const status = computed(() => device.status.value)
-const is_idle = computed(() => status.value.activity === DeviceActivityStatus.Idle)
-const is_testing = computed(() => status.value.activity === DeviceActivityStatus.AdrcTest)
-const is_step_response = computed(() => status.value.activity === DeviceActivityStatus.StepResponse)
+const status = device.status
+const is_idle = computed(() => status.activity === DeviceActivityStatus.Idle)
+const is_testing = computed(() => status.activity === DeviceActivityStatus.AdrcTest)
+const is_step_response = computed(() => status.activity === DeviceActivityStatus.StepResponse)
 
 const saveBtn = ref()
 const resetBtn = ref()
@@ -55,8 +55,8 @@ onMounted(async () => {
 })
 
 onBeforeRouteLeave(async () => {
-  if ((status.value.activity === DeviceActivityStatus.AdrcTest) ||
-      (status.value.activity === DeviceActivityStatus.StepResponse)) {
+  if ((status.activity === DeviceActivityStatus.AdrcTest) ||
+      (status.activity === DeviceActivityStatus.StepResponse)) {
     await device.stop()
   }
   return true
@@ -64,11 +64,11 @@ onBeforeRouteLeave(async () => {
 
 // Update temperature "on the fly" (only when testing active)
 watchDebounced(test_temperature, async () => {
-  if (status.value.activity === DeviceActivityStatus.AdrcTest) await device.run_adrc_test(toNumber(test_temperature.value))
+  if (status.activity === DeviceActivityStatus.AdrcTest) await device.run_adrc_test(toNumber(test_temperature.value))
 }, { debounce: 500 })
 
 // Reload ADRC settings when finish any task
-watch(() => device.status.value.activity, async (newState) => {
+watch(() => device.status.activity, async (newState) => {
   if (newState === DeviceActivityStatus.Idle && device.is_ready.value) {
     configToRefs(await device.get_head_params())
   }

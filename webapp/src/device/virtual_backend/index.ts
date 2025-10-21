@@ -46,7 +46,7 @@ export class VirtualBackend implements IBackend {
   async fetch_status(): Promise<void> {
     if (!this.device.is_ready.value) return
 
-    this.device.status.value = {
+    Object.assign(this.device.status, {
       health: DeviceHealthStatus.DevOK,
       activity: this.activity,
       power: PowerStatus.PwrOK,
@@ -57,7 +57,7 @@ export class VirtualBackend implements IBackend {
       duty_x1000: 1000, // Always 100% in simulation
       resistance_mohms: Math.round(this.heater.get_resistance() * 1000),
       max_mw: Math.round(this.heater.get_max_power() * 1000)
-    }
+    })
   }
 
   async fetch_history(): Promise<void> {
@@ -91,7 +91,7 @@ export class VirtualBackend implements IBackend {
     this.device.is_authenticated.value = true
     this.client_history_version = -1
 
-    this.device.status.value.head = HeadStatus.HeadConnected
+    this.device.status.head = HeadStatus.HeadConnected
 
     await this.device.loadProfilesData()
 
@@ -110,7 +110,7 @@ export class VirtualBackend implements IBackend {
     this.device.is_authenticated.value = false
     this.device.is_ready.value = false
 
-    this.device.status.value.head = HeadStatus.HeadDisconnected
+    this.device.status.head = HeadStatus.HeadDisconnected
   }
 
   async connect() {}

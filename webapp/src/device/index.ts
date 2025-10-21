@@ -1,4 +1,4 @@
-import { ref, type App, type Ref, toValue } from "vue"
+import { ref, reactive, type App, type Ref, toValue } from "vue"
 import { VirtualBackend } from "./virtual_backend"
 import { BleBackend } from "./ble_backend"
 import { useProfilesStore } from '@/stores/profiles'
@@ -40,7 +40,7 @@ export class Device {
   need_pairing: Ref<boolean> = ref(false)
   is_ready: Ref<boolean> = ref(false) // connected + authenticated + configs fetched
 
-  status: Ref<DeviceInfo> = ref(DeviceInfo.create({ head: HeadStatus.HeadDisconnected }))
+  status = reactive<DeviceInfo>(DeviceInfo.create({ head: HeadStatus.HeadDisconnected }))
 
   history: Ref<Point[]> = ref<Point[]>([])
   history_id: Ref<number> = ref(0)

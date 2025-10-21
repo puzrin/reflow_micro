@@ -19,9 +19,9 @@ const device: Device = inject('device')!
 const saveP0Btn = ref()
 const saveP1Btn = ref()
 
-const status = computed(() => device.status.value)
-const is_idle = computed(() => status.value.activity === DeviceActivityStatus.Idle)
-const is_baking = computed(() => status.value.activity === DeviceActivityStatus.SensorBake)
+const status = device.status
+const is_idle = computed(() => status.activity === DeviceActivityStatus.Idle)
+const is_baking = computed(() => status.activity === DeviceActivityStatus.SensorBake)
 
 const p0 = ref('')
 const p1 = ref('')
@@ -46,13 +46,13 @@ onMounted(async () => {
 })
 
 onBeforeRouteLeave(async () => {
-  if (status.value.activity === DeviceActivityStatus.SensorBake) await device.stop()
+  if (status.activity === DeviceActivityStatus.SensorBake) await device.stop()
   return true
 })
 
 // Update power "on the fly" (only when baking on progress)
 watchDebounced(power, async () => {
-  if (status.value.activity === DeviceActivityStatus.SensorBake) await device.run_sensor_bake(toNumber(power.value))
+  if (status.activity === DeviceActivityStatus.SensorBake) await device.run_sensor_bake(toNumber(power.value))
 }, { debounce: 500 })
 
 function isNumberLike(val: string | number): boolean {

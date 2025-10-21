@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useProfilesStore } from '@/stores/profiles'
 import { useLocalSettingsStore } from '@/stores/localSettings'
-import { inject, computed } from 'vue'
+import { inject } from 'vue'
 import { Device } from '@/device'
 import { DeviceActivityStatus } from '@/proto/generated/types'
 import PageLayout from '@/components/PageLayout.vue'
@@ -15,7 +15,7 @@ import ToolbarIndicator from '@/components/ToolbarIndicator.vue'
 const profilesStore = useProfilesStore()
 const localSettingsStore = useLocalSettingsStore()
 const device: Device = inject('device')!
-const status = computed(() => device.status.value)
+const status = device.status
 
 async function start() {
   await device.run_reflow()
