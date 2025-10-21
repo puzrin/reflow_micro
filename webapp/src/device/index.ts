@@ -32,6 +32,11 @@ export interface IBackend {
   set_cpoint1(temperature: number): Promise<void>
 }
 
+export interface DeviceHistory {
+  points: Point[]
+  id: number
+}
+
 export class Device {
   // Connection flags
   is_connecting: Ref<boolean> = ref(false)
@@ -42,10 +47,15 @@ export class Device {
 
   status = reactive<DeviceInfo>(DeviceInfo.create({ head: HeadStatus.HeadDisconnected }))
 
-  history: Ref<Point[]> = ref<Point[]>([])
-  history_id: Ref<number> = ref(0)
+  history = reactive<DeviceHistory>({
+    points: [] as Point[],
+    id: 0,
+  })
   // wrapper to aggregate this.history data
-  sparseHistory: SparseHistory = SparseHistory.from(this.history.value)
+  // NOTE: mutate history.points in-place (splice/push) so sparseHistory stays
+  // in sync. If you replace the array entirely, rebind sparseHistory via
+  // SparseHistory.from(...).
+  sparseHistory: SparseHistory = SparseHistory.from(this.history.points)
 
   private backend: IBackend | null = null
   backend_id = ref('')

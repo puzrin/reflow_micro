@@ -34,8 +34,8 @@ export class BleBackend implements IBackend {
   async fetch_history(): Promise<void> {
     if (!this.device.is_ready.value) return
 
-    const len = this.device.history.value.length
-    const from = len ? this.device.history.value[len-1].x : 0
+    const len = this.device.history.points.length
+    const from = len ? this.device.history.points[len-1].x : 0
 
     const pb_history_chunk: Uint8Array = await this.bleRpcClient.invoke('get_history_chunk', this.client_history_version, from) as Uint8Array
     const history_chunk = HistoryChunk.decode(pb_history_chunk)
@@ -46,8 +46,8 @@ export class BleBackend implements IBackend {
     } else {
       // Full replace
       this.client_history_version = history_chunk.version
-      this.device.history.value.splice(0, this.device.history.value.length, ...history_chunk.data)
-      this.device.history_id.value = history_chunk.type
+      this.device.history.points.splice(0, this.device.history.points.length, ...history_chunk.data)
+      this.device.history.id = history_chunk.type
     }
 
     // If data size is max allowed => it could be shrinked => repeat request

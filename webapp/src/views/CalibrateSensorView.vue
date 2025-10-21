@@ -168,8 +168,8 @@ async function save_p1() {
         <div class="absolute top-0 left-0 right-0 bottom-0">
           <ReflowChart id="calibrate-sensor-bake"
             :profile="null"
-            :history="device.history.value"
-            :show_history="device.history_id.value === Constants.HISTORY_ID_SENSOR_BAKE_MODE" />
+            :history="device.history.points"
+            :show_history="device.history.id === Constants.HISTORY_ID_SENSOR_BAKE_MODE" />
         </div>
         <DebugInfo
           v-if="localSettingsStore.showDebugInfo"

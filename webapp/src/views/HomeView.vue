@@ -42,8 +42,8 @@ async function stop() {
       <div class="absolute top-0 left-0 right-0 bottom-0">
         <ReflowChart id="home-chart"
           :profile="profilesStore.selected"
-          :history="device.history.value"
-          :show_history="device.history_id.value === profilesStore.selectedId" />
+          :history="device.history.points"
+          :show_history="device.history.id === profilesStore.selectedId" />
       </div>
       <DebugInfo
         v-if="localSettingsStore.showDebugInfo"

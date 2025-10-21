@@ -213,8 +213,8 @@ async function default_adrc_params() {
         <div class="absolute top-0 left-0 right-0 bottom-0">
           <ReflowChart id="calibrate-adrc-test"
             :profile="null"
-            :history="device.history.value"
-            :show_history="[Constants.HISTORY_ID_ADRC_TEST_MODE, Constants.HISTORY_ID_STEP_RESPONSE].includes(device.history_id.value)" />
+            :history="device.history.points"
+            :show_history="[Constants.HISTORY_ID_ADRC_TEST_MODE, Constants.HISTORY_ID_STEP_RESPONSE].includes(device.history.id)" />
         </div>
         <DebugInfo
           v-if="localSettingsStore.showDebugInfo"
