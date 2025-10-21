@@ -46,13 +46,13 @@ onMounted(async () => {
 })
 
 onBeforeRouteLeave(async () => {
-  if (status.activity === DeviceActivityStatus.SensorBake) await device.stop()
+  if (is_baking.value) await device.stop()
   return true
 })
 
 // Update power "on the fly" (only when baking on progress)
 watchDebounced(power, async () => {
-  if (status.activity === DeviceActivityStatus.SensorBake) await device.run_sensor_bake(toNumber(power.value))
+  if (is_baking.value) await device.run_sensor_bake(toNumber(power.value))
 }, { debounce: 500 })
 
 function isNumberLike(val: string | number): boolean {
