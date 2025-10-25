@@ -167,8 +167,8 @@ void StepResponse_State::task_iterator(int32_t /*dt_ms*/, int32_t time_ms) {
 
     // "Classic" equation gives b0 at c_28 - too far from actual range.
     // So, use linear value between c_28 and c_63.
-    //float b0 = (c_63 - c_28) / ((0.63f - 0.28f) * τ_alt * du);
-    float b0 = (c_63 - c_28) / ((t_63 - t_28) * du);
+    float b0 = (c_63 - c_28) / ((0.63f - 0.28f) * τ_alt * du);
+    //float b0 = (c_63 - c_28) / ((t_63 - t_28) * du);
 
     const std::string b0_str = std::to_string(b0);
     APP_LOGI("b0 = {}", b0_str.c_str());
