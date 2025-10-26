@@ -3,26 +3,31 @@
 #include <nvs.h>
 #include "logger.hpp"
 
-bool AsyncPreferenceKV::write(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) {
-    static bool nvs_initialized = false;
+namespace {
 
-    if (!nvs_initialized) {
-        esp_err_t ret = nvs_flash_init();
-        if (ret == ESP_ERR_NVS_NO_FREE_PAGES) {
-            APP_LOGI("NVS has no free pages, erasing storage");
-            nvs_flash_erase();
-            ret = nvs_flash_init();
-        } else if (ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-            APP_LOGI("NVS version mismatch, erasing storage");
-            nvs_flash_erase();
-            ret = nvs_flash_init();
-        }
-        if (ret != ESP_OK) {
-            APP_LOGI("NVS initialization failed: {}", esp_err_to_name(ret));
-            return false;
-        }
-        nvs_initialized = true;
+    bool ensure_nvs_initialized() {
+    static bool nvs_initialized = false;
+    if (nvs_initialized) { return true; }
+
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        APP_LOGI("NVS init: {} -> erasing storage", esp_err_to_name(ret));
+        nvs_flash_erase();
+        ret = nvs_flash_init();
     }
+    if (ret != ESP_OK) {
+        APP_LOGI("NVS initialization failed: {}", esp_err_to_name(ret));
+        return false;
+    }
+
+    nvs_initialized = true;
+    return true;
+}
+
+} // namespace
+
+bool AsyncPreferenceKV::write(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) {
+    if (!ensure_nvs_initialized()) { return false; }
 
     nvs_handle_t handle;
     esp_err_t err = nvs_open(ns.c_str(), NVS_READWRITE, &handle);
@@ -49,6 +54,8 @@ bool AsyncPreferenceKV::write(const std::string& ns, const std::string& key, uin
 }
 
 bool AsyncPreferenceKV::read(const std::string& ns, const std::string& key, uint8_t* buffer, size_t max_length) {
+    if (!ensure_nvs_initialized()) { return false; }
+
     nvs_handle_t handle;
     esp_err_t err = nvs_open(ns.c_str(), NVS_READONLY, &handle);
     if (err != ESP_OK) { return false; }
@@ -61,6 +68,8 @@ bool AsyncPreferenceKV::read(const std::string& ns, const std::string& key, uint
 }
 
 size_t AsyncPreferenceKV::length(const std::string& ns, const std::string& key) {
+    if (!ensure_nvs_initialized()) { return 0; }
+
     nvs_handle_t handle;
     size_t len = 0;
     esp_err_t err = nvs_open(ns.c_str(), NVS_READONLY, &handle);
