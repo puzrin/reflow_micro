@@ -380,7 +380,7 @@ int32_t Head::get_temperature_x10() {
 
     // Safety check, should never happen due to state machine
     if (uV <= SENSOR_SHORTED_LEVEL_MV * 1000 || uV >= SENSOR_FLOATING_LEVEL_MV * 1000) {
-        return 0;
+        return UNKNOWN_TEMPERATURE_X10;
     }
 
     // Use TemperatureProcessor for calibrated temperature measurement

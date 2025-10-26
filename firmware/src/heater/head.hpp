@@ -38,7 +38,8 @@ public:
 
     using EEBuffer = etl::vector<uint8_t, 256>;
 
-    static constexpr float UNKNOWN_TEMPERATURE = etl::numeric_limits<float>::max();
+    static constexpr uint32_t UNKNOWN_TEMPERATURE_X10 = 10'000 * 10;
+
     Head();
     void setup();
 

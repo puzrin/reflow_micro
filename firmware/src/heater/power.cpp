@@ -1,4 +1,3 @@
-#include <etl/limits.h>
 #include <pd/pd.h>
 
 #include "app.hpp"
@@ -336,7 +335,7 @@ uint32_t Power::get_duty_x1000() {
 uint32_t Power::get_load_mohm() {
     auto ci = pwm.get_consumer_info();
 
-    if (!is_consumer_valid(ci)) { return etl::numeric_limits<uint32_t>::max(); }
+    if (!is_consumer_valid(ci)) { return UNKNOWN_RESISTANCE; }
     return ci.peak_mv * 1000 / ci.peak_ma;
 }
 

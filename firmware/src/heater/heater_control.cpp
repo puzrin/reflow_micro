@@ -150,7 +150,7 @@ auto HeaterControl::get_power() -> float {
 
 auto HeaterControl::get_resistance() -> float {
     auto r_millis = power.get_load_mohm();
-    if (r_millis == etl::numeric_limits<uint32_t>::max()) {
+    if (r_millis == Power::UNKNOWN_RESISTANCE) {
         return etl::numeric_limits<float>::max();
     }
     return r_millis * 0.001f;

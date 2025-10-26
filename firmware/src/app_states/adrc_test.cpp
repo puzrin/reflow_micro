@@ -44,7 +44,5 @@ auto AdrcTest_State::on_event_unknown(const etl::imessage& event) -> etl::fsm_st
 }
 
 void AdrcTest_State::on_exit_state() {
-    auto& app = get_fsm_context();
-
     heater.task_stop();
 }

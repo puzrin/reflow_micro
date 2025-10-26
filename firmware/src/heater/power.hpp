@@ -2,6 +2,7 @@
 
 #include <etl/atomic.h>
 #include <etl/fsm.h>
+#include <etl/limits.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 #include <pd/pd.h>
@@ -46,6 +47,8 @@ private:
 
 class Power: public etl::fsm {
 public:
+    static constexpr uint32_t UNKNOWN_RESISTANCE = etl::numeric_limits<uint32_t>::max();
+
     Power();
     void setup();
     void log_state();
