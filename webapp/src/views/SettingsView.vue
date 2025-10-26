@@ -3,7 +3,7 @@ import PageLayout from '@/components/PageLayout.vue'
 import { RouterLink } from 'vue-router'
 import { useProfilesStore } from '@/stores/profiles'
 import { useLocalSettingsStore } from '@/stores/localSettings'
-import { ref, inject } from 'vue'
+import { ref, inject, onMounted } from 'vue'
 import { type UseDraggableReturn, VueDraggable, type SortableEvent } from 'vue-draggable-plus'
 import { Device } from '@/device'
 
@@ -48,6 +48,43 @@ function resetProfiles() {
       device.loadProfilesData(true)
     }
   })
+}
+
+// Stuff for BLE name
+
+const bleName = ref('')
+const bleNameError = ref(false)
+const saveBleNameBtn = ref<InstanceType<typeof ButtonNormal>>()
+
+onMounted(async () => {
+  if (!device.is_ready.value) return
+  bleName.value = await device.get_ble_name()
+})
+
+async function saveBleNameHandler() {
+  bleNameError.value = false
+
+  if (bleName.value.length < 3) {
+    bleNameError.value = true
+    saveBleNameBtn.value?.showFailure()
+    return
+  }
+
+  // Check for ASCII only (printable characters 32-126)
+  const isAscii = /^[\x20-\x7E]*$/.test(bleName.value)
+  if (!isAscii) {
+    bleNameError.value = true
+    saveBleNameBtn.value?.showFailure()
+    return
+  }
+
+  try {
+    await device.set_ble_name(bleName.value)
+    saveBleNameBtn.value?.showSuccess()
+  } catch {
+    bleNameError.value = true
+    saveBleNameBtn.value?.showFailure()
+  }
 }
 
 </script>
@@ -102,19 +139,17 @@ function resetProfiles() {
       <ButtonNormal @click="resetProfiles">Reset</ButtonNormal>
     </div>
 
-    <!--<hr class="my-4">-->
 
-    <h2 class="mb-2 text-lg font-semibold">General</h2>
-    <!--<div class="flex items-center mb-4">
-      <input
-        checked
-        id="sound-on"
-        type="checkbox"
-        value=""
-        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-      >
-      <label for="sound-on" class="ms-2 text-gray-900">Enable sound</label>
-    </div>-->
+    <h2 class="mb-4 mt-4 text-lg font-semibold">General</h2>
+
+    <div class="mb-6">
+      <div class="mb-1 text-gray-C00">Bluetooth name</div>
+      <div class="flex gap-2 flex-nowrap w-full">
+        <input v-model="bleName" type="text" minlength="3" maxlength="30" class="w-full" />
+        <ButtonNormal ref="saveBleNameBtn" @click="saveBleNameHandler">Update</ButtonNormal>
+      </div>
+      <div v-if="bleNameError" class="text-xs text-red-500 mt-0.5">Name must be 3-30 characters, ASCII only</div>
+    </div>
 
     <div class="flex items-center mb-4">
       <input
@@ -126,11 +161,14 @@ function resetProfiles() {
       <label for="debug-on" class="ms-2 text-gray-900">Show debug info</label>
     </div>
 
-    <div class=" mb-4">
+    <h2 class="mb-4 mt-4 text-lg font-semibold">Calibration</h2>
+
+    <div class="mb-4">
       <RouterLink :to="{ name: 'calibrate_sensor' }" class="me-2">
         <ButtonNormal>Calibrate temperature sensor</ButtonNormal>
       </RouterLink>
-
+    </div>
+    <div class="mb-4">
       <RouterLink :to="{ name: 'calibrate_adrc' }" class="me-2">
         <ButtonNormal>Calibrate temperature controller</ButtonNormal>
       </RouterLink>

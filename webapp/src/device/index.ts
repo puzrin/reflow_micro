@@ -30,6 +30,9 @@ export interface IBackend {
   get_head_params(): Promise<HeadParams>
   set_cpoint0(temperature: number): Promise<void>
   set_cpoint1(temperature: number): Promise<void>
+
+  get_ble_name(): Promise<string>
+  set_ble_name(name: string): Promise<void>
 }
 
 export interface DeviceHistory {
@@ -99,6 +102,12 @@ export class Device {
   async set_head_params(config: HeadParams) { await this.backend?.set_head_params(config) }
   async set_cpoint0(temperature: number) { await this.backend?.set_cpoint0(temperature) }
   async set_cpoint1(temperature: number) { await this.backend?.set_cpoint1(temperature) }
+
+  async get_ble_name(): Promise<string> {
+    if (!this.backend) throw Error('No backend selected')
+    return await this.backend.get_ble_name()
+  }
+  async set_ble_name(name: string) { await this.backend?.set_ble_name(name) }
 
   // Control
   // id: computed(() => driverKey.value);

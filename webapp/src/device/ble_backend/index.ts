@@ -145,4 +145,12 @@ export class BleBackend implements IBackend {
   async set_cpoint1(temperature: number): Promise<void> {
     await this.bleRpcClient.invoke('set_cpoint1', temperature)
   }
+
+  async get_ble_name(): Promise<string> {
+    return await this.bleRpcClient.invoke('get_ble_name') as string
+  }
+
+  async set_ble_name(name: string): Promise<void> {
+    await this.bleRpcClient.invoke('set_ble_name', name)
+  }
 }

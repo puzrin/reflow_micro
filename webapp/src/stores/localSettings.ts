@@ -7,7 +7,8 @@ export const useLocalSettingsStore = defineStore('localSettings', () => {
   const state = reactive({
     showDebugInfo: true,
     profileEditorShowPreview: false,
-    backend: BleBackend.id as backendIdType
+    backend: BleBackend.id as backendIdType,
+    bleName: 'Reflow Table'
   })
   return { ...toRefs(state) }
 }, { persist: true })

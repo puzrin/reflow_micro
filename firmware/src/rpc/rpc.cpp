@@ -288,7 +288,7 @@ auto pair(const std::vector<uint8_t> client_id) -> std::vector<uint8_t> {
 
 } // namespace
 
-void update_ble_name(const std::string& name) {
+void ble_name_write(const std::string& name) {
     bleNameStore.set(name);
 
     std::string n = name.substr(0, 29); // Limit name length
@@ -298,6 +298,10 @@ void update_ble_name(const std::string& name) {
     auto adv = NimBLEDevice::getAdvertising();
     adv->setName(n);
     adv->refreshAdvertisingData();
+}
+
+std::string ble_name_read() {
+    return bleNameStore.get();
 }
 
 void pairing_enable() { pairing_enabled_flag = true; }

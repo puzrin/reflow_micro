@@ -244,6 +244,18 @@ export class VirtualBackend implements IBackend {
     await this.set_head_params(params)
   }
 
+  async get_ble_name(): Promise<string> {
+    const { useLocalSettingsStore } = await import('@/stores/localSettings')
+    const localSettingsStore = useLocalSettingsStore()
+    return localSettingsStore.bleName
+  }
+
+  async set_ble_name(name: string): Promise<void> {
+    const { useLocalSettingsStore } = await import('@/stores/localSettings')
+    const localSettingsStore = useLocalSettingsStore()
+    localSettingsStore.bleName = name
+  }
+
   heat_control_on() {
     const head_params = this.pick_head_params()
     this.heater.adrc.set_params(head_params.adrc_b0, head_params.adrc_response, head_params.adrc_N, head_params.adrc_M)

@@ -118,6 +118,18 @@ auto set_cpoint1(float temperature) -> bool {
     return true;
 }
 
+std::string get_ble_name() {
+    return ble_name_read();
+}
+
+bool set_ble_name(const std::string name) {
+    if (name.length() < 3) {
+        throw std::runtime_error("BLE name too short (minimum 3 characters)");
+    }
+    ble_name_write(name);
+    return true;
+}
+
 } // namespace
 
 void api_methods_create() {
@@ -134,4 +146,6 @@ void api_methods_create() {
     rpc.addMethod("set_head_params", set_head_params);
     rpc.addMethod("set_cpoint0", set_cpoint0);
     rpc.addMethod("set_cpoint1", set_cpoint1);
+    rpc.addMethod("get_ble_name", get_ble_name);
+    rpc.addMethod("set_ble_name", set_ble_name);
 }

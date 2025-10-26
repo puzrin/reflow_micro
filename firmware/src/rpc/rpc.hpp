@@ -6,6 +6,7 @@ extern MsgpackRpcDispatcher rpc;
 
 void rpc_start();
 
-void update_ble_name(const std::string& name);
+void ble_name_write(const std::string& name);
+std::string ble_name_read();
 void pairing_enable();
 void pairing_disable();
