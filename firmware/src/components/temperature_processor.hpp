@@ -11,7 +11,7 @@ public:
     };
 
     // Defaults to use when lack of calibration points data
-    static constexpr uint32_t TCR_R_DEFAULT = 4000; // in mohms
+    static constexpr uint32_t TCR_R_DEFAULT = 3000; // in mohms
     static constexpr int32_t TCR_T_REF_DEFAULT_X10 = 25 * 10; // in Celsius * 10
     static constexpr float TCR_COEFF_DEFAULT = 0.00393f / 10.0f; // Copper TCR, scaled for 0.1°C units (original: 0.00393 [1/°C])
 

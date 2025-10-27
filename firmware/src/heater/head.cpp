@@ -10,6 +10,7 @@
 #include "head.hpp"
 #include "logger.hpp"
 #include "lib/pt100.hpp"
+#include "power.hpp"
 #include "proto/generated/defaults.hpp"
 
 Head head;
@@ -73,7 +74,7 @@ public:
             // distribution. For MCH heaters using TCR-based estimates may lead
             // to errors, difficult to fix.
             head.heater_type = (head.last_sensor_value_uv.load() <= Head::SENSOR_SHORTED_LEVEL_MV * 1000)
-                ? HeaterType_MCH : HeaterType_PCB;
+                ? HeaterType_PCB : HeaterType_MCH;
 
             if (!head.eeprom_store.read(head.head_params.value)) {
                 APP_LOGE("Head: Failed to read EEPROM");
@@ -376,15 +377,23 @@ bool Head::set_head_params(const HeadParams& params) {
 }
 
 int32_t Head::get_temperature_x10() {
-    uint32_t uV = last_sensor_value_uv.load();
-
     // Safety check, should never happen due to state machine
-    if (uV <= SENSOR_SHORTED_LEVEL_MV * 1000 || uV >= SENSOR_FLOATING_LEVEL_MV * 1000) {
+    if (get_head_status() != HeadStatus_HeadConnected) {
         return UNKNOWN_TEMPERATURE_X10;
     }
 
-    // Use TemperatureProcessor for calibrated temperature measurement
-    return temperature_processor.get_temperature_x10(uV);
+    if (heater_type.load() == HeaterType_MCH) {
+        // Use RTD sensor for MCH heads
+        auto uV = last_sensor_value_uv.load();
+        return temperature_processor.get_temperature_x10(uV);
+    }
+    else {
+        auto mohms = power.get_load_mohm();
+        if (mohms == Power::UNKNOWN_RESISTANCE) {
+            return UNKNOWN_TEMPERATURE_X10;
+        }
+        return temperature_processor.get_temperature_x10(mohms);
+    }
 }
 
 bool Head::is_attached() const {
@@ -393,10 +402,13 @@ bool Head::is_attached() const {
 
 void Head::configure_temperature_processor() {
     // Set sensor type based on heater type
-    auto sensor_type = (heater_type.load() == HeaterType_MCH)
-        ? TemperatureProcessor::SensorType::TCR  // MCH: no PT100, use heater resistance
-        : TemperatureProcessor::SensorType::RTD; // PCB: has PT100 sensor
-    temperature_processor.set_sensor_type(sensor_type);
+    if (heater_type.load() == HeaterType_MCH) {
+        // MCH => use RTD sensor
+        temperature_processor.set_sensor_type(TemperatureProcessor::SensorType::RTD);
+    } else {
+        // PCB => use TCR-based estimates
+        temperature_processor.set_sensor_type(TemperatureProcessor::SensorType::TCR);
+    }
 
     // Load calibration data
     HeadParams params = HeadParams_init_zero;

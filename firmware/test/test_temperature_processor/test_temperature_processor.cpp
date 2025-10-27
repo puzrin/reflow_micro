@@ -145,9 +145,9 @@ TEST(TemperatureProcessorTest, TCR_NoCalibration_Default) {
 
     // Test temperature change using copper physics: R(T) = R0 * (1 + α*(T-T0))
     // Copper: α = 0.00393 [1/°C]
-    // At T=125°C: R = 4000 * (1 + 0.00393*(125-25)) = 5572 mΩ
-    // ΔR = 1572 mΩ
-    uint32_t r_125c = TemperatureProcessor::TCR_R_DEFAULT + 1572;
+    // At T=125°C: R = 3000 * (1 + 0.00393*(125-25)) = 4179 mΩ
+    // ΔR = 1179 mΩ
+    uint32_t r_125c = TemperatureProcessor::TCR_R_DEFAULT + 1179;
     result = proc.get_temperature_x10(r_125c);
     EXPECT_NEAR(result, 125 * 10, 10);
 }
