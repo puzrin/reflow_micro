@@ -20,7 +20,7 @@ static uint32_t temp_to_uv(int32_t temp_x10) {
 
 TEST(TemperatureProcessorTest, RTD_NoCalibration) {
     TemperatureProcessor proc;
-    proc.set_sensor_type(TemperatureProcessor::SensorType::RTD);
+    proc.set_sensor_type(SensorType_RTD);
     // No calibration points set
 
     // Test at room temperature ~25°C
@@ -41,7 +41,7 @@ TEST(TemperatureProcessorTest, RTD_NoCalibration) {
 
 TEST(TemperatureProcessorTest, RTD_OnePointCalibration_Offset) {
     TemperatureProcessor proc;
-    proc.set_sensor_type(TemperatureProcessor::SensorType::RTD);
+    proc.set_sensor_type(SensorType_RTD);
 
     // Simulate ADC with -5mV offset: actual ADC reads 5000uV lower than expected
     uint32_t uv_100c_ideal = temp_to_uv(100 * 10);
@@ -70,7 +70,7 @@ TEST(TemperatureProcessorTest, RTD_OnePointCalibration_Offset) {
 
 TEST(TemperatureProcessorTest, RTD_TwoPointCalibration_Linear) {
     TemperatureProcessor proc;
-    proc.set_sensor_type(TemperatureProcessor::SensorType::RTD);
+    proc.set_sensor_type(SensorType_RTD);
 
     // Simulate ADC with 2% gain error and 3mV offset
     auto simulate_adc = [](uint32_t ideal_mv) -> uint32_t {
@@ -113,7 +113,7 @@ TEST(TemperatureProcessorTest, RTD_TwoPointCalibration_Linear) {
 
 TEST(TemperatureProcessorTest, RTD_RealisticRange) {
     TemperatureProcessor proc;
-    proc.set_sensor_type(TemperatureProcessor::SensorType::RTD);
+    proc.set_sensor_type(SensorType_RTD);
 
     // Test across realistic soldering temperature range
     // Max safe temp ~400°C (800000uV limit with 560Ω divider and ADC_ATTEN_DB_0)
@@ -136,7 +136,7 @@ TEST(TemperatureProcessorTest, RTD_RealisticRange) {
 
 TEST(TemperatureProcessorTest, TCR_NoCalibration_Default) {
     TemperatureProcessor proc;
-    proc.set_sensor_type(TemperatureProcessor::SensorType::TCR);
+    proc.set_sensor_type(SensorType_TCR);
     // No calibration - uses defaults: R_DEFAULT=4000mΩ at T_REF=25°C
 
     // At reference temperature (25°C), resistance should be R_DEFAULT
@@ -154,7 +154,7 @@ TEST(TemperatureProcessorTest, TCR_NoCalibration_Default) {
 
 TEST(TemperatureProcessorTest, TCR_OnePointCalibration) {
     TemperatureProcessor proc;
-    proc.set_sensor_type(TemperatureProcessor::SensorType::TCR);
+    proc.set_sensor_type(SensorType_TCR);
 
     // Calibrate at known point: 3500mΩ at 100°C
     // This sets new base point but keeps default copper TCR
@@ -174,7 +174,7 @@ TEST(TemperatureProcessorTest, TCR_OnePointCalibration) {
 
 TEST(TemperatureProcessorTest, TCR_TwoPointCalibration) {
     TemperatureProcessor proc;
-    proc.set_sensor_type(TemperatureProcessor::SensorType::TCR);
+    proc.set_sensor_type(SensorType_TCR);
 
     // Real heater has different TCR than default copper (e.g. tungsten-based)
     // Measured: 3000mΩ at 50°C and 4500mΩ at 200°C
@@ -218,7 +218,7 @@ TEST(TemperatureProcessorTest, TCR_TwoPointCalibration) {
 
 TEST(TemperatureProcessorTest, DivByZero_RTD_IdenticalADCValues) {
     TemperatureProcessor proc;
-    proc.set_sensor_type(TemperatureProcessor::SensorType::RTD);
+    proc.set_sensor_type(SensorType_RTD);
 
     uint32_t uv_100c = temp_to_uv(100 * 10);
 
@@ -233,7 +233,7 @@ TEST(TemperatureProcessorTest, DivByZero_RTD_IdenticalADCValues) {
 
 TEST(TemperatureProcessorTest, DivByZero_RTD_IdenticalTemperatures) {
     TemperatureProcessor proc;
-    proc.set_sensor_type(TemperatureProcessor::SensorType::RTD);
+    proc.set_sensor_type(SensorType_RTD);
 
     uint32_t uv_100c = temp_to_uv(100 * 10);
     uint32_t uv_200c = temp_to_uv(200 * 10);
@@ -249,7 +249,7 @@ TEST(TemperatureProcessorTest, DivByZero_RTD_IdenticalTemperatures) {
 
 TEST(TemperatureProcessorTest, DivByZero_TCR_IdenticalResistances) {
     TemperatureProcessor proc;
-    proc.set_sensor_type(TemperatureProcessor::SensorType::TCR);
+    proc.set_sensor_type(SensorType_TCR);
 
     // Set two calibration points with identical resistances
     proc.set_cal_points(100.0f, 3500.0f, 200.0f, 3500.0f);
@@ -261,7 +261,7 @@ TEST(TemperatureProcessorTest, DivByZero_TCR_IdenticalResistances) {
 
 TEST(TemperatureProcessorTest, DivByZero_TCR_IdenticalTemperatures) {
     TemperatureProcessor proc;
-    proc.set_sensor_type(TemperatureProcessor::SensorType::TCR);
+    proc.set_sensor_type(SensorType_TCR);
 
     // Set two calibration points with identical temperatures
     proc.set_cal_points(100.0f, 3000.0f, 100.0f, 4500.0f);
@@ -275,14 +275,14 @@ TEST(TemperatureProcessorTest, DivByZero_CompletelyIdenticalPoints) {
     TemperatureProcessor proc;
 
     // RTD mode
-    proc.set_sensor_type(TemperatureProcessor::SensorType::RTD);
+    proc.set_sensor_type(SensorType_RTD);
     uint32_t uv = temp_to_uv(100 * 10);
     proc.set_cal_points(100.0f, static_cast<float>(uv), 100.0f, static_cast<float>(uv));
     int32_t result = proc.get_temperature_x10(uv);
     EXPECT_NEAR(result, 100 * 10, 10);
 
     // TCR mode
-    proc.set_sensor_type(TemperatureProcessor::SensorType::TCR);
+    proc.set_sensor_type(SensorType_TCR);
     proc.set_cal_points(150.0f, 4000.0f, 150.0f, 4000.0f);
     result = proc.get_temperature_x10(4000);
     EXPECT_NEAR(result, 150 * 10, 10);
@@ -296,7 +296,7 @@ TEST(TemperatureProcessorTest, SwitchSensorType_RecalculatesCoefficients) {
     TemperatureProcessor proc;
 
     // Start with RTD
-    proc.set_sensor_type(TemperatureProcessor::SensorType::RTD);
+    proc.set_sensor_type(SensorType_RTD);
     uint32_t uv = temp_to_uv(100 * 10);
     proc.set_cal_points(100.0f, static_cast<float>(uv), 0.0f, 0.0f);
 
@@ -304,7 +304,7 @@ TEST(TemperatureProcessorTest, SwitchSensorType_RecalculatesCoefficients) {
     EXPECT_NEAR(result_rtd, 100 * 10, 10);
 
     // Switch to TCR with different calibration
-    proc.set_sensor_type(TemperatureProcessor::SensorType::TCR);
+    proc.set_sensor_type(SensorType_TCR);
     proc.set_cal_points(150.0f, 4000.0f, 0.0f, 0.0f);
 
     int32_t result_tcr = proc.get_temperature_x10(4000);

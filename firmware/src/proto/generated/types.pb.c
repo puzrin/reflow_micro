@@ -40,5 +40,3 @@ PB_BIND(DeviceInfo, DeviceInfo, AUTO)
 
 
 
-
-

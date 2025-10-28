@@ -24,14 +24,9 @@ typedef enum _Constants {
     HISTORY_ID_STEP_RESPONSE = 4002
 } Constants;
 
-typedef enum _HeaterType {
-    HeaterType_MCH = 0, /* Ceramic with tungsten wire inside */
-    HeaterType_PCB = 1 /* Aluminum PCB with copper trace */
-} HeaterType;
-
 typedef enum _SensorType {
-    SensorType_PT100 = 0, /* Standalone RTD */
-    SensorType_Indirect = 1 /* Calculated via heater's TCR (copper: 0.39%/°C, tungsten: 0.45%/°C) */
+    SensorType_RTD = 0, /* Standalone PT100 */
+    SensorType_TCR = 1 /* Indirect measurement via heater's TCR (copper: 0.39%/°C, tungsten: 0.45%/°C) */
 } SensorType;
 
 typedef enum _HeadStatus {
@@ -155,13 +150,9 @@ extern "C" {
 #define Constants_HISTORY_ID_ADRC_TEST_MODE HISTORY_ID_ADRC_TEST_MODE
 #define Constants_HISTORY_ID_STEP_RESPONSE HISTORY_ID_STEP_RESPONSE
 
-#define _HeaterType_MIN HeaterType_MCH
-#define _HeaterType_MAX HeaterType_PCB
-#define _HeaterType_ARRAYSIZE ((HeaterType)(HeaterType_PCB+1))
-
-#define _SensorType_MIN SensorType_PT100
-#define _SensorType_MAX SensorType_Indirect
-#define _SensorType_ARRAYSIZE ((SensorType)(SensorType_Indirect+1))
+#define _SensorType_MIN SensorType_RTD
+#define _SensorType_MAX SensorType_TCR
+#define _SensorType_ARRAYSIZE ((SensorType)(SensorType_TCR+1))
 
 #define _HeadStatus_MIN HeadStatus_HeadDisconnected
 #define _HeadStatus_MAX HeadStatus_HeadError

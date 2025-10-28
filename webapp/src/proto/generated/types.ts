@@ -81,57 +81,22 @@ export function constantsToJSON(object: Constants): string {
   }
 }
 
-export enum HeaterType {
-  /** MCH - Ceramic with tungsten wire inside */
-  MCH = 0,
-  /** PCB - Aluminum PCB with copper trace */
-  PCB = 1,
-  UNRECOGNIZED = -1,
-}
-
-export function heaterTypeFromJSON(object: any): HeaterType {
-  switch (object) {
-    case 0:
-    case "MCH":
-      return HeaterType.MCH;
-    case 1:
-    case "PCB":
-      return HeaterType.PCB;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return HeaterType.UNRECOGNIZED;
-  }
-}
-
-export function heaterTypeToJSON(object: HeaterType): string {
-  switch (object) {
-    case HeaterType.MCH:
-      return "MCH";
-    case HeaterType.PCB:
-      return "PCB";
-    case HeaterType.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
-}
-
 export enum SensorType {
-  /** PT100 - Standalone RTD */
-  PT100 = 0,
-  /** Indirect - Calculated via heater's TCR (copper: 0.39%/°C, tungsten: 0.45%/°C) */
-  Indirect = 1,
+  /** RTD - Standalone PT100 */
+  RTD = 0,
+  /** TCR - Indirect measurement via heater's TCR (copper: 0.39%/°C, tungsten: 0.45%/°C) */
+  TCR = 1,
   UNRECOGNIZED = -1,
 }
 
 export function sensorTypeFromJSON(object: any): SensorType {
   switch (object) {
     case 0:
-    case "PT100":
-      return SensorType.PT100;
+    case "RTD":
+      return SensorType.RTD;
     case 1:
-    case "Indirect":
-      return SensorType.Indirect;
+    case "TCR":
+      return SensorType.TCR;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -141,10 +106,10 @@ export function sensorTypeFromJSON(object: any): SensorType {
 
 export function sensorTypeToJSON(object: SensorType): string {
   switch (object) {
-    case SensorType.PT100:
-      return "PT100";
-    case SensorType.Indirect:
-      return "Indirect";
+    case SensorType.RTD:
+      return "RTD";
+    case SensorType.TCR:
+      return "TCR";
     case SensorType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";

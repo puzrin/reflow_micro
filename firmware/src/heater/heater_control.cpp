@@ -72,7 +72,7 @@ bool HeaterControl::set_calibration_point_0(float temperature) {
     HeadParams params = HeadParams_init_zero;
     if (!get_head_params(params)) { return false; }
 
-    if (head.heater_type.load() == HeaterType_MCH) {
+    if (head.sensor_type.load() == SensorType_RTD) {
         // RTD mode: use ADC voltage
         params.sensor_p0_value = head.last_sensor_value_uv.load();
     } else {
@@ -88,7 +88,7 @@ bool HeaterControl::set_calibration_point_1(float temperature) {
     HeadParams params = HeadParams_init_zero;
     if (!get_head_params(params)) { return false; }
 
-    if (head.heater_type.load() == HeaterType_MCH) {
+    if (head.sensor_type.load() == SensorType_RTD) {
         // RTD mode: use ADC voltage
         params.sensor_p1_value = head.last_sensor_value_uv.load();
     } else {

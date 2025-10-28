@@ -73,8 +73,8 @@ public:
             // The difference is, PCB-based heater has much better heat
             // distribution. For MCH heaters using TCR-based estimates may lead
             // to errors, difficult to fix.
-            head.heater_type = (head.last_sensor_value_uv.load() <= Head::SENSOR_SHORTED_LEVEL_MV * 1000)
-                ? HeaterType_PCB : HeaterType_MCH;
+            head.sensor_type = (head.last_sensor_value_uv.load() <= Head::SENSOR_SHORTED_LEVEL_MV * 1000)
+                ? SensorType_TCR : SensorType_RTD;
 
             if (!head.eeprom_store.read(head.head_params.value)) {
                 APP_LOGE("Head: Failed to read EEPROM");
@@ -382,8 +382,7 @@ int32_t Head::get_temperature_x10() {
         return UNKNOWN_TEMPERATURE_X10;
     }
 
-    if (heater_type.load() == HeaterType_MCH) {
-        // Use RTD sensor for MCH heads
+    if (sensor_type.load() == SensorType_RTD) {
         auto uV = last_sensor_value_uv.load();
         return temperature_processor.get_temperature_x10(uV);
     }
@@ -401,14 +400,7 @@ bool Head::is_attached() const {
 }
 
 void Head::configure_temperature_processor() {
-    // Set sensor type based on heater type
-    if (heater_type.load() == HeaterType_MCH) {
-        // MCH => use RTD sensor
-        temperature_processor.set_sensor_type(TemperatureProcessor::SensorType::RTD);
-    } else {
-        // PCB => use TCR-based estimates
-        temperature_processor.set_sensor_type(TemperatureProcessor::SensorType::TCR);
-    }
+    temperature_processor.set_sensor_type(SensorType_RTD);
 
     // Load calibration data
     HeadParams params = HeadParams_init_zero;

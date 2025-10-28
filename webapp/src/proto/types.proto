@@ -76,14 +76,9 @@ message HeadParams {
   float adrc_M = 8;
 }
 
-enum HeaterType {
-  MCH = 0; // Ceramic with tungsten wire inside
-  PCB = 1; // Aluminum PCB with copper trace
-}
-
 enum SensorType {
-  PT100 = 0; // Standalone RTD
-  Indirect = 1; // Calculated via heater's TCR (copper: 0.39%/°C, tungsten: 0.45%/°C)
+  RTD = 0; // Standalone PT100
+  TCR = 1; // Indirect measurement via heater's TCR (copper: 0.39%/°C, tungsten: 0.45%/°C)
 }
 
 enum HeadStatus {
