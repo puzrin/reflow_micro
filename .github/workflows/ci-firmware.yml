@@ -49,7 +49,3 @@ jobs:
       - name: Ensure build passes (main)
         run: pio run --environment main
         working-directory: firmware
-
-      - name: Ensure build passes (demo)
-        run: pio run --environment demo
-        working-directory: firmware
