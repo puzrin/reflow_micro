@@ -195,11 +195,15 @@ void HeaterControl::update_fan_speed() {
         }
     } else {
         // No task => always cool down to low temperature, if head attached
-        if (head.get_head_status() == HeadStatus_HeadConnected) {
+        if (head.get_head_status() == HeadStatus_HeadConnected &&
+            temperature_x10 != head.UNKNOWN_TEMPERATURE_X10)
+        {
             if (temperature_x10 > C_EDGE_ON_X10) { fan.max(); }
             else { fan.off(); }
-        } else {
-            // No head => fan not needed
+        }
+        else {
+            // Fan off when no head OR in TCR mode without power
+            // (with "unknown" temperature, powered via debug connector)
             fan.off();
         }
     }
