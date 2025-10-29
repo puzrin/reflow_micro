@@ -35,8 +35,8 @@ const adrc_error_b0 = ref(false)
 const adrc_error_n = ref(false)
 const adrc_error_m = ref(false)
 
-const test_temperature = ref(200)
-const step_response_power = ref(50)
+const test_temperature = ref(170)
+const step_response_power = ref(25)
 
 function toPrecisionStr(num: number, valuableDigits: number = 2): string {
   // `Number` required to remove scientific notation and trailing zeros
@@ -137,7 +137,7 @@ async function default_adrc_params() {
         </div>
         <div v-if="adrc_error_tau" class="text-xs text-red-500 mt-0.5">Not a number</div>
         <div class="text-sm text-slate-400 mt-0.5">
-          Response time for step input. Time to reach 63% of final value  on step response.
+          Response time for step input. Execute step response to detect.
         </div>
       </div>
 
@@ -148,7 +148,7 @@ async function default_adrc_params() {
         </div>
         <div v-if="adrc_error_b0" class="text-xs text-red-500 mt-0.5">Not a number</div>
         <div class="text-sm text-slate-400 mt-0.5">
-          Max(𝑑T)/ΔPower on step response.
+          Controller scale factor. Execute step response to detect.
         </div>
       </div>
 
@@ -159,7 +159,7 @@ async function default_adrc_params() {
         </div>
         <div v-if="adrc_error_n" class="text-xs text-red-500 mt-0.5">Not a number</div>
         <div class="text-sm text-slate-400 mt-0.5">
-          ω<sub>o</sub> = N/τ. Usually 3..10, but can be more. Increase until oscillation starts, then reduce 10-20%.
+          ω<sub>o</sub> = N/τ. Increase until oscillation starts, then reduce 10-20%.
         </div>
       </div>
 
@@ -170,7 +170,7 @@ async function default_adrc_params() {
         </div>
         <div v-if="adrc_error_m" class="text-xs text-red-500 mt-0.5">Not a number</div>
         <div class="text-sm text-slate-400 mt-0.5">
-          ω<sub>c</sub> = ω<sub>o</sub>/M. Usually 2..5. With high probability 3 will be ok, and not required to change.
+          ω<sub>c</sub> = ω<sub>o</sub>/M. Usually 3..5. With high probability not required to change.
         </div>
       </div>
 

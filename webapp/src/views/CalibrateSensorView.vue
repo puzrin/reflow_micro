@@ -32,7 +32,7 @@ const show_p0_error = ref(false)
 const show_p1_error = ref(false)
 const is_p0_calibrated = computed(() => p0_orig.value > 0)
 const is_p1_calibrated = computed(() => p1_orig.value > 0)
-const power = ref(50)
+const power = ref(25)
 
 async function loadCalibrationStatus() {
   const head_params = await device.get_head_params()
@@ -133,7 +133,7 @@ async function save_p1() {
       </div>
 
 
-      <h2 class="text-2xl mb-0.5 text-slate-800">Heat point 2 (~ 200°C)</h2>
+      <h2 class="text-2xl mb-0.5 text-slate-800">Heat point 2 (~ 170°C)</h2>
       <div v-if="is_p1_calibrated" class="mb-1 text-xs text-green-600">
         <span>Calibrated at {{ Math.round(p1_orig) }}°C</span>
       </div>
@@ -141,8 +141,9 @@ async function save_p1() {
         <span>Not calibrated</span>
       </div>
       <p class="text-sm text-slate-400 mb-4">
-        Select power to get 200-250°C. Wait until temperature become stable, and enter the real value.
-        50W is recommended for the start. Adjust if needed. DON'T overheat above 300°C!
+        Select power to get below max supported temperature (180°C for aluminum
+        PCB heater). Wait until temperature become stable, and enter the real
+        value. 20-25W is recommended for the start, adjust if needed.
       </p>
 
       <div class="mb-8">
