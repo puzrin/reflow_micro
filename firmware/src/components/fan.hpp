@@ -12,7 +12,8 @@
 
 class Fan {
 private:
-    static constexpr int fanPin{GPIO_NUM_21};
+    // static constexpr int fanPin{GPIO_NUM_21}; // Old PCB with fan on TXD pin
+    static constexpr int fanPin{GPIO_NUM_1};
     static constexpr int pwmFrequency{25000};
     static constexpr ledc_timer_t timerNum{LEDC_TIMER_1};
     static constexpr ledc_channel_t channelNum{LEDC_CHANNEL_1};
