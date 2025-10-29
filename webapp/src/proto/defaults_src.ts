@@ -68,6 +68,6 @@ export const head_default: HeadParams = {
   sensor_p1_value: 0,
   adrc_response: 113,
   adrc_b0: 0.0536,
-  adrc_N: 50,
-  adrc_M: 4
+  adrc_N: 55,
+  adrc_M: 5
 }
