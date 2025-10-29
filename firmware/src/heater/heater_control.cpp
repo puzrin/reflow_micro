@@ -186,7 +186,13 @@ void HeaterControl::update_fan_speed() {
             //
             // This is simple and should be ok. If not - can be improved later.
             //
-            if (temperature_x10 > setpoint_x10 + C_DIFF_ON_X10) { fan.max(); }
+            if (temperature_x10 > setpoint_x10 + C_DIFF_ON_X10) {
+                // Enable fan ONLY when ADRC output is about zero,
+                // to avoid interference.
+                if (power.profile_selector.target_power_mw < 1*1000) {
+                    fan.max();
+                }
+            }
             if (temperature_x10 < setpoint_x10 + C_DIFF_OFF_X10) { fan.off(); }
         } else {
             // If task is working, but without temperature control - disable fan.
