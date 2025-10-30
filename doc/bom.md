@@ -11,14 +11,16 @@ other shops. The important picks are also commented.
 1 | [PCB & Components](https://oshwlab.com/reflow/reflow-usb-pd-headless) | Open the EasyEDA project and order both in a couple of clicks. Order the PCB first, components second so you can combine shipping.
 2 | [22 AWG wire](https://www.aliexpress.com/item/1005003732230847.html) | SMT stencil positioning.
 3 | [M1.6 SS screws 18mm, cone cap](https://www.aliexpress.com/item/32946954901.html) | DIN965/GB819. Mount the heater plate to the reflector. Make sure they are stainless steel.
-5 | [M1.6 screws 3mm, flat cap](https://www.aliexpress.com/item/4000308042674.html) | Mount the reflector to the head base.
-6 | [M1.6 screws 10mm, flat cap](https://www.aliexpress.com/item/4000308042674.html) | Mount the fan.
-7 | [M1.6 screws 6mm, flat cap](https://www.aliexpress.com/item/4000308042674.html) | Mount the PCB.
-8 | [M1.6 SS spring lock washers](https://www.aliexpress.com/item/32975233438.html) | Hardware for the head mount.
-9 | [M1.6 SS nuts](https://www.aliexpress.com/item/1005007593861199.html) | Hardware for the head mount.
-10 | [M1.6 insert nuts 4mm](https://www.aliexpress.com/item/1005008644449489.html) | Inserts for the MCH and PCB mounts.
-14 | [Magnets 6x6mm](https://www.aliexpress.com/item/1005005114069840.html) | Cap lock. If you buy elsewhere, check the height and adjust the case. Two stacked 6x3 mm magnets also work.
-15 | [esp32-c3](https://www.aliexpress.com/item/1005004386637738.html) (optional) | If it isn't on LCSC, grab the ESP32-C3-WROOM-02-N4 instead.
+4 | [M1.6 screws 3mm, flat cap](https://www.aliexpress.com/item/4000308042674.html) | Mount the reflector to the head base.
+5 | [M1.6 screws 10mm, flat cap](https://www.aliexpress.com/item/4000308042674.html) | Mount the fan.
+6 | [M1.6 screws 6mm, flat cap](https://www.aliexpress.com/item/4000308042674.html) | Mount the PCB.
+7 | [M1.6 SS spring lock washers](https://www.aliexpress.com/item/32975233438.html) | Hardware for the head mount.
+8 | [M1.6 SS nuts](https://www.aliexpress.com/item/1005007593861199.html) | Hardware for the head mount.
+9 | [M1.6 insert nuts 4mm](https://www.aliexpress.com/item/1005008644449489.html) | Inserts for the MCH and PCB mounts.
+10 | [Magnets 6x6mm](https://www.aliexpress.com/item/1005005114069840.html) | Cap lock. If you buy elsewhere, check the height and adjust the case. Two stacked 6x3 mm magnets also work.
+11 | [esp32-c3](https://www.aliexpress.com/item/1005004386637738.html) (optional) | If it isn't on LCSC, grab the ESP32-C3-WROOM-02-N4 instead.
+12 | PA glue | For the PA-12 nylon case. Use an MMA-based adhesive such as [milky](https://www.aliexpress.com/item/1005002527252980.html) or [transparent](https://www.aliexpress.com/item/1005005299765624.html). A dual cartridge with a static mixer and a manual dispenser is strongly recommended.
+13 | Zero-flute countersink | Countersink the PCB-based hotplate so the screw heads sit flush.
 
 Note: Strongly consider ordering the SMT stencil with your PCB. It adds roughly
 $8 to the order and saves a ton of effort.
@@ -26,15 +28,15 @@ $8 to the order and saves a ton of effort.
 
 ### Other (optional)
 
-Consider this as a checklist. All depends on equipment you already have.
+Treat this as a checklist; pick what you are missing from your bench.
 
 &nbsp; | Name | Comment
 -------|------|--------
 1 | 140 W USB PD charger | A 28 V profile is required for the MCH heater (a 100 W charger is fine for the PCB heater). Support for a 21 V / 5 A PPS profile is highly recommended.
-2 | Digital thermometer with K-probe | For temperature calibration. TM-902C from AliExpress is fine and cheap.
+2 | [K-probe thermometer](https://he.aliexpress.com/item/1005008715777280.html) | For temperature calibration. The TM-902C from AliExpress is inexpensive and accurate enough.
 3 | [Soldering air gun](https://www.aliexpress.com/item/1005006099512955.html) | For PCB assembly.
 4 | Low-temp soldering paste | Sn42Bi58, 138°C, for PCB assembly. Standard leaded paste works too, but low-temp paste is more convenient.
-7 | 217°C soldering paste | Use it for the RTD wires and PCB heater power.
+7 | 217°C soldering paste | Use it for the RTD wires and the PCB heater power lines.
 
 
 ## JLCPCB / LCSC order notes

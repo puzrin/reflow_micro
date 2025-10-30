@@ -4,11 +4,12 @@ Reflow Table Documentation TOC
 ## Read first
 
 - [build.md](./build.md) - build guide.
-- [BOM.md](./BOM.md) - bill of materials.
+- [bom.md](./bom.md) - bill of materials.
 - [heating_heads.md](./heating_heads.md) - overview of the available heaters
   and their limits.
 - [soldering_paste.md](./soldering_paste.md) - quick notes for beginners on
   soldering paste.
+- [calibration.md](./calibration.md) - how to tune the device after assembly.
 
 ## Advanced
 

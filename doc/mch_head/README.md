@@ -16,14 +16,14 @@ MCH-based heating head <!-- omit in toc -->
 &nbsp; | Name | Comment
 -------|------|--------
 1 | Hotplate and clamps | Details below in the JLCPCB notes.
-1 | [M1.6 black screws 8mm, cone cap](https://www.aliexpress.com/item/32431305716.html) | DIN965/GB819. Mount the MCH and the RTD.
-2 | [MCH 70*14 2R](https://www.aliexpress.com/item/32966428374.html) | Two heaters are required; buy 5-10 to match their resistance.
-3 | [PT100 RTD sensor](https://www.aliexpress.com/item/1005007238778907.html) | Temperature feedback.
-4 | [Soft silicone wire, 30 AWG, white](https://www.aliexpress.com/item/4001283806251.html) | RTD wiring.
-5 | [Thermal conductive paste](https://www.aliexpress.com/item/1005002400161049.html) | Use Thermal Grizzly Kryonaut. The paste must handle 300°C, so skip the cheap stuff.
-6 | [Milliohm meter](https://www.aliexpress.com/item/1005006408703765.html) | For pairing the MCH heaters.
-7 | [Dental diamond disk](https://www.aliexpress.com/item/4001138228461.html) | For cutting the stainless clamps. Grab a mandrel too.
-8 | Black paint | High-temperature aerosol paint (grill/stove/engine type) to coat the plate top.
+2 | [M1.6 black screws 8mm, cone cap](https://www.aliexpress.com/item/32431305716.html) | DIN965/GB819. Mount the MCH and the RTD.
+3 | [MCH 70*14 2R](https://www.aliexpress.com/item/32966428374.html) | Two heaters are required; buy 5-10 to match their resistance.
+4 | [PT100 RTD sensor](https://www.aliexpress.com/item/1005007238778907.html) | Temperature feedback.
+5 | [Soft silicone wire, 30 AWG, white](https://www.aliexpress.com/item/4001283806251.html) | RTD wiring.
+6 | [Thermal conductive paste](https://www.aliexpress.com/item/1005002400161049.html) | Use Thermal Grizzly Kryonaut. The paste must handle 300°C, so skip the cheap stuff.
+7 | [Milliohm meter](https://www.aliexpress.com/item/1005006408703765.html) | For pairing the MCH heaters.
+8 | [Dental diamond disk](https://www.aliexpress.com/item/4001138228461.html) | For cutting the stainless clamps. Grab a mandrel too.
+9 | Black paint | High-temperature aerosol paint (grill/stove/engine type) to coat the plate top.
 
 Hotplate (jlc3dp, CNC):
 
@@ -35,15 +35,15 @@ Hotplate (jlc3dp, CNC):
 MCH/Sensor mounting (jlc3dp, SS print)
 
 - File `ss_mch_mount.stl`
-- `SLM(Metal)` process, 316L steel. Don't try `BJ(Metal)`, is will be rejected.
+- `SLM(Metal)` process, 316L steel. Don't try `BJ(Metal)`; it will be rejected.
 
 
 ## Plate top painting
 
-> **WARNING** the the difference of painted and not painted heater has not been
-> checked. May be... not required.
+> **Heads-up:** The difference between a painted heater and a bare one hasn't
+> been tested yet, so painting might not be strictly required.
 
-For better heat emission the top of the heating plate should be painted black.
+For better heat emission, the top of the heating plate should be painted black.
 Use a high-temperature spray meant for barbecue, stove, or engine parts.
 Shipping is often limited, so check local stores.
 

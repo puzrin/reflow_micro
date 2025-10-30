@@ -11,9 +11,9 @@ a bulky professional machine taking over the desk.
 - [EasyEDA project page](https://oshwlab.com/reflow/reflow-usb-pd-headless) -
   Schematic & PCB. Order almost everything in a couple of clicks.
 - [Hackaday.io](https://hackaday.io/project/168063-reflow-micro-table) page,
-  with history of build.
+  with the build history.
 
-TBD Video
+<img src="./doc/images/table_opened.jpg" width="30%"> <img src="./doc/images/table_closed.jpg" width="30%">
 
 
 ## Description

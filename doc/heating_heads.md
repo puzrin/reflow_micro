@@ -21,7 +21,7 @@ mistakes, and keeps the heater requirements modest.
 - Very affordable.
 - Easy to build.
 - No temperature sensor required (use the TCR-based method).
-- A 100 W charger is fine for a 80x70 mm plate.
+- A 100 W charger is fine for an 80x70 mm plate.
 
 **Cons:**
 
