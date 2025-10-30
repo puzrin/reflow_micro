@@ -3,13 +3,13 @@ Reflow Micro Table
 
 **WIP**
 
-> Compact reflow soldering table, with bluetooth control, 80\*70 mm working area
-and up to 350C. Designed for hobby use, when you don't wish spend much space for
-professional equipment.
+> Compact reflow soldering table with Bluetooth control, an 80x70 mm working
+area, and up to 300°C of headroom. Built for hobby projects when you don't want
+a bulky professional machine taking over the desk.
 
-- [Build manual](doc/README.md)
+- [Documentation](doc/README.md)
 - [EasyEDA project page](https://oshwlab.com/reflow/reflow-usb-pd-headless) -
-  Schematic & PCB. Order almost everything in couple of clicks.
+  Schematic & PCB. Order almost everything in a couple of clicks.
 - [Hackaday.io](https://hackaday.io/project/168063-reflow-micro-table) page,
   with history of build.
 
@@ -18,26 +18,26 @@ TBD Video
 
 ## Description
 
-This device is targeted for hobby, when you need to assemble PCBs from time to
-time. It may be not as featured as professional equipment, but it's very compact
-and covers most of hobby needs.
+This table is meant for hobbyists who assemble PCBs from time to time. It may
+not be as feature-packed as professional gear, but it's compact and covers most
+hobby needs.
 
 Key points:
 
-- Very small, don't occupy much space when not used.
-- Powered from 100W USB PD charger.
-- Controlled from web browser (desktop and mobile).
-- Working area 70x80 mm, with temperature deviation of surface < 10°C on max power.
-- Components cost < 50$.
-- Up to 350°C heating temperature, for long period and without fan.
-- You can easily define any heating profile you wish.
+- Very small, doesn't eat much space when not in use.
+- Powered from a 100-140 W USB PD charger.
+- Controlled from a web browser (desktop and mobile).
+- 80x70 mm working area.
+- Components cost under $50.
+- Simple heating profile management.
 
 Use cases:
 
-- Reflow soldering with Sn42bi58 (138°C) / SnPb (183°C) paste.
-- Reflow soldering with Pb free (217°C) soldering paste.
-- Pre-heat table (130-150°C), for soldering with air gun.
-- Other needs (drying, paint baking, and others)
+- Reflow soldering with Sn42Bi58 (138°C) paste using the PCB-based head.
+- Pre-heating (130-150°C) for hot air work.
+- Up to 300°C with the MCH-based head.
+- Other tinkering, like drying parts or baking paint.
 
-Due passive cool down, cooling speed on reflow may be slower than desired. But
-that's acceptable trade-off for compact size.
+This project isn't unique on the market, but the feature balance is tuned to be
+fun for hobby use and learning. The goal is to show that building modern
+electronics at home is totally doable, even for beginners.
