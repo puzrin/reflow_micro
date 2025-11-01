@@ -38,7 +38,7 @@ need the second point.
 
 Now you need to bake the sensor a bit below the max operating value.
 
-- 180°C for PCB-based heater. ~ 25 W.
+- 170°C for PCB-based heater. ~ 25 W.
 - 250°C for MCH-based heater. ~ 50 W.
 
 Don't exceed the maximum or you can damage the heater.

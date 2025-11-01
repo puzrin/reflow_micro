@@ -185,8 +185,8 @@ async function default_adrc_params() {
 
       <h3 class="text-base mb-4 text-slate-800">Measure step response</h3>
       <p class="text-sm text-slate-400 mb-4">
-          Used to calculate <b>τ</b> and <b>b0</b> params. Don't use max power, to avoid clamping
-          when temperature increases. Usually 50W should be ok.
+          Used to calculate <b>τ</b> and <b>b0</b> params. Use the same power
+          as you would for baking.
       </p>
       <div class="mb-8">
         <div class="flex gap-2 flex-nowrap w-full">

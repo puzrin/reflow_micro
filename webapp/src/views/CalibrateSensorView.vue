@@ -141,9 +141,9 @@ async function save_p1() {
         <span>Not calibrated</span>
       </div>
       <p class="text-sm text-slate-400 mb-4">
-        Select power to get below max supported temperature (180°C for aluminum
-        PCB heater). Wait until temperature become stable, and enter the real
-        value. 20-25W is recommended for the start, adjust if needed.
+        Select power to get below max supported temperature (~ 25W/180°C for
+        PCB-based heater, ~ 50W/250°C for MCH-based heater). Wait until
+        temperature become stable, and enter the real value. Adjust power if needed.
       </p>
 
       <div class="mb-8">
