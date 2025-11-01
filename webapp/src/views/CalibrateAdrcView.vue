@@ -124,8 +124,8 @@ async function default_adrc_params() {
       <ToolbarIndicator :status="status" />
     </template>
 
-    <div v-if="status.head !== HeadStatus.HeadConnected" class="text-red-800 mb-4">
-      <p class="text-red-500">Hotplate not connected</p>
+    <div v-if="status.head !== HeadStatus.HeadConnected" class="text-red-500 mb-4">
+      Hotplate not connected
     </div>
     <template v-else>
       <h2 class="text-2xl mb-4 mt-4 text-slate-800">Manual ADRC settings</h2>

@@ -3,7 +3,7 @@ import { useProfilesStore } from '@/stores/profiles'
 import { useLocalSettingsStore } from '@/stores/localSettings'
 import { inject } from 'vue'
 import { Device } from '@/device'
-import { DeviceActivityStatus } from '@/proto/generated/types'
+import { DeviceActivityStatus, HeadStatus, PowerStatus } from '@/proto/generated/types'
 import PageLayout from '@/components/PageLayout.vue'
 import HomeMenu from '@/components/HomeMenu.vue'
 import ButtonDanger from '@/components/buttons/ButtonDanger.vue'
@@ -33,7 +33,15 @@ async function stop() {
       <HomeMenu />
 
       <div class="mr-2 grow text-ellipsis overflow-hidden whitespace-nowrap">
+        <template v-if="status.head !== HeadStatus.HeadConnected">
+          <span class="text-red-500 text-base leading-8">Hotplate not connected</span>
+        </template>
+        <template v-else-if="status.power !== PowerStatus.PwrOK">
+          <span class="text-red-500 text-base leading-8">No suitable power</span>
+        </template>
+        <template v-else>
           {{ profilesStore.selected?.name || '--'}}
+        </template>
       </div>
       <ToolbarIndicator :status="status" />
     </template>

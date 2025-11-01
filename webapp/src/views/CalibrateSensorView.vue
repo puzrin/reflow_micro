@@ -103,8 +103,8 @@ async function save_p1() {
       <ToolbarIndicator :status="status" />
     </template>
 
-    <div v-if="status.head !== HeadStatus.HeadConnected" class="text-red-800 mb-4">
-      <p class="text-red-500">Hotplate not connected</p>
+    <div v-if="status.head !== HeadStatus.HeadConnected" class="text-red-500 mb-4">
+      Hotplate not connected
     </div>
     <template v-else>
       <p class="text-slate-400 mb-8">
