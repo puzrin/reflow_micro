@@ -8,8 +8,8 @@ auto SensorBake_State::on_enter_state() -> etl::fsm_state_id_t {
 
     last_temperature = heater.get_temperature();
 
-    auto status = heater.task_start(HISTORY_ID_SENSOR_BAKE_MODE, [this](int32_t dt_ms, int32_t time_ms) {
-        task_iterator(dt_ms, time_ms);
+    auto status = heater.task_start(HISTORY_ID_SENSOR_BAKE_MODE, [this](int32_t time_ms) {
+        task_iterator(time_ms);
     });
     if (!status) {
         app.beepTaskTerminated();
@@ -52,7 +52,7 @@ void SensorBake_State::on_exit_state() {
     heater.task_stop();
 }
 
-void SensorBake_State::task_iterator(int32_t /*dt_ms*/, int32_t /*time_ms*/) {
+void SensorBake_State::task_iterator(int32_t /*time_ms*/) {
     // Check for abnormal temperature jitter
     const float current_temp = heater.get_temperature();
     if (std::abs(current_temp - last_temperature) > 5.0f) {

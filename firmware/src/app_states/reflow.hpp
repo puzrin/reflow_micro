@@ -36,5 +36,5 @@ public:
 private:
     Timeline timeline{};
 
-    void task_iterator(int32_t dt_ms, int32_t time_ms);
+    void task_iterator(int32_t time_ms);
 };

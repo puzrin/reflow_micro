@@ -16,8 +16,8 @@ auto StepResponse_State::on_enter_state() -> etl::fsm_state_id_t {
         .time_x50 = 0
     });
 
-    auto status = heater.task_start(HISTORY_ID_STEP_RESPONSE, [this](int32_t dt_ms, int32_t time_ms) {
-        task_iterator(dt_ms, time_ms);
+    auto status = heater.task_start(HISTORY_ID_STEP_RESPONSE, [this](int32_t time_ms) {
+        task_iterator(time_ms);
     });
     if (!status) {
         log_entries_.reset();
@@ -56,7 +56,7 @@ static constexpr int32_t MAX_TRANSPORT_DELAY_MS = 10'000;  // 10 seconds max tra
 static constexpr int32_t STABILITY_CHECK_PERIOD_MS = 30'000;  // 30 seconds stability check period
 static constexpr float STABILITY_THRESHOLD_TEMP = 1.0f;  // 1 degree Celsius
 
-void StepResponse_State::task_iterator(int32_t /*dt_ms*/, int32_t time_ms) {
+void StepResponse_State::task_iterator(int32_t time_ms) {
     if (!log_entries_) { return; }
     auto& log = *log_entries_;
 

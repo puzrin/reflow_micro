@@ -55,8 +55,8 @@ auto Reflow_State::on_enter_state() -> etl::fsm_state_id_t {
 
     // Load timeline and try to execute the task
     timeline.load(*profile);
-    auto status = heater.task_start(profile->id, [this](int32_t dt_ms, int32_t time_ms) {
-        task_iterator(dt_ms, time_ms);
+    auto status = heater.task_start(profile->id, [this](int32_t time_ms) {
+        task_iterator(time_ms);
     });
     if (!status) {
         app.beepTaskTerminated();
@@ -97,7 +97,7 @@ void Reflow_State::on_exit_state() {
     heater.task_stop();
 }
 
-void Reflow_State::task_iterator(int32_t /*dt_ms*/, int32_t time_ms) {
+void Reflow_State::task_iterator(int32_t time_ms) {
     auto& app = get_fsm_context();
 
     if (time_ms >= timeline.get_max_time()) {

@@ -8,7 +8,7 @@
 #include "lib/adrc.hpp"
 #include "proto/generated/types.pb.h"
 
-using HeaterTaskIteratorFn = std::function<void(uint32_t, uint32_t)>;
+using HeaterTaskIteratorFn = std::function<void(uint32_t)>;
 
 class HeaterControlBase {
 public:

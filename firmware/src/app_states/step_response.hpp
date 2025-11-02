@@ -31,6 +31,6 @@ public:
 private:
     etl::unique_ptr<LOG_STORE> log_entries_{};
 
-    void task_iterator(int32_t dt_ms, int32_t time_ms);
+    void task_iterator(int32_t time_ms);
     size_t find_t_idx_of(float ratio);
 };

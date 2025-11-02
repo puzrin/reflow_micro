@@ -100,7 +100,7 @@ void HeaterControlBase::tick() {
     }
 
     // Task can have custom iterator, execute it is needed
-    if (task_iterator) task_iterator(dt_ms, task_time_ms);
+    if (task_iterator) task_iterator(task_time_ms);
 
     prev_tick_ms = now;
 }
