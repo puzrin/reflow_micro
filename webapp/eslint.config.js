@@ -11,8 +11,10 @@ export default [
   {
     name: 'app/files-to-ignore',
     ignores: [
-      '**/dist/**', '**/dist-ssr/**', '**/coverage/**',
-      '**/.tsimp/**'
+      '**/dist/**',
+      '**/dist-ssr/**',
+      '**/coverage/**',
+      '**/dev-dist/**'
     ],
   },
 

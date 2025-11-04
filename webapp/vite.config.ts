@@ -3,6 +3,7 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
+import { VitePWA } from 'vite-plugin-pwa'
 
 import gitRemoteOriginUrl from 'git-remote-origin-url'
 
@@ -33,6 +34,20 @@ export default defineConfig(async () => {
     plugins: [
       vue(),
       vueJsx(),
+      VitePWA({
+        registerType: 'autoUpdate',
+        pwaAssets: {},
+        manifest: {
+          name: 'Reflow Table',
+          short_name: 'Reflow',
+          description: 'Control and monitor the reflow table.',
+          start_url: '.',
+          display: 'standalone',
+          scope: '.',
+          theme_color: '#111827',
+          background_color: '#f8fafc',
+        }
+      }),
     ],
     resolve: {
       alias: {
