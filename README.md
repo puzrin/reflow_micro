@@ -1,8 +1,6 @@
 Reflow Micro Table
 ==================
 
-**WIP**
-
 > Compact reflow soldering table with Bluetooth control, an 80x70 mm working
 area, and up to 300°C of headroom. Built for hobby projects when you don't want
 a bulky professional machine taking over the desk.
