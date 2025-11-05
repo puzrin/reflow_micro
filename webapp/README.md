@@ -1,46 +1,33 @@
-# reflow_micro web application
+# Reflow Micro web UI
 
-This template should help get you started developing with Vue 3 in Vite.
+Vue 3 + TypeScript single-page app that talks to the Reflow Micro table over Web Bluetooth.
 
-## Recommended IDE Setup
+## Requirements
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+- Node.js 20+
+- npm 10+
 
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
-
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
-
-1. Disable the built-in TypeScript Extension
-    1) Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-    2) Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
-
-## Project Setup
+## Install
 
 ```sh
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+## Common scripts
+
+- `npm run dev` — start the Vite dev server on http://localhost:5173
+- `npm run build` — run `vue-tsc` and produce the production bundle in `dist/`
+- `npm run preview` — preview the latest production build
+- `npm run test` — lint, type-check, and run the Vitest suite
+- `npm run lint:fix` — auto-fix lint issues where possible
+- `npm run format` — format the sources with Prettier
+
+## Protobuf sources
+
+Message formats live in `src/proto/types.proto`. To regenerate all artifacts (TS types, firmware stubs, and default payloads), run:
 
 ```sh
-npm run dev
+npm run gen:proto
 ```
 
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+This command shells out to `protoc`, `nanopb_generator`, and `ts-proto`. They are installed via dev dependencies; ensure you have Python available for `nanopb_generator`.
