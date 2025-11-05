@@ -32,6 +32,7 @@ export class Head {
   size: { x: number; y: number; z: number }
   calibration_points: { T: number; R: number; W: number }[]
   temperature: number
+  heat_capacity_scale = 1
 
   constructor(x = 0.08, y = 0.07, z = 0.0038) {
     this.size = { x, y, z } // Plate dimensions in meters
@@ -43,6 +44,7 @@ export class Head {
     const new_instance = new Head(this.size.x, this.size.y, this.size.z)
     new_instance.calibration_points = this.calibration_points.map((point) => ({ ...point }))
     new_instance.temperature = this.temperature
+    new_instance.heat_capacity_scale = this.heat_capacity_scale
     return new_instance
   }
 
@@ -53,6 +55,7 @@ export class Head {
 
   setup(config: HEATER_DATA): this {
     this.set_size(config.size.x, config.size.y, config.size.z)
+    this.heat_capacity_scale = config.heat_capacity_scale ?? 1
     for (const point of config.calibration_points) {
       this.calibrate(point.T, point.W, point.R)
     }
@@ -101,7 +104,7 @@ export class Head {
     const material_density = 2700 // kg/m3 for Aluminum 6061
     const volume = this.size.x * this.size.y * this.size.z // in m³
     const mass = volume * material_density // in kg
-    return mass * material_shc
+    return this.heat_capacity_scale * mass * material_shc
   }
 
   calculate_heat_transfer_coefficient(): number {
