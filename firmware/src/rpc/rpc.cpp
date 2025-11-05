@@ -138,6 +138,13 @@ public:
         // Smaller intervals help with BLE 4 clients without DLE, but makes no sense
         // for BLE 5 clients with DLE.
         pServer->updateConnParams(conn_handle, 0x06, 0x06, 0, 200);
+
+        // Keep advertising active until we reach the connection limit.
+        if (pServer->getConnectedCount() < NIMBLE_MAX_CONNECTIONS) {
+            NimBLEDevice::startAdvertising();
+            APP_LOGI("BLE: Advertising restarted, connected {}/{}",
+                pServer->getConnectedCount(), NIMBLE_MAX_CONNECTIONS);
+        }
     }
 
     void onDisconnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo, int reason) override {
