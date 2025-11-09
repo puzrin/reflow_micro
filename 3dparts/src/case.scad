@@ -5,9 +5,9 @@ $fn = $preview ? 16 : 64;
 $ra_fn = $preview ? 3 : 16;
 
 // Inserts size for PCB mount (M1.6)
-insert_d = 2.5 + 0.1;
+insert_d = 3.5 + 0.1;
 insert_h = 4 + 1;
-insert_pcb_x_offset = 2.5;
+insert_pcb_x_offset = 3.0;
 insert_pcb_y_offset = 25;
 
 // !!! Measure magnets height before case order.
@@ -110,7 +110,7 @@ module usb_hole() {
 }
 
 module tray_pcb_holder() {
-    r = insert_d/2 + 1.2;
+    r = insert_d/2 + 1.5;
     h = tray_inner_h; // - 0.3;
 
     tr_z(wall_hor-e)
@@ -234,8 +234,8 @@ module _tray_base() {
             tr_xy(5, -15)
             translate(i)
             tr_z(wall_hor+e) mirror_z() {
-                cylinder(h=1.1, d=4.5);
-                //cylinder(h=1.3, d=2.5);
+                cylinder(h=0.5, d=4.5);
+                //cylinder(h=1.1, d=4.5);
             }
         }
 

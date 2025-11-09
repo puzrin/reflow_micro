@@ -24,6 +24,7 @@ const p = (name) => new URL(name, import.meta.url).pathname
 
 const builds = {
   tray: ['case.scad', '-D DRAW_TRAY=1'],
+  'tray_insert_3.25': ['case.scad', '-D DRAW_TRAY=1 -D insert_d=3.25'],
   cap: ['case.scad', '-D DRAW_CAP=1'],
   button: ['case.scad', '-D DRAW_BTN=1'],
   air_duct_pi5_top_10: ['air_duct_pi5.scad', '-D draw_top=1'],
