@@ -220,7 +220,13 @@ void HeaterControl::update_temperature_indicator() {
     constexpr int32_t T_HOT = 80;
     constexpr int32_t T_VERY_HOT = 150;
 
-    int32_t t = (head.get_temperature_x10() + 5) / 10;
+    int32_t temperature_x10 = head.get_temperature_x10();
+    if (temperature_x10 == head.UNKNOWN_TEMPERATURE_X10) {
+        blinker.background(LCD_OK_COLOR);
+        return;
+    }
+
+    int32_t t = (temperature_x10 + 5) / 10;
     Blinker::DataType color{};
 
     if (t <= T_WARM)
