@@ -153,7 +153,7 @@ module magnet_supports_cap(h = 20) {
         quoter_round_wall(r+1.5, r, h = cap_inner_h, fn=$ra_fn);
         quoter_cylinder(r=pin_w, h=h-mh, $ra_fn);
         quoter_cylinder(r=magnet_axis_offset, h=h-mh-pin_h, $ra_fn);
-        
+
         guide_top = [
             [r, 0],
             [r-1, -1],
@@ -161,7 +161,7 @@ module magnet_supports_cap(h = 20) {
             [-magnet_axis_offset, 1],
             [r-1, 1],
         ];
-        
+
         tr_z(h-mh-pin_h)
         rotate_z(-135)
         hull () {
@@ -322,7 +322,7 @@ module cap() {
             mirror_z()
             linear_extrude(gap, scale=[1, pcb_wy/(pcb_wy + gap*2)])
             square([pcb_wx-2*(magnet_d/2+pcb_support_w), pcb_wy + gap*2], center=true);
-            
+
             tr_z(-e)
             rotate_z(90)
             mirror_x()
@@ -383,6 +383,11 @@ module button() {
         tr_xy(m_w/2, btn_back_h/2+e) rotate_y(-90)
         linear_extrude(m_w)
         polygon([[0, 0], [mside, 0], [0, -mside]]);
+
+        // Led diffuser
+        led_offset = 2.5 - pcb_support_w; // Offset from wall
+        translate([0, -btn_back_h/2, btn_inner_depth-2])
+        sphere(d=2);
 
         // Marks
         if (btn_marks > 0) {
