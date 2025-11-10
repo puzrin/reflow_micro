@@ -10,6 +10,7 @@ Reflow Table Documentation TOC
 - [soldering_paste.md](./soldering_paste.md) - quick notes for beginners on
   soldering paste.
 - [calibration.md](./calibration.md) - how to tune the device after assembly.
+- [user manual](./user_manual.md) - usage.
 
 ## Advanced
 
