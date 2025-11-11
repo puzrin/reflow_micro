@@ -1,5 +1,5 @@
 import { ref, reactive, type App, type Ref, toValue } from "vue"
-import { VirtualBackend } from "./virtual_backend2"
+import { VirtualBackend } from "./virtual_backend"
 import { BleBackend } from "./ble_backend"
 import { useProfilesStore } from '@/stores/profiles'
 import { ProfilesData, Point, HeadParams, HeadStatus, DeviceInfo } from '@/proto/generated/types'
