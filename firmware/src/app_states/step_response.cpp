@@ -103,80 +103,48 @@ void StepResponse_State::task_iterator(int32_t time_ms) {
     // Analyze log to find response time & b0
     //
 
-    // Classic S-K points
-    uint32_t idx_35 = find_t_idx_of(0.35f);
-    uint32_t idx_85 = find_t_idx_of(0.85f);
+    // - Heater has long tail. Early window (28/63) use is preferable over S-K (35/85)
+    // - L/τ ratio is about 0.04 => predictive model will not give benefits,
+    //   ADRC is enough
 
     // Alternate two points for shorter log
     uint32_t idx_28 = find_t_idx_of(0.28f);
     uint32_t idx_63 = find_t_idx_of(0.63f);
-
-    float c_35 = log[idx_35].temperature_x10 * 0.1f;
-    float t_35 = log[idx_35].time_x50 / 50.0f;
-    float c_85 = log[idx_85].temperature_x10 * 0.1f;
-    float t_85 = log[idx_85].time_x50 / 50.0f;
 
     float c_28 = log[idx_28].temperature_x10 * 0.1f;
     float t_28 = log[idx_28].time_x50 / 50.0f;
     float c_63 = log[idx_63].temperature_x10 * 0.1f;
     float t_63 = log[idx_63].time_x50 / 50.0f;
 
-    float τ_sk = 0.681971f * (t_85 - t_35);
-    float L_sk = 1.293782f * t_35 - 0.293782f * t_85;
+    float τ = 1.502069f * (t_63 - t_28);
+    float L = 1.493523f * t_28 - 0.493523f * t_63;
 
-    float τ_alt = 1.502069f * (t_63 - t_28);
-    float L_alt = 1.493523f * t_28 - 0.493523f * t_63;
-
-    const std::string τ_sk_str = std::to_string(τ_sk);
-    const std::string L_sk_str = std::to_string(L_sk);
-    const std::string τ_alt_str = std::to_string(τ_alt);
-    const std::string L_alt_str = std::to_string(L_alt);
+    const std::string τ_str = std::to_string(τ);
+    const std::string L_str = std::to_string(L);
 
     float t_max = log[find_t_idx_of(1.0f)].temperature_x10 * 0.1f;
 
     APP_LOGI("Step response analysis:");
-    APP_LOGI("  t max = {}C", static_cast<int>(t_max));
+    APP_LOGI("  t max = {}°C", static_cast<int>(t_max));
 
-    APP_LOGI("  S-K points:    c(35%) = {}, c(85%) = {}, t(35%) = {}, t(85%) = {}",
-        static_cast<int>(c_35), static_cast<int>(c_85), static_cast<int>(t_35), static_cast<int>(t_85));
-    APP_LOGI("  Alternate pts: c(28%) = {}, c(63%) = {}, t(28%) = {}, t(63%) = {}",
-        static_cast<int>(c_28), static_cast<int>(c_63), static_cast<int>(t_28), static_cast<int>(t_63));
-    APP_LOGI("  S-K method:    response = {}s, effective delay = {}s",
-        τ_sk_str.c_str(), L_sk_str.c_str());
-    APP_LOGI("  Alternate:     response = {}s, effective delay = {}s",
-        τ_alt_str.c_str(), L_alt_str.c_str());
-
-
-    //
-    // I app: Step response analysis:
-    // I app:   t max = 221C
-    // I app:   S-K points:    c(35%) = 91, c(85%) = 191, t(35%) = 86, t(85%) = 327
-    // I app:   Alternate pts: c(28%) = 77, c(63%) = 147, t(28%) = 67, t(63%) = 188
-    // I app:   S-K method:    response = 163.918549s, effective delay = 16.106567s
-    // I app:   Alternate:     response = 181.329773s, effective delay = 8.121902s
-    //
-    // Conclusions:
-    //
-    // - Heater has long tail. Early window (28/63) use is preferable
-    // - L/τ ratio is about 0.04 => predictive model will not give benefits,
-    //   ADRC is enough
-    //
+    APP_LOGI("  P1(28%) = {}°C, {}sec", static_cast<int>(t_28), static_cast<int>(c_28));
+    APP_LOGI("  P3(63%) = {}°C, {}sec", static_cast<int>(t_63), static_cast<int>(c_63));
+    APP_LOGI("  response = {}s, effective delay = {}s", τ_str.c_str(), L_str.c_str());
 
     // Step is 0 => constant power.
     float du = (log[idx_63].power_x10 * 0.1f - 0);
 
-    // "Classic" equation gives b0 at c_28 - too far from actual range.
-    // So, use linear value between c_28 and c_63.
-    float b0 = (c_63 - c_28) / ((0.63f - 0.28f) * τ_alt * du);
-    //float b0 = (c_63 - c_28) / ((t_63 - t_28) * du);
+    float b0 = (c_63 - c_28) / ((0.63f - 0.28f) * τ * du);
+    // Linear fit over edge points gives twice lower value
+    // float b0 = (c_63 - c_28) / ((t_63 - t_28) * du);
 
     const std::string b0_str = std::to_string(b0);
-    APP_LOGI("b0 = {}", b0_str.c_str());
+    APP_LOGI("  b0 = {}", b0_str.c_str());
 
     HeadParams p;
     heater.get_head_params(p);
 
-    p.adrc_response = τ_alt;
+    p.adrc_response = τ;
     p.adrc_b0 = b0;
 
     heater.set_head_params(p);

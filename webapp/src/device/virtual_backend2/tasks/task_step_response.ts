@@ -126,42 +126,30 @@ export class TaskStepResponse extends HeaterTask {
         return idx
       }
 
-      const idx_35 = find_t_idx_of(0.35)
-      const idx_85 = find_t_idx_of(0.85)
       const idx_28 = find_t_idx_of(0.28)
       const idx_63 = find_t_idx_of(0.63)
-
-      const c_35 = temperature_log[idx_35].temperature
-      const t_35 = temperature_log[idx_35].time_ms / 1000
-      const c_85 = temperature_log[idx_85].temperature
-      const t_85 = temperature_log[idx_85].time_ms / 1000
 
       const c_28 = temperature_log[idx_28].temperature
       const t_28 = temperature_log[idx_28].time_ms / 1000
       const c_63 = temperature_log[idx_63].temperature
       const t_63 = temperature_log[idx_63].time_ms / 1000
 
-      const τ_sk = 0.681971 * (t_85 - t_35)
-      const L_sk = 1.293782 * t_35 - 0.293782 * t_85
-
-      const τ_alt = 1.502069 * (t_63 - t_28)
-      const L_alt = 1.493523 * t_28 - 0.493523 * t_63
+      const τ = 1.502069 * (t_63 - t_28)
+      const L = 1.493523 * t_28 - 0.493523 * t_63
 
       console.log('Step response analysis:')
-      console.log(`  t max = ${t_max.toFixed(1)}C`)
-      console.log(`  S-K points:    c(35%) = ${c_35.toFixed(1)}, c(85%) = ${c_85.toFixed(1)}, t(35%) = ${t_35.toFixed(1)}, t(85%) = ${t_85.toFixed(1)}`)
-      console.log(`  Alternate pts: c(28%) = ${c_28.toFixed(1)}, c(63%) = ${c_63.toFixed(1)}, t(28%) = ${t_28.toFixed(1)}, t(63%) = ${t_63.toFixed(1)}`)
-      console.log(`  S-K method:    response = ${τ_sk.toFixed(2)}s, effective delay = ${L_sk.toFixed(2)}s`)
-      console.log(`  Alternate:     response = ${τ_alt.toFixed(2)}s, effective delay = ${L_alt.toFixed(2)}s`)
+      console.log(`  t max = ${t_max.toFixed(0)}°C`)
+      console.log(`  P1(28%) = ${t_28.toFixed(0)}°C, ${c_28.toFixed(0)}sec`);
+      console.log(`  P2(63%) = ${t_63.toFixed(0)}°C, ${c_63.toFixed(0)}sec`);
+      console.log(`  response = ${τ.toFixed(2)}s, effective delay = ${L.toFixed(2)}s`)
 
       const du = temperature_log[idx_63].power
-      const b0 = (c_63 - c_28) / ((0.63 - 0.28) * τ_alt * du)
-
-      console.log(`b0 = ${b0.toFixed(6)}`)
+      const b0 = (c_63 - c_28) / ((0.63 - 0.28) * τ * du)
+      console.log(`  b0 = ${b0.toFixed(6)}`)
 
       // Update head params
       const head_params = heater.get_head_params()
-      head_params.adrc_response = τ_alt
+      head_params.adrc_response = τ
       head_params.adrc_b0 = b0
       heater.set_head_params(head_params)
     })()
