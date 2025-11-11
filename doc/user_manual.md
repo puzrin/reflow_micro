@@ -25,7 +25,7 @@ keeps working even if the internet drops.
 4. To remove the shortcut, long-press the icon and pick **Remove / Delete App**.
    Repeat the same Add to Home Screen flow if you ever want it back.
 
-> Safari on iOS still cannot talk to the oven over Bluetooth, so use the desktop
+> Safari on iOS still cannot talk over Bluetooth, so use the desktop
 > instructions below to control it from a Mac or PC.
 
 ### Desktop (Chrome / Edge / Chromium)

@@ -5,7 +5,7 @@ import { TaskSensorBake } from './tasks/task_sensor_bake'
 import { TaskAdrcTest } from './tasks/task_adrc_test'
 import { TaskReflow } from './tasks/task_reflow'
 import { TaskStepResponse } from './tasks/task_step_response'
-import { mch_black_70x80x3 as heater_data } from './heater_data'
+import { mcpcb_80x70x16 as heater_data } from './heater_data'
 import { charger_140w_pps as power_data } from './power_data'
 import {
   ProfilesData,
