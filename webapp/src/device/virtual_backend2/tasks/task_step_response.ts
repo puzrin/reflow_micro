@@ -54,7 +54,7 @@ export class TaskStepResponse extends HeaterTask {
           // Record new log entry
           temperature_log.push({
             temperature: probe,
-            power: heater.get_max_power(),
+            power: heater.get_power(),
             time_ms: task_time_ms
           })
 

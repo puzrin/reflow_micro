@@ -166,6 +166,10 @@ export class HeaterControl {
     this.power.set_power_mw(watts * 1000)
   }
 
+  get_power(): number {
+    return this.power.selector.target_power_mw / 1000
+  }
+
   set_temperature(temp: number): void {
     this.temperature_setpoint = temp
   }
