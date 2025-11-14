@@ -8,11 +8,15 @@ low-temperature pastes:
 1. Keep the operating temperature under 80-90°C. Avoid very hot MOSFETs and
    similar situations.
 2. Pure SnBi pastes are brittle; SnBiAg blends hold up better.
-3. Avoid high-vibration environments (automotive, etc.). That's rarely an issue
-   at home, but for connectors or wires with heavy mechanical stress consider
-   leaded or standard RoHS solder.
+3. Avoid high-vibration environments (automotive, frequently falling to the
+   floor, etc.). That's rarely an issue at home, but for connectors or wires
+   with heavy mechanical stress, also consider leaded or standard RoHS solder.
 4. AliExpress pastes vary wildly in quality. Buy a known brand like Chip Quik
-   whenever you can.
+   whenever you can. Indium is also perfect, but less accessible in small
+   quantities.
+5. NEVER mix LTS and SnPb solder. That will produce a Rose's-like alloy with a
+   very low melting point, causing assembly defects. If you use the same iron
+   for both, clear the soldering tip between jobs.
 
 What that means in practice:
 
