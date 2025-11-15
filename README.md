@@ -2,14 +2,13 @@ Reflow Micro Table
 ==================
 
 > Compact reflow soldering table with Bluetooth control, an 80x70 mm working
-area, and up to 300°C of headroom. Built for hobby projects when you don't want
-a bulky professional machine taking over the desk.
+area. Built for hobby projects when you don't want a bulky professional machine
+taking over the desk.
 
 - [Documentation](doc/README.md)
 - [EasyEDA project page](https://oshwlab.com/reflow/reflow-usb-pd-headless) -
   Schematic & PCB. Order almost everything in a couple of clicks.
-- [Hackaday.io](https://hackaday.io/project/168063-reflow-micro-table) page,
-  with the build history.
+- [Hackaday.io](https://hackaday.io/project/204503-reflow-micro-table) page.
 
 <img src="./doc/images/table_opened.jpg" width="30%"> <img src="./doc/images/table_closed.jpg" width="30%">
 
@@ -28,14 +27,15 @@ Key points:
 - 80x70 mm working area.
 - Components cost under $50.
 - Simple heating profile management.
+- Up to 180°C with the simple MCPCB-based head.
+- Up to 300°C with the MCH-based head.
 
 Use cases:
 
-- Reflow soldering with Sn42Bi58 (138°C) paste using the PCB-based head.
+- Reflow soldering with Sn42Bi58 (138°C) paste using the MCPCB-based head.
 - Pre-heating (130-150°C) for hot air work.
-- Up to 300°C with the MCH-based head.
 - Other tinkering, like drying parts or baking paint.
 
-This project isn't unique on the market, but the feature balance is tuned to be
-fun for hobby use and learning. The goal is to show that building modern
-electronics at home is totally doable, even for beginners.
+This project isn't unique on the market, but the feature balance is tuned for
+fun hobby use and learning. The goal is to be useful and show that building
+modern electronics at home is totally doable, even for beginners.
