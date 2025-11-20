@@ -112,7 +112,7 @@ async function save_p1() {
       </p>
 
 
-      <h2 class="text-2xl mb-0.5 text-slate-800">Heat point 1 (room temperature)</h2>
+      <h2 class="text-2xl mb-0.5 text-slate-800">Heat point 1 (room temp)</h2>
       <div v-if="is_p0_calibrated" class="mb-1 text-xs text-green-600">
         <span>Calibrated at {{ Math.round(p0_orig) }}°C</span>
       </div>
@@ -133,7 +133,7 @@ async function save_p1() {
       </div>
 
 
-      <h2 class="text-2xl mb-0.5 text-slate-800">Heat point 2 (~ 170°C)</h2>
+      <h2 class="text-2xl mb-0.5 text-slate-800">Heat point 2 (below max allowed)</h2>
       <div v-if="is_p1_calibrated" class="mb-1 text-xs text-green-600">
         <span>Calibrated at {{ Math.round(p1_orig) }}°C</span>
       </div>
@@ -141,8 +141,8 @@ async function save_p1() {
         <span>Not calibrated</span>
       </div>
       <p class="text-sm text-slate-400 mb-4">
-        Select power to get below max supported temperature (~ 25W/180°C for
-        PCB-based heater, ~ 50W/250°C for MCH-based heater). Wait until
+        Select power to get below max supported temperature (~ 25W/170°C for
+        MCPCB heater, ~ 50W/250°C for MCH-based heater). Wait until
         temperature become stable, and enter the real value. Adjust power if needed.
       </p>
 
