@@ -7,57 +7,36 @@ import { ProfilesData, HeadParams } from './generated/types'
 export const profiles_default: ProfilesData = {
   selectedId: 1,
   items: [
-    /*{
+    {
       id: 1,
-      name: 'Reflow Leaded',
+      name: 'Reflow LTS',
       segments: [
-        { target: 150, duration: 60 },
-        { target: 165, duration: 90 },
-        { target: 235, duration: 30 },
-        { target: 235, duration: 20 },
-        { target: 40, duration: 50}
+        { target: 100, duration: 60 },
+        { target: 140, duration: 60 },
+        { target: 180, duration: 30 },
+        { target: 180, duration: 30 },
+        { target: 140, duration: 20 }
       ]
     },
     {
       id: 2,
-      name: 'Reflow Lead Free',
+      name: 'Reflow Leaded',
       segments: [
-        { target: 150, duration: 60 },
-        { target: 180, duration: 120 },
-        { target: 255, duration: 30 },
-        { target: 255, duration: 15 },
-        { target: 40, duration: 50}
-      ]
-    },*/
-    {
-      id: 3,
-      name: 'Reflow LTS',
-      segments: [
-        { target: 100, duration: 90 },
-        { target: 140, duration: 90 },
-        { target: 148, duration: 10 },
-        { target: 180, duration: 25 },
-        { target: 180, duration: 60 },
-        { target: 148, duration: 20 },
-        { target: 40, duration: 40}
+        { target: 150, duration: 120 },
+        { target: 170, duration: 60 },
+        { target: 230, duration: 60 },
+        { target: 230, duration: 30 },
+        { target: 170, duration: 50}
       ]
     },
     {
-      id: 4,
+      id: 3,
       name: 'Preheat 150°C',
       segments: [
         { target: 150, duration: 60 },
         { target: 150, duration: 3600 }
       ]
-    },
-    /*{
-      id: 6,
-      name: 'Paint bake',
-      segments: [
-        { target: 180, duration: 6600 },
-        { target: 250, duration: 86400 }
-      ]
-    }*/
+    }
   ]
 }
 
