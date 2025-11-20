@@ -36,7 +36,7 @@ async function stop() {
         <template v-if="status.head !== HeadStatus.HeadConnected">
           <span class="text-red-500 text-base leading-8">Hotplate not connected</span>
         </template>
-        <template v-else-if="status.power !== PowerStatus.PwrOK">
+        <template v-else-if="status.power == PowerStatus.PwrFailure">
           <span class="text-red-500 text-base leading-8">No suitable power</span>
         </template>
         <template v-else>
