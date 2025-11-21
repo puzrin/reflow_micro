@@ -22,7 +22,8 @@ and fix any issues with a soldering iron and flux. If you're going to wash the
 PCB in an ultrasonic bath, leave the buzzer off until after cleaning so it
 stays safe.
 
-Then solder the heating head connectors on the top side of the PCB.
+Then solder the heating head connectors on the top side of the PCB. And solder
+USB connectors mounting holes.
 
 <img src="./images/pcb_main_bottom.jpg" width="30%"> <img src="./images/pcb_main_top.jpg" width="30%">
 

@@ -34,6 +34,7 @@ Use cases:
 
 - Reflow soldering with Sn42Bi58 (138°C) paste using the MCPCB-based head.
 - Pre-heating (130-150°C) for hot air work.
+- Reflow soldering with Sn63Pb37 (183°C) paste using the MCH-based head (experimental).
 - Other tinkering, like drying parts or baking paint.
 
 This project isn't unique on the market, but the feature balance is tuned for
