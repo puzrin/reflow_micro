@@ -2,8 +2,6 @@ MCH-based heating head <!-- omit in toc -->
 ======================
 
 - [BOM](#bom)
-- [Plate top painting](#plate-top-painting)
-- [Baking the paint](#baking-the-paint)
 - [MCH heaters resistance matching](#mch-heaters-resistance-matching)
 - [Cut SS clamps](#cut-ss-clamps)
 - [Mount hotplate top parts](#mount-hotplate-top-parts)
@@ -16,7 +14,8 @@ MCH-based heating head <!-- omit in toc -->
 &nbsp; | Name | Comment
 -------|------|--------
 1 | Hotplate and clamps | Details below in the JLCPCB notes.
-2 | [M1.6 black screws 8mm, cone cap](https://www.aliexpress.com/item/32431305716.html) | DIN965/GB819. Mount the MCH and the RTD.
+2 | [M1.6 SS screws 18mm, cone cap](https://www.aliexpress.com/item/32946954901.html) | DIN965/GB819. Mount the heater plate to the reflector.
+3 | [M1.6 SS screws 8mm, cone cap](https://www.aliexpress.com/item/32946954901.html) | DIN965/GB819. MCH Mount.
 3 | [MCH 70*14 2R](https://www.aliexpress.com/item/32966428374.html) | Two heaters are required; buy 5-10 to match their resistance.
 4 | [PT100 RTD sensor](https://www.aliexpress.com/item/1005007238778907.html) | Temperature feedback.
 5 | [Soft silicone wire, 30 AWG, white](https://www.aliexpress.com/item/4001283806251.html) | RTD wiring.
@@ -36,63 +35,6 @@ MCH/Sensor mounting (jlc3dp, SS print)
 
 - File `ss_mch_mount.stl`
 - `SLM(Metal)` process, 316L steel. Don't try `BJ(Metal)`; it will be rejected.
-
-
-## Plate top painting
-
-> **Heads-up:** The difference between a painted heater and a bare one hasn't
-> been tested yet, so painting might not be strictly required.
-
-For better heat emission, the top of the heating plate should be painted black.
-Use a high-temperature spray meant for barbecue, stove, or engine parts.
-Shipping is often limited, so check local stores.
-
-**Note 1.** Some paints target steel only. Test on an unused aluminum scrap
-before committing.
-
-**Note 2.** Manufacturers usually suggest baking for just a few hours, but a
-full cure at high temperature can still take 2-3 days.
-
-Tape off the plate sides, stick the plate to a sheet of A4 paper, and clean the
-top with IPA. Place everything on a safe surface and spray from 30-40 cm away
-in thin, even passes. A thin coat handles wide temperature swings better.
-
-<img src="./images/plate_clear.jpg" width="15%"> <img src="./images/plate_painted.jpg" width="15%">
-
-
-## Baking the paint
-
-High-heat paints need baking once they're dry. Read the instructions on your
-paint, but here are two easy approaches:
-
-1. If you have a suitable heater or regulated power source, bake the plate right
-   after the paint flashes off.
-2. Bake it after the full device assembly using the built-in baking profile. Let
-   the paint dry for a day and handle it gently so you don't scratch the finish
-   beforehand.
-
-Because the heads swap easily, consider building two: one for baking or
-experiments and one for final use.
-
-Many paint makers suggest hardening at about 200°C for an hour. That's not
-enough. The finish feels solid at room temperature but can soften when reheated.
-Try this alternative profile:
-
-- 250°C (the max reflow working temperature) for 2-3 days (yes, days).
-- 4°C/min ramp.
-
-If you're unsure about the paint, test it on a scrap piece. Use a hobby knife to
-give the surface a light scratch.
-
-- After a couple of hours of baking it usually becomes scratch-resistant at room
-  temperature, but still soft when hot.
-- After 2-3 days of baking it also holds up at high temperature.
-
-This isn't a professional coating guide - just personal experience with different
-paints.
-
-Why bake longer than the label suggests? Imagine nudging a PCB across the hot
-plate in the middle of reflow. The finish shouldn't scratch that easily.
 
 
 ## MCH heaters resistance matching

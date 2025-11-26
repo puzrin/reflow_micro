@@ -22,7 +22,7 @@ other shops. The important picks are also commented.
 12 | PA glue | For the PA-12 nylon case. Use an MMA-based adhesive such as [milky](https://www.aliexpress.com/item/1005002527252980.html) or [transparent](https://www.aliexpress.com/item/1005005299765624.html). A dual cartridge with a static mixer and a manual dispenser is strongly recommended.
 13 | Zero-flute countersink | Countersink the PCB-based hotplate so the screw heads sit flush.
 14 | [0.5mm bare copper wire](https://www.aliexpress.com/item/1005009540818990.html) | Solder heater power
-15 | [M2 insert nuts 4mm OD 3.2/3.5](https://www.aliexpress.com/item/1005007660074806.html) | Inserts PCB mounts. 3.2mm for nylon (thermal insert), 3.5mm other.
+15 | [M2 insert nuts 4mm OD 3.5](https://www.aliexpress.com/item/1005007660074806.html) | Inserts PCB mounts.
 16 | [M2 screws 3mm, flat cap](https://www.aliexpress.com/item/32981974171.html) | Mount the reflector to the head base.
 17 | [M2 screws 6mm, flat cap](https://www.aliexpress.com/item/32981974171.html) | Mount the PCB.
 
