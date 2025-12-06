@@ -48,7 +48,6 @@ Treat this as a checklist; pick what you are missing from your bench.
 https://oshwlab.com/reflow/reflow-usb-pd-headless
 
 1. `pcb_main`: 1.6 mm, green (other colors for 4-layer PCB are pricey).
-   - Option "Remove mark".
    - Stencil is strongly recommended.
      - Bottom side only.
      - Comment "**Make stencil according to paste mask file and don't forget the corner holes marked with arrows**". Otherwise the positional holes might be missed.
