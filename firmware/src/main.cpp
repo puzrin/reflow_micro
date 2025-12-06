@@ -38,7 +38,7 @@ extern "C" void app_main(void) {
 
     rpc_start();
 
-    stack_monitor_start();
+    //stack_monitor_start();
 
     // Main task no longer needed once initialization completes.
     vTaskDelete(nullptr);
