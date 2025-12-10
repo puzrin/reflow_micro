@@ -131,7 +131,7 @@ public:
 };
 
 class PowerReady_State : public etl::fsm_state<Power, PowerReady_State, PWR_STATE::Ready,
-    MsgToPower_SysTick, pd::MsgToDpm_SnkReady, pd::MsgToDpm_NewPowerLevelRejected> {
+    MsgToPower_SysTick, pd::MsgToDpm_SnkReady, pd::MsgToDpm_NewPowerLevelRejected, pd::MsgToDpm_SrcCapsReceived> {
 public:
     HANDLE_UNKNOWN_EVENT;
 
@@ -158,6 +158,15 @@ public:
         // NOTE: trigger function MUST be async to avoid deadlock
         dpm.trigger_by_position(ps.default_position, ps.default_mv);
         return PWR_STATE::Initializing;
+    }
+
+    // If SRC forced capabilities or soft reset (followed by capabilities)
+    auto on_event(const pd::MsgToDpm_SrcCapsReceived&) -> etl::fsm_state_id_t {
+        auto& pwr = get_fsm_context();
+
+        APP_LOGI("Power: got unexpected src caps, restore profile selection...");
+        pwr.is_from_caps_update = true;
+        return PWR_STATE::WaitContractChange;
     }
 
     auto on_event(const pd::MsgToDpm_SnkReady&) -> etl::fsm_state_id_t {
@@ -202,6 +211,7 @@ public:
         // If completely new PDO required - go to switching state.
         if (pwr.profile_selector.better_pdo_available()) {
             APP_LOGI("Power: switch to better PDO (position {})", pwr.profile_selector.better_index + 1);
+            pwr.is_from_caps_update = false;
             return PWR_STATE::WaitContractChange;
         }
 
@@ -245,7 +255,7 @@ public:
 
 // Loopback from Ready state to wait for contract change after power update
 class PowerWaitContractChange_State : public etl::fsm_state<Power, PowerWaitContractChange_State, PWR_STATE::WaitContractChange,
-    pd::MsgToDpm_SnkReady, pd::MsgToDpm_NewPowerLevelRejected> {
+    pd::MsgToDpm_SnkReady, pd::MsgToDpm_NewPowerLevelRejected, pd::MsgToDpm_SrcCapsReceived> {
 public:
     HANDLE_UNKNOWN_EVENT;
 
@@ -256,12 +266,30 @@ public:
         pwr.set_power_status(PowerStatus::PowerStatus_PwrTransition);
         // Turn load off
         pwr.pwm.enable(false);
-        // Initiate profile change
-        auto idx = pwr.profile_selector.better_index;
-        auto params = pwr.profile_selector.get_pdo_usage_params(idx);
-        // NOTE: trigger function MUST be async to avoid deadlock
-        dpm.trigger_by_position(idx + 1, params.mv);
 
+        //
+        // Initiate profile change
+        //
+
+        // Always re-evaluate best profile, because we can come here
+        // from different states (including unexpected src caps event).
+        auto idx = pwr.profile_selector.better_pdo_available()
+            ? pwr.profile_selector.better_index
+            : pwr.profile_selector.current_index;
+        auto params = pwr.profile_selector.get_pdo_usage_params(idx);
+
+        if (!pwr.is_from_caps_update)
+        {
+            // NOTE: trigger function MUST be async to avoid deadlock
+            dpm.trigger_by_position(idx + 1, params.mv);
+        }
+        else {
+            // If we react to capabilities update, set defaults without
+            // triggering DPM flag. Because PE will ask selection itself.
+            dpm.clear_trigger_to(idx + 1, params.mv);
+        }
+
+        pwr.is_from_caps_update = false;
         return No_State_Change;
     }
 
@@ -271,6 +299,15 @@ public:
         // NOTE: trigger function MUST be async to avoid deadlock
         dpm.trigger_by_position(ps.default_position, ps.default_mv);
         return PWR_STATE::Initializing;
+    }
+
+    // If SRC forced capabilities or soft reset (followed by capabilities)
+    auto on_event(const pd::MsgToDpm_SrcCapsReceived&) -> etl::fsm_state_id_t {
+        auto& pwr = get_fsm_context();
+
+        APP_LOGI("Power: got unexpected src caps, restore profile selection...");
+        pwr.is_from_caps_update = true;
+        return Self_Transition;
     }
 
     auto on_event(const pd::MsgToDpm_SnkReady&) -> etl::fsm_state_id_t {
@@ -409,21 +446,27 @@ void DPM_EventListener::on_receive(const pd::MsgToDpm_TransitToDefault&) {
     power.transition_to(PWR_STATE::Initializing);
 }
 
-void DPM_EventListener::on_receive(const pd::MsgToDpm_SrcCapsReceived&) {
+void DPM_EventListener::on_receive(const pd::MsgToDpm_SrcCapsReceived& msg) {
     // Use shadow copy for eventual consistency
     power.lock();
 
     power.source_caps = port.source_caps;
     power.profile_selector.load_pdos(power.source_caps);
-    auto & ps = power.profile_selector;
+    auto& ps = power.profile_selector;
     dpm.clear_trigger_to(ps.default_position, ps.default_mv);
 
     power.unlock();
 
     power.log_pdos();
-    // Re-init if charger forced caps emit (in normal case we are already there).
-    // This should not happen, but may be possible on overload and so on.
-    power.transition_to(PWR_STATE::Initializing);
+
+    // SRC Caps can come in 3 cases:
+    //
+    // 1. On startup, when PD stack is initialized.
+    // 2. After soft reset from SRC.
+    // 3. If been forced by SRC.
+    //
+    // The last ones requires restore of previous state.
+    power.receive(msg);
 }
 
 void DPM_EventListener::on_receive(const pd::MsgToDpm_SelectCapDone&) {
