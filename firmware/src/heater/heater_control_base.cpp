@@ -76,31 +76,31 @@ void HeaterControlBase::temperature_control_off() {
 }
 
 void HeaterControlBase::tick() {
-    if (!is_task_active.load()) { return; }
-
     uint32_t now = get_time_ms();
     uint32_t dt_ms = now - prev_tick_ms;
 
     // If temperature controller active - use it to update power
-    if (temperature_control_enabled) {
-        static constexpr float dt_inv_multiplier = 1.0F / 1000;
-        const float dt = static_cast<float>(dt_ms) * dt_inv_multiplier;
+    if (is_task_active.load()) {
+        if (temperature_control_enabled) {
+            static constexpr float dt_inv_multiplier = 1.0F / 1000;
+            const float dt = static_cast<float>(dt_ms) * dt_inv_multiplier;
 
-        const float power = adrc.iterate(get_temperature(), temperature_setpoint, get_max_power(), dt);
-        set_power(power);
+            const float power = adrc.iterate(get_temperature(), temperature_setpoint, get_max_power(), dt);
+            set_power(power);
+        }
+
+        // Write history every second
+        uint32_t task_time_ms = now - task_start_ts;
+
+        const uint32_t seconds = task_time_ms / 1000;
+        if (seconds > history_last_recorded_ts) {
+            history.add(seconds, lround(get_temperature() * history_y_multiplier));
+            history_last_recorded_ts = seconds;
+        }
+
+        // Task can have custom iterator, execute it is needed
+        if (task_iterator) task_iterator(task_time_ms);
     }
-
-    // Write history every second
-    uint32_t task_time_ms = now - task_start_ts;
-
-    const uint32_t seconds = task_time_ms / 1000;
-    if (seconds > history_last_recorded_ts) {
-        history.add(seconds, lround(get_temperature() * history_y_multiplier));
-        history_last_recorded_ts = seconds;
-    }
-
-    // Task can have custom iterator, execute it is needed
-    if (task_iterator) task_iterator(task_time_ms);
 
     prev_tick_ms = now;
 }

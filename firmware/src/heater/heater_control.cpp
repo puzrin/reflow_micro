@@ -8,7 +8,6 @@
 
 void HeaterControl::setup() {
     static constexpr int32_t TICK_PERIOD_MS = 100;
-    prev_tick_ms = get_time_ms() - TICK_PERIOD_MS;
 
     power.setup();
     head.setup();
@@ -33,11 +32,7 @@ void HeaterControl::tick() {
         if (is_task_active.load()) {
             application.enqueue_message(AppCmd::Stop{});
         }
-        return;
     }
-
-    // Pause control if PD profile in transition.
-    if (get_power_status() != PowerStatus_PwrOK) { return; }
 
     HeaterControlBase::tick();
 }
