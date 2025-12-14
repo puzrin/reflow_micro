@@ -70,6 +70,9 @@ public:
         pwm.tick_count++;
 
         if (pwm.tick_count >= Pwm::PWM_MIN_PULSE_TICKS) {
+            // INA226 measures continuously; we just poll once per tick while the key is on.
+            // Ring buffer index wraps, so only the tail of the pulse (last up to ADC_FILTER_SIZE reads)
+            // contributes to the averaged peak values below.
             uint16_t adc_v_raw;
             uint16_t adc_i_raw;
 
@@ -91,7 +94,7 @@ public:
 
     static void on_exit_state(Pwm& pwm) {
         if (pwm.tick_count >= pwm.pulse_ticks && pwm.adc_count > 0) {
-            // End reached naturally => process ADC data
+            // End reached naturally => process ADC data averaged over the pulse tail
             // (otherwise, we are being disabled, skip this step)
             auto count = etl::min(pwm.adc_count, Pwm::ADC_FILTER_SIZE);
             uint32_t v_sum{0};
@@ -160,7 +163,9 @@ void Pwm::setup() {
     gpio_config(&io_conf);
 
     i2c_init();
-    ina226_init();
+    if (!ina226_init()) {
+        APP_LOGE("PWM: INA226 init failed");
+    }
     change_state(PwmState::Disabled);
 
     xTaskCreate(
@@ -176,8 +181,8 @@ void Pwm::setup() {
     );
 }
 
-void Pwm::set_duty_x1000(uint32_t millis) {
-    _duty_x1000.store(etl::clamp<uint32_t>(millis, 0, 1000));
+void Pwm::set_duty_x1000(uint32_t duty_0_1000) {
+    _duty_x1000.store(etl::clamp<uint32_t>(duty_0_1000, 0, 1000));
 }
 
 uint32_t Pwm::get_duty_x1000() const {
@@ -201,6 +206,9 @@ void Pwm::load_on(bool on) {
 bool Pwm::ina226_init() {
     // CONFIG (0x00) = 0x0007
     // AVG=000 (×1), VBUSCT=000 (140 µs), VSHCT=000 (140 µs), MODE=111 (Shunt+Bus, Continuous).
+    //
+    // ADC runs independently of PWM; continuous mode with ~280 µs per full cycle
+    // keeps conversions faster than our ~1 ms polling tick, so reads are fresh.
     if (!ina226_write_reg16(0x00, 0x0007)) {
         APP_LOGE("INA226: Failed to write CONFIG");
         return false;

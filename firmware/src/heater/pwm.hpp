@@ -7,6 +7,8 @@
 
 class Pwm : public afsm::fsm<Pwm>{
 public:
+    static_assert(configTICK_RATE_HZ == 1000, "PWM timings assume 1 ms FreeRTOS tick");
+
     static constexpr uint32_t PWM_PERIOD_TICKS = 50;
     static constexpr uint32_t PWM_IDLE_PERIOD_TICKS = 500;
     static constexpr uint32_t PWM_MIN_PULSE_TICKS = 3;
@@ -23,7 +25,7 @@ public:
     Pwm();
     void setup();
     // Duty is 0..1000
-    void set_duty_x1000(uint32_t millis);
+    void set_duty_x1000(uint32_t duty_0_1000);
     uint32_t get_duty_x1000() const;
 
     void enable(bool enable);
