@@ -11,47 +11,48 @@ MCH-based heating head <!-- omit in toc -->
 
 ## BOM
 
+This BOM extends the default one; be sure to buy it as well.
+
 &nbsp; | Name | Comment
 -------|------|--------
-1 | Hotplate and clamps | Details below in the JLCPCB notes.
-2 | [M1.6 SS screws 18mm, cone cap](https://www.aliexpress.com/item/32946954901.html) | DIN965/GB819. Mount the heater plate to the reflector.
-3 | [M1.6 SS screws 8mm, cone cap](https://www.aliexpress.com/item/32946954901.html) | DIN965/GB819. MCH Mount.
-3 | [MCH 70*14 2R](https://www.aliexpress.com/item/32966428374.html) | Two heaters are required; buy 5-10 to match their resistance.
-4 | [PT100 RTD sensor](https://www.aliexpress.com/item/1005007238778907.html) | Temperature feedback.
-5 | [Soft silicone wire, 30 AWG, white](https://www.aliexpress.com/item/4001283806251.html) | RTD wiring.
-6 | [Thermal conductive paste](https://www.aliexpress.com/item/1005002400161049.html) | Use Thermal Grizzly Kryonaut. The paste must handle 300°C, so skip the cheap stuff.
+1 | Hotplate and clamps | See details below the table.
+2 | [M1.6 SS screws 18 mm, cone cap](https://www.aliexpress.com/item/32946954901.html) | DIN965/GB819. Mount the heater plate to the reflector.
+3 | [M1.6 SS screws 8 mm, cone cap](https://www.aliexpress.com/item/32946954901.html) | DIN965/GB819. MCH mount.
+4 | [M1.6 SS washers](https://www.aliexpress.com/item/32975217522.html) | Hotplate mount.
+5 | [MCH 70*14 2R](https://www.aliexpress.com/item/32966428374.html) | Two heaters are required; buy 5-10 to match their resistance.
+6 | [Thermally conductive paste](https://www.aliexpress.com/item/1005002400161049.html) | Use Thermal Grizzly Kryonaut. The paste must handle 300°C, so skip the cheap stuff.
 7 | [Milliohm meter](https://www.aliexpress.com/item/1005006408703765.html) | For pairing the MCH heaters.
-8 | [Dental diamond disk](https://www.aliexpress.com/item/4001138228461.html) | For cutting the stainless clamps. Grab a mandrel too.
-9 | Black paint | High-temperature aerosol paint (grill/stove/engine type) to coat the plate top.
+8 | [Dental diamond disks](https://www.aliexpress.com/item/4001138228461.html) | For cutting the stainless clamps. Grab a mandrel too.
 
 Hotplate (jlc3dp, CNC):
 
 - File `hotplate_80x70x2.8.step`
 - Material: Aluminum 6061.
-- Surface Finish: "Bead blasting".
-- Comment: "Don't deburr".
+- Surface Finish: "Bead blasting + Anodizing" (Natural color).
 
-MCH/Sensor mounting (jlc3dp, SS print)
+MCH mounting (jlc3dp, SS print)
 
 - File `ss_mch_mount.stl`
 - `SLM(Metal)` process, 316L steel. Don't try `BJ(Metal)`; it will be rejected.
+- Comment: "All defects are acceptable in advance." The design is on the edge
+  of the printing requirements, so this comment helps avoid order declines.
 
 
 ## MCH heaters resistance matching
 
-The table uses two MCH heaters, so their resistance needs to match closely for
+The build uses two MCH heaters, so their resistance needs to match closely for
 balanced heating. Buy a few extras so you can pair them.
 
-Aim for roughly 2% tolerance. Use a milliohm meter (see the optional purchases
-list) and connect Kelvin clips directly to the MCH pads for accurate numbers.
+Aim for roughly 2% tolerance. Use a milliohm meter (see the BOM) and connect
+Kelvin clips directly to the MCH pads for accurate readings.
 
 Buying ten heaters typically yields three or four usable pairs.
 
 
 ## Cut SS clamps
 
-If you printed stainless steel clamps, cut them free from the panel. A Dremel
-with thin dental diamond disks works very well and keeps the cuts precise.
+Cut the stainless steel clamps free from the panel. A Dremel with thin dental
+diamond disks works very well and keeps the cuts precise.
 
 <img src="./images/ss_clamps.jpg" width="30%"> <img src="./images/ss_clamps_cutted.jpg" width="30%">
 
@@ -63,66 +64,47 @@ with thin dental diamond disks works very well and keeps the cuts precise.
   paste.
 - Tighten the screws with spring washers using only a light touch.
 
-Use 8 mm black screws for the heaters and RTD, and 18 mm screws for the corners.
+Use 8 mm screws for the heaters and 18 mm screws for the corners.
 
-<img src="./images/head_top_back.jpg" width="30%">
+<img src="./images/head_hotplate_mch_bottom.jpg" width="30%">
 
 *Note: Do not overtighten the screws; the MCH can crack after heating!*
 
-Once everything is mounted, solder 30 mm silicone wires to the RTD.
+Once everything is mounted, cut the MCH wires to the required length and tin
+the ends.
 
-- Use high-temperature lead-free (217°C) paste.
-- Keep the solder joints as small as possible.
-- Strip and tin 1-2 mm on one end of each wire and 4-5 mm on the other. Add a
-  little paste to the short ends and solder them to the RTD.
-- Clean the flux with IPA to reduce heat absorption.
+- Usually, a hot iron tip with plenty of solder and ordinary flux is enough.
+  Try to tin the cut wires first to be sure.
+- If you have problems, use active flux or an "iron tip refresher" as an
+  alternative.
+- Don't forget to clean the wires after using flux.
 
 
 ## Mount reflector
 
-Use the conductor as a template to cut the foil reflector and punch the holes
-with a screw.
+Use the conductor as a template to cut the foil reflector, then punch the holes
+using a screw.
 
-<img src="./images/reflector_foil.jpg" width="30%">
+- Place the foil on a flat surface with the template on top.
+- Cut the foil along the template outline and the central hole with a knife.
+- Secure the foil to the template with tape to prevent shifting.
+- Punch the mounting holes by pressing through with a screw.
+- Clean up the foil burrs around the holes by scraping with a tilted screw.
 
-Use spacers to set a 12 mm gap between the heater top and the reflector. For
-each corner, insert the spacer, snug the top nut first, then tighten the bottom
-nut (spring lock washers go underneath).
+<img src="../images/head_foil.jpg" width="30%">
+
+Install the foil and frame on the hotplate.
+
+- Use spacers to set a 12 mm gap between the heater top and the reflector.
+- For each corner, insert the spacer, snug the top nut first, then tighten
+  the bottom nut; spring lock washers go underneath.
 
 <img src="./images/head_reflector.jpg" width="30%"> <img src="./images/head_reflector_spacer.jpg" width="30%">
 
 
 ## Mount base
 
-Start by soldering the connectors. They need precise alignment, so use the
-conductors as jigs.
-
-- Place the conductors on the main board corners and rest the female connectors
-  on them.
-- Don't push the connectors in; just align them over the male header holes.
-- Position the heater base board on top and tack a few pins to lock it in
-  place.
-- Remove the heater base and finish soldering all the pins.
-
-<img src="./images/pcb_with_conductors.jpg" width="30%"> <img src="./images/pcb_with_head_base.jpg" width="30%">
-
-Now it's time for final head assembly.
-
-- Install the 4 mm insert nuts with the 3 mm screws in the heating head base.
-- Dry-fit the base, mark the MCH wires, and cut them to length.
-- Remove the base and tin the MCH wires. Acid flux or an iron tip refresher
-  works fine.
-- Screw the head base to the reflector with the 3 mm screws.
-- Solder the MCH and RTD wires.
+Assemble and mount the base board the same way as described in the
+[main build guide](../build.md).
 
 <img src="./images/head_bottom.jpg" width="30%">
-
-**Note.** You may need an active flux to tin the MCH wires. Try an "iron tip
-refresher", use a small amount, and clean it off afterward.
-
-Push the pin terminals into the main PCB for alignment, place the heater on
-them, and solder.
-
-TBD image.
-
-Wash out the flux after soldering.

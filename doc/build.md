@@ -17,13 +17,13 @@ Spread solder paste. Load enough paste so you can sweep it through the stencil
 in a single pass with a plastic card. Multiple passes tend to overload the
 openings and can short nearby pins.
 
-Place the SMD parts and solder everything with a hot air gun. Inspect the board
+Place the SMD parts and solder everything with a hot-air gun. Inspect the board
 and fix any issues with a soldering iron and flux. If you're going to wash the
 PCB in an ultrasonic bath, leave the buzzer off until after cleaning so it
 stays safe.
 
-Then solder the heating head connectors on the top side of the PCB. And solder
-USB connectors mounting holes.
+Then solder the heating head connectors on the top side of the PCB. Also solder
+the USB connector mounting holes.
 
 <img src="./images/pcb_main_bottom.jpg" width="30%"> <img src="./images/pcb_main_top.jpg" width="30%">
 
@@ -54,16 +54,24 @@ the RTD pins to enable the TCR-based temperature sensor.
 Continue with the hotplate. Countersink the screw heads with a zero-flute
 countersink.
 
-TBD details
+- Set the countersink angle so it touches both rails of the drilling conductor
+  evenly. Shift the conductor if needed.
+- If you use a screwdriver, drill freehand while resting the countersink on the
+  conductor and pressing through the hole; this keeps the angle correct.
+- Run at the lowest speed and clear chips often so they do not scrape the
+  conductor.
+- Check the depth: insert a screw and slide the conductor above it—the screw
+  must not catch on anything.
 
-TBD image
+<img src="./images/drill_conductor.jpg" width="30%">
+
 
 Then install the rest of the hotplate components.
 
-- Use 0.5 mm copper wire for the power lines.
-- Use RoHS 217°C paste; that is important.
+- Use RoHS 217°C paste; it is important.
+- Use 0.6 mm copper wire for the power lines.
 - Tin the wire first, then solder it to the hotplate.
-- Use a large iron tip at 350°C so there is enough heat.
+- Use a large iron tip at 350-400°C so there is enough heat.
 - Clean the flux with IPA.
 - Install the corner screws with spring washers.
 
@@ -71,11 +79,11 @@ Then install the rest of the hotplate components.
 
 Prepare the foil reflector layer.
 
-- Cut the foil from a baking tray, using the conductor as a template.
-- Trim the outline and center opening with a knife.
-- Tape the foil in place and press the corner holes with a screw. As the foil
-  folds inward, keep the screw in the hole and scrub the edge back and forth—
-  the threads shave the excess cleanly.
+- Place the foil on a flat surface with the template on top.
+- Cut the foil along the template outline and the central hole with a knife.
+- Secure the foil to the template with tape to prevent shifting.
+- Punch the mounting holes by pressing through with a screw.
+- Clean up the foil burrs around the holes by scraping with a tilted screw.
 
 <img src="./images/head_foil.jpg" width="30%">
 
@@ -83,14 +91,14 @@ Install the foil and frame on the hotplate.
 
 - Use spacers to set a 12 mm gap between the heater top and the reflector.
 - For each corner, insert the spacer, snug the top nut first, then tighten
-  the bottom nut (spring lock washers go underneath).
+  the bottom nut; spring lock washers go underneath.
 
 <img src="./images/head_reflector.jpg" width="30%"> <img src="./images/head_reflector_spacer.jpg" width="30%">
 
 Attach the hotplate base.
 
-- Install the 4 mm insert nuts with the 3 mm screws in the heating head base.
-- Solder the hotplate power wires with LTS paste.
+- Install the 4 mm insert nuts with the 3 mm screws into the heating head base.
+- Solder the hotplate power wires.
 - Clean the flux with IPA.
 
 <img src="./images/head_assembled.jpg" width="30%">
@@ -98,40 +106,61 @@ Attach the hotplate base.
 
 ## Case
 
-Install the magnets and insert nuts in the case. For ordinary plastics a CA gel
-can work, but PA-12 nylon needs a dedicated PA adhesive. Do not rely on general
-purpose glues; they will not bond well.
+### Heat-set inserts (for nylon) <!-- omit in toc -->
 
-- Check the glue datasheet: it must be rated for PA/Nylon (low energy
-  surfaces).
+If you have a nylon case with holes for heat-set inserts, install them first.
+This is much easier than gluing. A dedicated soldering iron tip works best.
+
+If you don't have one, try threading an M2 10 mm screw into the insert and
+pressing down on it with the iron tip. Add solder to the tip for better heat
+transfer. Set the temperature to about 200°C.
+
+
+### Bonding parts <!-- omit in toc -->
+
+Install the magnets (and insert nuts for ordinary plastic) into the case. For
+ordinary plastics, a CA gel or UV glue can work in a pinch, but PA-12 nylon
+needs a dedicated PA adhesive. Do not rely on general-purpose glues; they will
+not bond well. In general, it's better to use the same nylon glue type for
+other plastics.
+
+- Check the glue datasheet: it must be rated for PA/Nylon (low-energy surfaces).
 - Because we bond metal to plastic, the glue should stay slightly flexible. MMA
   adhesives work best.
-- In the worst case you can try a slow epoxy (not recommended). Avoid
-  "metal-filled" epoxies; they are too rigid and can crack after temperature
-  changes.
+- In a pinch, you can try a slow epoxy (not recommended). Avoid "metal-filled"
+  epoxies; they are too rigid and can crack after temperature changes. Also
+  avoid fast epoxies and prefer ones with a static mixer for easier work.
+- MMA glue often comes in tubes. It is highly recommended to transfer it into
+  a cartridge with a static mixer for easier application.
 
 Prep the parts before bonding:
 
-- Degrease the magnets and stack them so their orientation stays consistent.
+- Degrease the magnets with IPA and stack them so their orientation stays
+  consistent.
 - Thread screws into the insert nuts to protect the threads and make handling
   easier.
 - Make sure the nuts slide fully into the tray holes without force.
 - Check the magnet height. Trim the support pins if needed.
 
-For ordinary plastics, epoxy is still the safest choice, although CA usually
-holds. If it fails later, you can always re-bond with epoxy.
+Bonding steps:
 
+- Use a mini electronics vise to hold the case. It is convenient and reduces
+  the risk of getting resin on the case.
 - Apply glue to each insert nut and press it into the holes.
-- One by one, apply enough epoxy to each tray corner, place the magnet, and use
+- One by one, apply enough glue to each tray corner, place the magnet, and use
   the printed clamp until the glue hardens.
 - Reverse the magnet stack and repeat for the cap, double-checking the
   orientation.
+- Check that the case is clean. If you accidentally get resin on it, wipe it
+  off with a cloth.
 
 <img src="./images/case_glued_tray.jpg" width="30%"> <img src="./images/case_glued_cap.jpg" width="30%">
 
-Stick the pads to the tray bottom.
+### Install tray pads <!-- omit in toc -->
 
-TBD. Tray bottom image
+After the glue has cured, install the silicone feet on the bottom of the case.
+
+<img src="./images/case_tray_pads.jpg" width="30%">
 
 
 ## Firmware upload
@@ -141,7 +170,7 @@ TBD. Tray bottom image
 3. Open the `firmware/` folder. When VS Code prompts you to install extensions,
    accept everything so PlatformIO and the dependencies are installed.
 4. Connect a USB cable to the internal debug connector (next to the LED/button).
-5. In VS Code open the PlatformIO tab (left sidebar), then run
+5. In VS Code, open the PlatformIO tab (left sidebar), then run
    `PROJECT TASKS` -> `main` -> `General` -> `Upload`. Wait for the build to
    finish; it can take a while. The device beeps when the upload completes.
 
@@ -160,3 +189,5 @@ the 6 mm screws.
 Then insert the head and you're ready to go!
 
 <img src="./images/table_opened.jpg" width="30%"> <img src="./images/table_closed.jpg" width="30%">
+
+Now proceed to [calibration](./calibration.md).
