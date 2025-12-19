@@ -2,7 +2,7 @@
 import PageLayout from '@/components/PageLayout.vue'
 import { RouterLink, onBeforeRouteLeave } from 'vue-router'
 import { watchDebounced } from '@vueuse/core'
-import { inject, onMounted, ref, computed, watch } from 'vue'
+import { inject, ref, computed, watch } from 'vue'
 import { Device } from '@/device'
 import ReflowChart from '@/components/ReflowChart.vue'
 import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
@@ -50,10 +50,14 @@ function configToRefs(config: HeadParams) {
   adrc_param_m.value = toPrecisionStr(config.adrc_M, 3)
 }
 
-onMounted(async () => {
-  if (!device.is_ready.value) return
-  configToRefs(await device.get_head_params())
-})
+watch(
+  () => status.head === HeadStatus.HeadConnected,
+  async (connected) => {
+    if (!connected) return
+    configToRefs(await device.get_head_params())
+  },
+  { immediate: true }
+)
 
 onBeforeRouteLeave(async () => {
   if (is_testing.value || is_step_response.value) {

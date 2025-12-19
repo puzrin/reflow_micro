@@ -2,7 +2,7 @@
 import PageLayout from '@/components/PageLayout.vue'
 import { RouterLink, onBeforeRouteLeave } from 'vue-router'
 import { watchDebounced } from '@vueuse/core'
-import { inject, onMounted, ref, computed } from 'vue'
+import { inject, ref, computed, watch } from 'vue'
 import { Device } from '@/device'
 import ReflowChart from '@/components/ReflowChart.vue'
 import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
@@ -40,10 +40,14 @@ async function loadCalibrationStatus() {
   p1_orig.value = head_params.sensor_p1_at
 }
 
-onMounted(async () => {
-  if (!device.is_ready.value) return
-  await loadCalibrationStatus()
-})
+watch(
+  () => status.head === HeadStatus.HeadConnected,
+  async (connected) => {
+    if (!connected) return
+    await loadCalibrationStatus()
+  },
+  { immediate: true }
+)
 
 onBeforeRouteLeave(async () => {
   if (is_baking.value) await device.stop()
