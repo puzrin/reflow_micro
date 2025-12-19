@@ -3,9 +3,13 @@ import { inject, ref } from 'vue'
 import { Device } from '@/device'
 import { VirtualBackend } from '@/device/virtual_backend'
 import ButtonNormal from './buttons/ButtonNormal.vue'
+import ButtonNormalSquare from './buttons/ButtonNormalSquare.vue'
+import ReloadIcon from '@heroicons/vue/24/outline/ArrowPathIcon'
 
 const device: Device = inject('device')!
 const has_bluetooth = ref(!!navigator.bluetooth)
+
+const reloadPage = () => window.location.reload()
 </script>
 
 <template>
@@ -42,16 +46,20 @@ const has_bluetooth = ref(!!navigator.bluetooth)
         <!-- Show when Web Bluetooth exists -->
         <template v-else>
             <!-- Not connected => show button or progress message -->
-            <template v-if="!device.is_connected.value">
-                <p v-if="device.is_connecting.value">
-                    <span class="align-text-top mr-1 w-5 h-5 animate-spin inline-block border-[3px] border-current border-t-transparent rounded-full text-gray-400"></span>
-                    Connecting...
-                </p>
-                <ButtonNormal v-else class="w-full" @click="device.connect()">Connect to device</ButtonNormal>
-            </template>
+            <div class="mb-4 flex gap-2">
+                <ButtonNormal class="flex-1" @click="device.connect()">Connect to device</ButtonNormal>
+                <ButtonNormalSquare @click="reloadPage" title="Reload page">
+                    <ReloadIcon class="w-5 h-5" />
+                </ButtonNormalSquare>
+            </div>
+
+            <p v-if="device.is_connecting.value">
+                <span class="align-text-top mr-1 w-5 h-5 animate-spin inline-block border-[3px] border-current border-t-transparent rounded-full text-gray-400"></span>
+                Connecting...
+            </p>
 
             <!-- Connected => Needs authentication and then data sync -->
-            <template v-else>
+            <template v-if="device.is_connected.value">
                 <div v-if="!device.is_authenticated.value">
                     <p class="mb-4">
                         <span class="align-text-top mr-1 w-5 h-5 animate-spin inline-block border-[3px] border-current border-t-transparent rounded-full text-gray-400"></span>
