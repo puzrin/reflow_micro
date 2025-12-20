@@ -69,10 +69,11 @@ public:
     static auto on_run_state(Pwm& pwm) -> afsm::state_id_t {
         pwm.tick_count++;
 
-        if (pwm.tick_count >= Pwm::PWM_MIN_PULSE_TICKS) {
-            // INA226 measures continuously; we just poll once per tick while the key is on.
-            // Ring buffer index wraps, so only the tail of the pulse (last up to ADC_FILTER_SIZE reads)
-            // contributes to the averaged peak values below.
+        if (pwm.tick_count >= Pwm::POWER_STABILIZATION_TICKS) {
+            // INA226 measures continuously; we just poll once per tick while
+            // the key is on, after the power has stabilized. Ring buffer index
+            // wraps, so only the tail of the pulse (last up to ADC_FILTER_SIZE
+            // reads) contributes to the averaged peak values below.
             uint16_t adc_v_raw;
             uint16_t adc_i_raw;
 
