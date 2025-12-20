@@ -9,9 +9,12 @@ class Pwm : public afsm::fsm<Pwm>{
 public:
     static_assert(configTICK_RATE_HZ == 1000, "PWM timings assume 1 ms FreeRTOS tick");
 
-    static constexpr uint32_t PWM_PERIOD_TICKS = 50;
+    static constexpr uint32_t PWM_PERIOD_TICKS = 200;
     static constexpr uint32_t PWM_IDLE_PERIOD_TICKS = 500;
-    static constexpr uint32_t PWM_MIN_PULSE_TICKS = 3;
+    static constexpr uint32_t PWM_MIN_PULSE_TICKS = 7;
+    static constexpr uint32_t POWER_STABILIZATION_TICKS = 5;
+    static_assert(PWM_MIN_PULSE_TICKS >= POWER_STABILIZATION_TICKS,
+        "PWM_MIN_PULSE_TICKS must be >= POWER_STABILIZATION_TICKS for ADC readings");
 
     static constexpr uint32_t ADC_FILTER_SIZE = 8;
     struct ADC_ITEM { uint16_t v_raw; int16_t i_raw; };

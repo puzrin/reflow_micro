@@ -7,7 +7,7 @@
 #include "power.hpp"
 
 void HeaterControl::setup() {
-    static constexpr int32_t TICK_PERIOD_MS = 100;
+    static constexpr int32_t TICK_PERIOD_MS = 200;
 
     power.setup();
     head.setup();
