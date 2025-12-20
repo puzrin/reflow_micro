@@ -204,12 +204,16 @@ void Pwm::load_on(bool on) {
 }
 
 bool Pwm::ina226_init() {
-    // CONFIG (0x00) = 0x0007
-    // AVG=000 (×1), VBUSCT=000 (140 µs), VSHCT=000 (140 µs), MODE=111 (Shunt+Bus, Continuous).
+    // CONFIG (0x00) = 0x0207
+    // - AVG=001 (×2)
+    // - VBUSCT=000 (140 µs)
+    // - VSHCT=000 (140 µs),
+    // - MODE=111 (Shunt+Bus, Continuous)
     //
-    // ADC runs independently of PWM; continuous mode with ~280 µs per full cycle
-    // keeps conversions faster than our ~1 ms polling tick, so reads are fresh.
-    if (!ina226_write_reg16(0x00, 0x0007)) {
+    // ADC runs independently of PWM; continuous mode with ~560 µs per full cycle
+    // (2-sample average) keeps conversions faster than our ~1 ms polling tick,
+    // so reads are fresh.
+    if (!ina226_write_reg16(0x00, 0x0207)) {
         APP_LOGE("INA226: Failed to write CONFIG");
         return false;
     }
