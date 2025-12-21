@@ -157,24 +157,24 @@ async function default_adrc_params() {
       </div>
 
       <div class="mb-2">
-        <p class="text-base text-slate-800 mb-0.5">N (ω<sub>observer</sub> multiplier)</p>
+        <p class="text-base text-slate-800 mb-0.5">N (ω<sub>controller</sub> multiplier)</p>
         <div class="flex gap-2 flex-nowrap w-full">
           <input v-model="adrc_param_n" type="number" inputmode="numeric" min="3" max="50" step="0.5" class="w-full" />
         </div>
         <div v-if="adrc_error_n" class="text-xs text-red-500 mt-0.5">Not a number</div>
         <div class="text-sm text-slate-400 mt-0.5">
-          ω<sub>o</sub> = N/τ. Increase until oscillation starts, then reduce 10-20%.
+          ω<sub>c</sub> = N/τ. Increase until power jitter starts, then reduce 10-20%.
         </div>
       </div>
 
       <div class="mb-4">
-        <p class="text-base text-slate-800 mb-0.5">M (ω<sub>controller</sub> ratio)</p>
+        <p class="text-base text-slate-800 mb-0.5">M (ω<sub>observer</sub> ratio)</p>
         <div class="flex gap-2 flex-nowrap w-full">
           <input v-model="adrc_param_m" type="number" inputmode="numeric" min="2" max="10" step="0.5" class="w-full" />
         </div>
         <div v-if="adrc_error_m" class="text-xs text-red-500 mt-0.5">Not a number</div>
         <div class="text-sm text-slate-400 mt-0.5">
-          ω<sub>c</sub> = ω<sub>o</sub>/M. Usually 3..5. With high probability not required to change.
+          ω<sub>o</sub> = M * ω<sub>c</sub>. Usually 1.5..3. Start with 2.
         </div>
       </div>
 

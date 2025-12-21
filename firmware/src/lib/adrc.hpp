@@ -13,9 +13,9 @@ private:
 
 public:
     void set_params(float b0, float tau, float N, float M) {
-        const float omega_o = N / tau;
-        const float omega_c = omega_o / M;
-        const float Kp = omega_c / b0;
+        const float omega_c = N / tau;
+        const float omega_o = M * omega_c;
+        const float Kp = omega_c;
         set_params_raw(b0, omega_o, Kp);
     }
 

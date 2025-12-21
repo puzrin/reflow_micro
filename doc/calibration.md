@@ -19,7 +19,7 @@ operating temperature. A basic K-probe thermometer from the BOM is totally
 fine.
 
 These budget thermometers can drift by a couple of degrees. That's usually not a
-deal breaker, but if you prefer more accuracy, compare it with a known-good room
+deal-breaker, but if you prefer more accuracy, compare it with a known-good room
 thermometer and note the delta. The Xiaomi Mijia BT thermometer, for example,
 claims only 0.5°C error.
 
@@ -56,41 +56,33 @@ errors.*
 
 ## Temperature controller
 
-The default settings already work well for the PCB-based heater, so there's a
+The default settings are for MCPCB-based heater, so there's a
 good chance you won't need to touch the ADRC values.
 
-If you're using a custom-size heater, head to the controller calibration page
-and follow the steps below.
+For an MCH-based heater, or if you change the heater size, follow the
+instructions below.
 
-To see more details, enable debug info on the `Settings` page.
+- Enable debug info on the `Settings` page.
 
-### Run step response test
+### Run a step response test
 
 This automatically estimates the head response time and scale factor.
 
 - Wait until the hotplate cools back to room temperature. If it was warm, give
-  it 10-15 minutes.
-- In the `Auto tuning` section set the power just like you did for the sensor
-  bake. Press `Run` and wait for it to finish.
+  it 10-15 minutes, or use the cooling fan.
+- In the `Auto tuning` section, set the power as you did for the sensor bake.
+  Press `Run` and wait for it to finish.
 
-### Tune N param
+### Tune N/M parameters
 
-- In the `Test controller` section set the temperature to about 150°C and press
-  `Run`.
-- Increase `N` until you see oscillations, then dial it back by roughly
-  10-15%.
+- Set `M` = 2 and don't change it.
+- In the `Test controller` section, set the temperature to the main working range,
+  depending on heater type (170-210°C), and press `Run`.
+- When the temperature stabilizes, start increasing `N` from 10 until you see
+  power jitter > 20% in debug info.
+- After jitter appears, reduce `N` by 10-20%.
 
-No need to restart the test after every tweak - just press `Save`.
+Usually, this is OK:
 
-Re-check the behavior with a small 10°C step:
-
-- Set 140°C, then bump it to 150°C again.
-- Make sure the temperature reaches the target without oscillations.
-
-### Tune M param
-
-You probably won't need to touch this. If you see large power swings at a stable
-temperature, try increasing `M`. If the response feels sluggish, decrease `M`.
-Power jitter should usually stay within about 20% (+/-10%).
-
-In most cases, tuning `N` alone is enough.
+- MCPCB head: `M = 2`, `N = 50`.
+- MCH head: `M = 2`, `N = 60`.

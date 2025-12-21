@@ -33,7 +33,7 @@ export class HeaterControl {
   private set_head_params_fn: ((params: HeadParams) => void) | null = null
 
   // Ticker for simulation
-  private TICK_PERIOD_MS = 100
+  private TICK_PERIOD_MS = 50
   private TIME_ACCELERATION = 10
   private ticker_id: ReturnType<typeof setInterval> | null = null
   private prev_tick_ms = 0

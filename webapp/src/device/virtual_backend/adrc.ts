@@ -8,9 +8,9 @@ export class ADRC {
     private z2: number = 0.0;
 
     set_params(b0: number, τ: number, N: number, M: number): void {
-        const ω_o = N / τ
-        const ω_c = ω_o / M
-        const Kp = ω_c / b0
+        const ω_c = N / τ
+        const ω_o = M * ω_c
+        const Kp = ω_c
         this.set_params_raw(b0, ω_o, Kp)
     }
 
