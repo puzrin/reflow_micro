@@ -227,17 +227,17 @@ module _tray_base() {
         );
 
         // Bottom heels
-        dupe_xy() tr_xy(case_wx/2 - 7.5, case_wy/2 - 7.5) tr_z(-e) cylinder(h=1, d=6.2);
+        dupe_xy() tr_xy(case_wx/2 - 7.5, case_wy/2 - 7.5) tr_z(-e) cylinder(h=0.6, d=6.2);
 
         // Extra space for fan mounting
-        for (i = fan_mount_coords) {
+        /*for (i = fan_mount_coords) {
             tr_xy(5, -15)
             translate(i)
             tr_z(wall_hor+e) mirror_z() {
                 cylinder(h=0.5, d=4.5);
                 //cylinder(h=1.1, d=4.5);
             }
-        }
+        }*/
 
         // Partially remove stifffeners for pi5 fan connector
         //tr_xy(-pcb_wx/2 + 68.5, -pcb_wy/2 + 21) tr_z(wall_hor) cylinder(h=3, r=7);
