@@ -21,9 +21,9 @@ export class ADRC {
         this.kp = kp;
     }
 
-    iterate(y: number, y_ref: number, u_max: number, dt: number): number {
+    iterate(y: number, y_ref: number, u_max: number, dt: number, y_ref_rate = 0): number {
         const e = y_ref - this.z1;
-        const u = (this.kp * e - this.z2) / this.b0;
+        const u = (this.kp * e + y_ref_rate - this.z2) / this.b0;
 
         // Anti-windup [0, u_max]
         const u_output = Math.max(0, Math.min(u, u_max));

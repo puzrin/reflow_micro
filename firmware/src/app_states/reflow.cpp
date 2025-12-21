@@ -149,5 +149,5 @@ void Reflow_State::task_iterator(int32_t time_ms) {
         return;
     }
 
-    heater.set_temperature(timeline.get_target(time_ms));
+    heater.set_temperature(timeline.get_target(time_ms), timeline.get_rate(time_ms));
 }

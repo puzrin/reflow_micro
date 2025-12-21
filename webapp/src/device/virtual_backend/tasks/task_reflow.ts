@@ -110,7 +110,7 @@ export class TaskReflow extends HeaterTask {
           return
         }
 
-        heater.set_temperature(timeline.getTarget(time_s))
+        heater.set_temperature(timeline.getTarget(time_s), timeline.getRate(time_s))
       }
     })()
   }

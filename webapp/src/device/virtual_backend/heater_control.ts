@@ -15,6 +15,7 @@ export class HeaterControl {
   // Temperature control state
   temperature_control_enabled = false
   temperature_setpoint = 0
+  temperature_setpoint_rate = 0
 
   // History management (private, managed internally like in firmware)
   private history = new SparseHistory()
@@ -86,7 +87,8 @@ export class HeaterControl {
         this.head.temperature,
         this.temperature_setpoint,
         max_power_w,
-        dt_ms / 1000
+        dt_ms / 1000,
+        this.temperature_setpoint_rate
       )
       this.power.set_power_mw(power_w * 1000)
     }
@@ -170,8 +172,9 @@ export class HeaterControl {
     return this.power.selector.target_power_mw / 1000
   }
 
-  set_temperature(temp: number): void {
+  set_temperature(temp: number, rate = 0): void {
     this.temperature_setpoint = temp
+    this.temperature_setpoint_rate = rate
   }
 
   get_temperature(): number {

@@ -26,9 +26,9 @@ public:
         this->kp = kp;
     }
 
-    auto iterate(float y, float y_ref, float u_max, float dt) -> float {
+    auto iterate(float y, float y_ref, float u_max, float dt, float y_ref_rate = 0) -> float {
         const float e = y_ref - z1;
-        const float u = (kp * e - z2) / b0;
+        const float u = (kp * e + y_ref_rate - z2) / b0;
 
         // Anti-windup [0, u_max]
         const float u_output = etl::max(0.0f, etl::min(u, u_max));

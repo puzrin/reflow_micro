@@ -39,7 +39,10 @@ public:
 
     virtual uint32_t get_time_ms() const = 0;
     virtual void set_power(float power) = 0;
-    virtual void set_temperature(float temp) { temperature_setpoint = temp; }
+    virtual void set_temperature(float temp, float rate = 0) {
+        temperature_setpoint = temp;
+        temperature_setpoint_rate = rate;
+    }
     virtual void temperature_control_on();
     virtual void temperature_control_off();
 
@@ -54,6 +57,7 @@ protected:
     ADRC adrc{};
     etl::atomic<bool> temperature_control_enabled{false};
     etl::atomic<float> temperature_setpoint{0};
+    etl::atomic<float> temperature_setpoint_rate{0};
     etl::atomic<bool> is_task_active{false};
     int32_t prev_tick_ms{0};
 

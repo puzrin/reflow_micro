@@ -85,7 +85,13 @@ void HeaterControlBase::tick() {
             static constexpr float dt_inv_multiplier = 1.0F / 1000;
             const float dt = static_cast<float>(dt_ms) * dt_inv_multiplier;
 
-            const float power = adrc.iterate(get_temperature(), temperature_setpoint, get_max_power(), dt);
+            const float power = adrc.iterate(
+                get_temperature(),
+                temperature_setpoint,
+                get_max_power(),
+                dt,
+                temperature_setpoint_rate
+            );
             set_power(power);
         }
 
