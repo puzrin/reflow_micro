@@ -5,13 +5,35 @@ import { DeviceActivityStatus, Constants, Point, type Profile } from '@/proto/ge
 
 class Timeline {
   profilePoints: Point[] = [{ x: 0, y: 0 }]
+  segmentRatesCPerS: number[] = []
 
   load(profile: Profile) {
     const profilePoints = [{ x: 0, y: Constants.START_TEMPERATURE }]
     profile.segments.forEach((segment, i) => {
       profilePoints.push({ x: profilePoints[i].x + segment.duration, y: segment.target })
     })
+
+    const segmentRatesCPerS: number[] = []
+    for (let i = 1; i < profilePoints.length; i++) {
+      const p0 = profilePoints[i - 1]
+      const p1 = profilePoints[i]
+      const deltaTime = p1.x - p0.x
+      const deltaValue = p1.y - p0.y
+      let rate = 0
+
+      if (deltaTime > 0) {
+        rate = deltaValue / deltaTime
+      } else if (deltaValue > 0) {
+        rate = 100
+      } else if (deltaValue < 0) {
+        rate = -100
+      }
+
+      segmentRatesCPerS.push(Math.max(-100, Math.min(100, rate)))
+    }
+
     this.profilePoints = profilePoints
+    this.segmentRatesCPerS = segmentRatesCPerS
   }
 
   get maxTime() {
@@ -27,8 +49,23 @@ class Timeline {
       const p0 = points[i - 1]
       const p1 = points[i]
 
-      if (p0.x <= offset && p1.x >= offset) {
-        return p0.y + (p1.y - p0.y) / (p1.x - p0.x) * (offset - p0.x)
+      if (p1.x >= offset) {
+        const deltaTime = p1.x - p0.x
+        if (deltaTime <= 0) return p1.y
+        return p0.y + (p1.y - p0.y) / deltaTime * (offset - p0.x)
+      }
+    }
+
+    return 0
+  }
+
+  getRate(offset: number) {
+    if (offset < 0) return 0
+    const points = this.profilePoints
+
+    for (let i = 1; i < points.length; i++) {
+      if (points[i].x >= offset) {
+        return this.segmentRatesCPerS[i - 1]
       }
     }
 

@@ -1,12 +1,16 @@
 #pragma once
 
+#include <etl/vector.h>
+
 #include "app.hpp"
 #include "proto/generated/types.pb.h"
 
 class Timeline {
 private:
-    struct TimelinePoint { int32_t x; int32_t y; };
-    std::vector<TimelinePoint> profilePoints{};
+    struct TimelinePoint { int32_t time_x1000; int32_t value_x100; };
+    static constexpr size_t MAX_PROFILE_POINTS = Constants::MAX_REFLOW_SEGMENTS + 1;
+    etl::vector<TimelinePoint, MAX_PROFILE_POINTS> profilePoints{};
+    etl::vector<float, Constants::MAX_REFLOW_SEGMENTS> segmentRates_c_per_s{};
 
     // Use integer math for speed
     // Time is in milliseconds, temperature is in 1/100 degrees
@@ -17,8 +21,9 @@ private:
 
 public:
     void load(const Profile& profile);
-    auto get_max_time() const -> int32_t;
-    auto interpolate(int32_t offset) const -> float;
+    auto get_max_time_x1000() const -> int32_t;
+    auto get_target(int32_t offset_x1000) const -> float;
+    auto get_rate(int32_t offset_x1000) const -> float;
 };
 
 
