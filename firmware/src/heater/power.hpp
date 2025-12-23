@@ -79,7 +79,6 @@ public:
     uint32_t get_duty_x1000();
     uint32_t get_load_mohm();
     uint32_t get_max_power_mw();
-    bool is_consumer_valid(const Pwm::CONSUMER_INFO& ci);
     PowerStatus get_power_status() { return power_status; }
     void set_power_status(PowerStatus status) { power_status = status; }
 
@@ -102,4 +101,3 @@ private:
 };
 
 extern Power power;
-

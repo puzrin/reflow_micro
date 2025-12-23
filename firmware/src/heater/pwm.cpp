@@ -1,7 +1,6 @@
 #include <etl/algorithm.h>
 
-#include "components/i2c_io.hpp"
-#include "logger.hpp"
+#include "drain_tracker.hpp"
 #include "pwm.hpp"
 
 namespace PwmState {
@@ -17,9 +16,7 @@ public:
     static auto on_enter_state(Pwm& pwm) -> afsm::state_id_t {
         pwm.load_on(false);
         pwm.duty_error = 0;
-
-        auto ci = pwm.get_consumer_info();
-        pwm.set_consumer_info(ci.peak_mv, ci.peak_ma, false);
+        drain_tracker.reset();
 
         pwm._enabled.store(false);
         return No_State_Change;
@@ -61,7 +58,7 @@ public:
         }
 
         pwm.tick_count = 0;
-        pwm.adc_count = 0;
+        drain_tracker.clear_collected_data();
         pwm.load_on(true);
         return No_State_Change;
     }
@@ -70,23 +67,8 @@ public:
         pwm.tick_count++;
 
         if (pwm.tick_count >= Pwm::POWER_STABILIZATION_TICKS) {
-            // INA226 measures continuously; we just poll once per tick while
-            // the key is on, after the power has stabilized. Ring buffer index
-            // wraps, so only the tail of the pulse (last up to ADC_FILTER_SIZE
-            // reads) contributes to the averaged peak values below.
-            uint16_t adc_v_raw;
-            uint16_t adc_i_raw;
-
-            if (pwm.ina226_read_reg16(0x02, adc_v_raw) &&
-                pwm.ina226_read_reg16(0x04, adc_i_raw))
-            {
-                pwm.adc_buffer[pwm.adc_count % Pwm::ADC_FILTER_SIZE] = {
-                    .v_raw = adc_v_raw,
-                    .i_raw = static_cast<int16_t>(adc_i_raw)
-                };
-                // Valid reading
-                pwm.adc_count++;
-            }
+            // DrainTracker polls INA226 once per tick after stabilization.
+            drain_tracker.collect_data();
         }
 
         if (pwm.tick_count >= pwm.pulse_ticks) { return PwmState::Gap; }
@@ -94,24 +76,10 @@ public:
     }
 
     static void on_exit_state(Pwm& pwm) {
-        if (pwm.tick_count >= pwm.pulse_ticks && pwm.adc_count > 0) {
+        if (pwm.tick_count >= pwm.pulse_ticks) {
             // End reached naturally => process ADC data averaged over the pulse tail
             // (otherwise, we are being disabled, skip this step)
-            auto count = etl::min(pwm.adc_count, Pwm::ADC_FILTER_SIZE);
-            uint32_t v_sum{0};
-            int32_t i_sum{0};
-
-            for (uint32_t i = 0; i < count; i++) {
-                v_sum += pwm.adc_buffer[i].v_raw;
-                i_sum += pwm.adc_buffer[i].i_raw;
-            }
-
-            if (i_sum < 0) { i_sum = 0; }
-            // Vbus = V_raw * 1.25 LSB (per datasheet)
-            uint32_t peak_mv = ((v_sum / count) * 5 + 2) / 4; // x1.25, rounded
-            // Shunt current already in mA
-            uint32_t peak_ma = i_sum / count;
-            pwm.set_consumer_info(peak_mv, peak_ma, true);
+            drain_tracker.process_collected_data();
         }
     }
 };
@@ -163,10 +131,7 @@ void Pwm::setup() {
     };
     gpio_config(&io_conf);
 
-    i2c_init();
-    if (!ina226_init()) {
-        APP_LOGE("PWM: INA226 init failed");
-    }
+    drain_tracker.setup();
     change_state(PwmState::Disabled);
 
     xTaskCreate(
@@ -202,67 +167,4 @@ void Pwm::enable(bool enable) {
 
 void Pwm::load_on(bool on) {
     gpio_set_level(load_switch_pin, on ? 1 : 0);
-}
-
-bool Pwm::ina226_init() {
-    // CONFIG (0x00) = 0x0207
-    // - AVG=001 (×2)
-    // - VBUSCT=000 (140 µs)
-    // - VSHCT=000 (140 µs),
-    // - MODE=111 (Shunt+Bus, Continuous)
-    //
-    // ADC runs independently of PWM; continuous mode with ~560 µs per full cycle
-    // (2-sample average) keeps conversions faster than our ~1 ms polling tick,
-    // so reads are fresh.
-    if (!ina226_write_reg16(0x00, 0x0207)) {
-        APP_LOGE("INA226: Failed to write CONFIG");
-        return false;
-    }
-
-    // CALIBRATION (0x05) = 0x0200
-    // Current_LSB = 1 mA & Rshunt=10 мΩ:
-    // Cal = 0.00512 / (Current_LSB[A] * Rshunt[Ω]) = 0.00512 / (0.001 * 0.01) = 512 = 0x0200.
-    if (!ina226_write_reg16(0x05, 0x0200)) {
-        APP_LOGE("INA226: Failed to write CALIBRATION");
-        return false;
-    }
-
-    uint16_t id;
-
-    if (!ina226_read_reg16(0xFE, id)) {
-        APP_LOGE("INA226: Failed to read Manufacturer ID");
-        return false;
-    }
-    if (id != 0x5449) {
-        APP_LOGE("INA226: Invalid Manufacturer ID 0x{:04X}", id);
-        return false;
-    }
-
-    if (!ina226_read_reg16(0xFF, id)) {
-        APP_LOGE("INA226: Failed to read Die ID");
-        return false;
-    }
-    if ((id >> 4) != 0x226) {
-        APP_LOGE("INA226: Invalid Die ID 0x{:04X}", id);
-        return false;
-    }
-
-    return true;
-}
-
-bool Pwm::ina226_read_reg16(uint8_t reg, uint16_t &data) {
-    uint8_t buf[2];
-
-    if (!i2c_read_block(INA226_ADDR, reg, buf, 2)) { return false; }
-
-    data = (static_cast<uint16_t>(buf[0]) << 8) | static_cast<uint16_t>(buf[1]);
-    return true;
-}
-
-bool Pwm::ina226_write_reg16(uint8_t reg, uint16_t data) {
-    const uint8_t buf[2] = {
-        static_cast<uint8_t>(data >> 8),
-        static_cast<uint8_t>(data & 0xFF)
-    };
-    return i2c_write_block(INA226_ADDR, reg, buf, 2);
 }

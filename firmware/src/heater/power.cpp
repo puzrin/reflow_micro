@@ -2,6 +2,7 @@
 
 #include "app.hpp"
 #include "app_dpm.hpp"
+#include "drain_tracker.hpp"
 #include "logger.hpp"
 #include "power.hpp"
 
@@ -57,7 +58,7 @@ public:
         pwr.log_state();
 
         pwr.pwm.enable(false);
-        pwr.pwm.set_consumer_info(0, 0, false);
+        drain_tracker.reset();
         pwr.profile_selector.set_target_power_mw(0);
         pwr.set_power_status(PowerStatus::PowerStatus_PwrOff);
         application.enqueue_message(AppCmd::Stop{});
@@ -78,7 +79,7 @@ public:
         dpm.clear_trigger_to(ps.default_position, ps.default_mv);
 
         pwr.pwm.enable(false);
-        pwr.pwm.set_consumer_info(0, 0, false);
+        drain_tracker.reset();
         pwr.profile_selector.set_target_power_mw(0);
         pwr.set_power_status(PowerStatus::PowerStatus_PwrInitializing);
         application.enqueue_message(AppCmd::Stop{});
@@ -105,10 +106,7 @@ public:
     auto on_enter_state() -> etl::fsm_state_id_t override {
         auto& pwr = get_fsm_context();
         pwr.log_state();
-
-        auto ci = pwr.pwm.get_consumer_info();
-
-        if (ci.is_actual && pwr.is_consumer_valid(ci)) {
+        if (drain_tracker.get_info().load_valid) {
             return PWR_STATE::Ready;
         }
 
@@ -118,11 +116,7 @@ public:
     }
 
     auto on_event(const MsgToPower_SysTick&) -> etl::fsm_state_id_t {
-        auto& pwr = get_fsm_context();
-
-        auto ci = pwr.pwm.get_consumer_info();
-
-        if (ci.is_actual && pwr.is_consumer_valid(ci)) {
+        if (drain_tracker.get_info().load_valid) {
             return PWR_STATE::Ready;
         }
 
@@ -183,8 +177,8 @@ public:
         auto& pwr = get_fsm_context();
         auto& ps = pwr.profile_selector;
 
-        auto ci = pwr.pwm.get_consumer_info();
-        auto consumer_valid = pwr.is_consumer_valid(ci);
+        auto drain_info = drain_tracker.get_info();
+        auto consumer_valid = drain_info.load_valid;
 
         if (consumer_valid) {
             // Instant update profile selector with current load.
@@ -192,7 +186,7 @@ public:
             // from 2 states - calibration & profile update. Saving a bit
             // outdated data is acceptable.
             //
-            pwr.profile_selector.set_load_mohms(ci.peak_mv * 1000 / ci.peak_ma);
+            pwr.profile_selector.set_load_mohms(drain_info.peak_mv * 1000 / drain_info.peak_ma);
         }
 
         if (pwr.is_apdo_updating) {
@@ -356,13 +350,13 @@ void Power::log_unknown_event(const etl::imessage& msg) {
 }
 
 uint32_t Power::get_peak_mv() {
-    auto ci = pwm.get_consumer_info();
-    return ci.peak_mv;
+    auto info = drain_tracker.get_info();
+    return info.peak_mv;
 }
 
 uint32_t Power::get_peak_ma() {
-    auto ci = pwm.get_consumer_info();
-    return ci.peak_ma;
+    auto info = drain_tracker.get_info();
+    return info.peak_ma;
 }
 
 uint32_t Power::get_duty_x1000() {
@@ -370,26 +364,20 @@ uint32_t Power::get_duty_x1000() {
 }
 
 uint32_t Power::get_load_mohm() {
-    auto ci = pwm.get_consumer_info();
+    auto info = drain_tracker.get_info();
 
-    if (!is_consumer_valid(ci)) { return UNKNOWN_RESISTANCE; }
-    return ci.peak_mv * 1000 / ci.peak_ma;
+    if (!info.load_valid) { return UNKNOWN_RESISTANCE; }
+    return info.peak_mv * 1000 / info.peak_ma;
 }
 
 uint32_t Power::get_max_power_mw() {
-    auto ci = pwm.get_consumer_info();
+    auto info = drain_tracker.get_info();
 
-    if (!is_consumer_valid(ci)) { return 0; }
+    if (!info.load_valid) { return 0; }
     if (profile_selector.descriptors.size() == 0) { return 0; }
 
-    profile_selector.set_load_mohms(ci.peak_mv * 1000 / ci.peak_ma);
+    profile_selector.set_load_mohms(info.peak_mv * 1000 / info.peak_ma);
     return profile_selector.mw_max(profile_selector.current_index);
-}
-
-bool Power::is_consumer_valid(const Pwm::CONSUMER_INFO& ci) {
-    // These are thresholds for real measurements, with possible dropdowns.
-    // Don't confuse with PD limits.
-    return ci.peak_ma >= 300 && ci.peak_mv >= 4000;
 }
 
 void Power::log_pdos() {
