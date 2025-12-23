@@ -328,14 +328,14 @@ void Head::update_sensor_uv() {
 }
 
 bool Head::get_head_params_pb(std::vector<uint8_t>& pb_data) {
-    if (get_head_status() != HeadStatus_HeadConnected) { return false; }
+    if (!is_attached()) { return false; }
 
     pb_data.assign(head_params.value.begin(), head_params.value.end());
     return true;
 }
 
 bool Head::set_head_params_pb(const std::vector<uint8_t>& pb_data) {
-    if (get_head_status() != HeadStatus_HeadConnected) { return false; }
+    if (!is_attached()) { return false; }
 
     EEBuffer pb_data_buf{pb_data.begin(), pb_data.end()};
     head_params.writeData(pb_data_buf);
@@ -344,14 +344,14 @@ bool Head::set_head_params_pb(const std::vector<uint8_t>& pb_data) {
 }
 
 bool Head::get_head_params_pb(EEBuffer& pb_data) {
-    if (get_head_status() != HeadStatus_HeadConnected) { return false; }
+    if (!is_attached()) { return false; }
 
     pb_data.assign(head_params.value.begin(), head_params.value.end());
     return true;
 }
 
 bool Head::set_head_params_pb(const EEBuffer& pb_data) {
-    if (get_head_status() != HeadStatus_HeadConnected) { return false; }
+    if (!is_attached()) { return false; }
 
     head_params.writeData(pb_data);
     configure_temperature_processor();
@@ -359,11 +359,7 @@ bool Head::set_head_params_pb(const EEBuffer& pb_data) {
 }
 
 bool Head::get_head_params(HeadParams& params, bool skip_status_check) {
-    if (!skip_status_check &&
-        get_head_status() != HeadStatus_HeadConnected)
-    {
-        return false;
-    }
+    if (!skip_status_check && !is_attached()) { return false; }
 
     return pb2struct(head_params.value, params, HeadParams_fields);
 }
@@ -378,9 +374,7 @@ bool Head::set_head_params(const HeadParams& params) {
 
 int32_t Head::get_temperature_x10() {
     // Safety check, should never happen due to state machine
-    if (get_head_status() != HeadStatus_HeadConnected) {
-        return UNKNOWN_TEMPERATURE_X10;
-    }
+    if (!is_attached()) { return UNKNOWN_TEMPERATURE_X10; }
 
     if (sensor_type.load() == SensorType_RTD) {
         auto uV = last_sensor_value_uv.load();
@@ -393,10 +387,6 @@ int32_t Head::get_temperature_x10() {
         }
         return temperature_processor.get_temperature_x10(mohms);
     }
-}
-
-bool Head::is_attached() const {
-    return get_head_status() == HeadStatus_HeadConnected;
 }
 
 void Head::configure_temperature_processor() {

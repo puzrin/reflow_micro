@@ -43,8 +43,6 @@ public:
     Head();
     void setup();
 
-    bool is_attached() const;
-
     bool get_head_params_pb(std::vector<uint8_t>& pb_data);
     bool set_head_params_pb(const std::vector<uint8_t>& pb_data);
     bool get_head_params_pb(EEBuffer& pb_data);
@@ -69,6 +67,11 @@ public:
 
 private:
     void task_loop();
+
+    bool is_attached() const {
+        return get_head_status() == HeadStatus_HeadConnected;
+    };
+
     void adc_init();
     void build_adc_lut();
     static bool IRAM_ATTR adc_conv_done_callback(adc_continuous_handle_t handle,
