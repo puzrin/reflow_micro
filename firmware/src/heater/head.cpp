@@ -6,7 +6,6 @@
 
 #include "components/i2c_io.hpp"
 #include "components/pb2struct.hpp"
-#include "components/time.hpp"
 #include "head.hpp"
 #include "logger.hpp"
 #include "lib/pt100.hpp"
@@ -15,9 +14,7 @@
 
 Head head;
 
-static constexpr uint32_t TASK_TICK_MS = 20;
-static constexpr uint32_t SENSOR_DEBOUNCE_MS = 100;
-static constexpr uint32_t ERROR_RESTORE_MS = 1000;
+static constexpr uint32_t TASK_TICK_MS = 200;
 
 using afsm::state_id_t;
 
@@ -25,8 +22,7 @@ namespace HeadState {
     enum {
         Detached,
         Initializing,
-        Attached,
-        Error
+        Attached
     };
 }
 
@@ -40,7 +36,7 @@ public:
     }
 
     static auto on_run_state(Head& head) -> state_id_t {
-        if (head.last_sensor_value_uv.load() <= Head::SENSOR_FLOATING_LEVEL_MV * 1000) {
+        if (head.eeprom_store.probe()) {
             return HeadState::Initializing;
         }
         return No_State_Change;
@@ -55,48 +51,28 @@ public:
         APP_LOGI("Head: Initializing");
 
         head.head_status.store(HeadStatus_HeadInitializing);
-        head.debounce_start = Time::now();
         return No_State_Change;
     }
 
     static auto on_run_state(Head& head) -> state_id_t {
-        if (head.last_sensor_value_uv.load() >= Head::SENSOR_FLOATING_LEVEL_MV * 1000) {
+        if (!head.eeprom_store.read(head.head_params.value)) {
+            APP_LOGE("Head: Failed to read EEPROM");
             return HeadState::Detached;
         }
 
-        if (Time(head.debounce_start).expired(SENSOR_DEBOUNCE_MS))
-        {
-            // MCH head has real sensor (PT100).
-            // If pin is shorted => use TCR-based estimates (consider heater
-            // type as PCB).
-            //
-            // The difference is, PCB-based heater has much better heat
-            // distribution. For MCH heaters using TCR-based estimates may lead
-            // to errors, difficult to fix.
-            head.sensor_type = (head.last_sensor_value_uv.load() <= Head::SENSOR_SHORTED_LEVEL_MV * 1000)
-                ? SensorType_TCR : SensorType_RTD;
-
-            if (!head.eeprom_store.read(head.head_params.value)) {
-                APP_LOGE("Head: Failed to read EEPROM");
-                return HeadState::Error;
-            }
-
-            // If EEPROM is empty, use defaults
-            if (head.head_params.value.empty()) {
-                APP_LOGI("Head: No head params found, fallback to defaults");
-                head.head_params.value.assign(
-                    std::begin(DEFAULT_HEAD_PARAMS_PB),
-                    std::end(DEFAULT_HEAD_PARAMS_PB)
-                );
-            }
-
-            // Configure temperature processor with sensor type and calibration
-            head.configure_temperature_processor();
-
-            return HeadState::Attached;
+        // If EEPROM is empty, use defaults
+        if (head.head_params.value.empty()) {
+            APP_LOGI("Head: No head params found, fallback to defaults");
+            head.head_params.value.assign(
+                std::begin(DEFAULT_HEAD_PARAMS_PB),
+                std::end(DEFAULT_HEAD_PARAMS_PB)
+            );
         }
 
-        return No_State_Change;
+        // Configure temperature processors with calibration
+        head.configure_temperature_processor();
+
+        return HeadState::Attached;
     }
 
     static void on_exit_state(Head&) {}
@@ -112,31 +88,7 @@ public:
     }
 
     static auto on_run_state(Head& head) -> state_id_t {
-        if (head.last_sensor_value_uv.load() >= Head::SENSOR_FLOATING_LEVEL_MV * 1000) {
-            return HeadState::Detached;
-        }
-
-        return No_State_Change;
-    }
-
-    static void on_exit_state(Head&) {}
-};
-
-class HeadError_state : public afsm::state<Head, HeadError_state, HeadState::Error> {
-public:
-    static auto on_enter_state(Head& head) -> state_id_t {
-        APP_LOGE("Head: Error");
-        head.head_status.store(HeadStatus_HeadError);
-        head.debounce_start = Time::now();
-        return No_State_Change;
-    }
-
-    static auto on_run_state(Head& head) -> state_id_t {
-        if (head.last_sensor_value_uv.load() >= Head::SENSOR_FLOATING_LEVEL_MV * 1000) {
-            return HeadState::Detached;
-        }
-
-        if (Time(head.debounce_start).expired(ERROR_RESTORE_MS)) {
+        if (!head.eeprom_store.probe()) {
             return HeadState::Detached;
         }
 
@@ -149,8 +101,7 @@ public:
 using HEAD_STATES = afsm::state_pack<
     HeadDetached_state,
     HeadInitializing_state,
-    HeadAttached_state,
-    HeadError_state
+    HeadAttached_state
 >;
 
 Head::Head() {
@@ -372,30 +323,40 @@ bool Head::set_head_params(const HeadParams& params) {
     return true;
 }
 
+bool Head::is_tcr_sensor() const {
+    return last_sensor_value_uv.load() <= SENSOR_SHORTED_LEVEL_MV * 1000;
+}
+
 int32_t Head::get_temperature_x10() {
     // Safety check, should never happen due to state machine
     if (!is_attached()) { return UNKNOWN_TEMPERATURE_X10; }
 
-    if (sensor_type.load() == SensorType_RTD) {
+    if (!is_tcr_sensor()) {
         auto uV = last_sensor_value_uv.load();
-        return temperature_processor.get_temperature_x10(uV);
+        return temperature_processor_rtd.get_temperature_x10(uV);
     }
-    else {
-        auto mohms = power.get_load_mohm();
-        if (mohms == Power::UNKNOWN_RESISTANCE) {
-            return UNKNOWN_TEMPERATURE_X10;
-        }
-        return temperature_processor.get_temperature_x10(mohms);
+
+    auto mohms = power.get_load_mohm();
+    if (mohms == Power::UNKNOWN_RESISTANCE) {
+        return UNKNOWN_TEMPERATURE_X10;
     }
+    return temperature_processor_tcr.get_temperature_x10(mohms);
 }
 
 void Head::configure_temperature_processor() {
-    temperature_processor.set_sensor_type(SensorType_RTD);
+    temperature_processor_rtd.set_sensor_type(SensorType_RTD);
+    temperature_processor_tcr.set_sensor_type(SensorType_TCR);
 
     // Load calibration data
     HeadParams params = HeadParams_init_zero;
     if (get_head_params(params, true)) {
-        temperature_processor.set_cal_points(
+        temperature_processor_rtd.set_cal_points(
+            params.sensor_p0_at,
+            params.sensor_p0_value,
+            params.sensor_p1_at,
+            params.sensor_p1_value
+        );
+        temperature_processor_tcr.set_cal_points(
             params.sensor_p0_at,
             params.sensor_p0_value,
             params.sensor_p1_at,

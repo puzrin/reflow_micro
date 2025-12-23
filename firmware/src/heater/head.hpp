@@ -52,18 +52,18 @@ public:
 
     auto get_head_status() const -> HeadStatus { return head_status.load(); }
     int32_t get_temperature_x10();
+    bool is_tcr_sensor() const;
 
     void update_sensor_uv();
     void configure_temperature_processor();
 
     etl::atomic<HeadStatus> head_status{HeadStatus_HeadDisconnected};
-    uint32_t debounce_start{0};
-    etl::atomic<SensorType> sensor_type{SensorType_RTD};
     etl::atomic<uint32_t> last_sensor_value_uv{SENSOR_FLOATING_LEVEL_MV * 1000};
 
     EepromStore eeprom_store{};
     DataGuard<EEBuffer> head_params{};
-    TemperatureProcessor temperature_processor{};
+    TemperatureProcessor temperature_processor_rtd{};
+    TemperatureProcessor temperature_processor_tcr{};
 
 private:
     void task_loop();

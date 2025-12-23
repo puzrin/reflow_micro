@@ -11,6 +11,7 @@ public:
 
     bool read(etl::ivector<uint8_t>& data);
     bool write(const etl::ivector<uint8_t>& data);
+    bool probe();
 
 private:
     bool ee_read_at(uint16_t addr, uint8_t* buf, size_t len);

@@ -82,6 +82,11 @@ bool EepromStore::write(const etl::ivector<uint8_t>& data) {
     return true;
 }
 
+bool EepromStore::probe() {
+    uint8_t dummy = 0;
+    return ee_read_at(0, &dummy, 1);
+}
+
 bool EepromStore::ee_read_at(uint16_t addr, uint8_t* buf, size_t len) {
     size_t bytes_left = len;
     uint16_t current_addr = addr;
