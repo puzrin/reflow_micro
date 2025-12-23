@@ -184,7 +184,7 @@ void HeaterControl::update_fan_speed() {
             if (temperature_x10 > setpoint_x10 + C_DIFF_ON_X10) {
                 // Enable fan ONLY when ADRC output is about zero,
                 // to avoid interference.
-                if (power.profile_selector.target_power_mw < 1*1000) {
+                if (profile_selector.target_power_mw < 1*1000) {
                     fan.max();
                 }
             }

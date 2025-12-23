@@ -6,6 +6,8 @@
 #include "logger.hpp"
 #include "power.hpp"
 
+ProfileSelector profile_selector;
+
 pd::Port port;
 Power power;
 
@@ -59,7 +61,7 @@ public:
 
         pwr.pwm.enable(false);
         drain_tracker.reset();
-        pwr.profile_selector.set_target_power_mw(0);
+        profile_selector.set_target_power_mw(0);
         pwr.set_power_status(PowerStatus::PowerStatus_PwrOff);
         application.enqueue_message(AppCmd::Stop{});
         return No_State_Change;
@@ -75,12 +77,12 @@ public:
         auto& pwr = get_fsm_context();
         pwr.log_state();
 
-        auto& ps = pwr.profile_selector;
+        auto& ps = profile_selector;
         dpm.clear_trigger_to(ps.default_position, ps.default_mv);
 
         pwr.pwm.enable(false);
         drain_tracker.reset();
-        pwr.profile_selector.set_target_power_mw(0);
+        ps.set_target_power_mw(0);
         pwr.set_power_status(PowerStatus::PowerStatus_PwrInitializing);
         application.enqueue_message(AppCmd::Stop{});
         return No_State_Change;
@@ -144,7 +146,7 @@ public:
 
     auto on_event(const pd::MsgToDpm_NewPowerLevelRejected&) -> etl::fsm_state_id_t {
         auto& pwr = get_fsm_context();
-        auto& ps = pwr.profile_selector;
+        auto& ps = profile_selector;
 
         // Local APDO update failed
         pwr.is_apdo_updating = false;
@@ -175,7 +177,7 @@ public:
 
     auto on_event(const MsgToPower_SysTick&) -> etl::fsm_state_id_t {
         auto& pwr = get_fsm_context();
-        auto& ps = pwr.profile_selector;
+        auto& ps = profile_selector;
 
         auto drain_info = drain_tracker.get_info();
         auto consumer_valid = drain_info.load_valid;
@@ -186,7 +188,7 @@ public:
             // from 2 states - calibration & profile update. Saving a bit
             // outdated data is acceptable.
             //
-            pwr.profile_selector.set_load_mohms(drain_info.peak_mv * 1000 / drain_info.peak_ma);
+            ps.set_load_mohms(drain_info.peak_mv * 1000 / drain_info.peak_ma);
         }
 
         if (pwr.is_apdo_updating) {
@@ -203,16 +205,15 @@ public:
         }
 
         // If completely new PDO required - go to switching state.
-        if (pwr.profile_selector.better_pdo_available()) {
-            APP_LOGI("Power: switch to better PDO (position {})", pwr.profile_selector.better_index + 1);
+        if (ps.better_pdo_available()) {
+            APP_LOGI("Power: switch to better PDO (position {})", ps.better_index + 1);
             pwr.is_from_caps_update = false;
             return PWR_STATE::WaitContractChange;
         }
 
-        auto idx = pwr.profile_selector.current_index;
-        auto desc = pwr.profile_selector.descriptors[idx];
-        auto params = pwr.profile_selector.get_pdo_usage_params(idx);
-
+        auto idx = ps.current_index;
+        auto desc = ps.descriptors[idx];
+        auto params = ps.get_pdo_usage_params(idx);
         if (desc.mv_min == desc.mv_max) {
             // Fixed PDO. Voltage is the same, only adjust duty cycle
             pwr.pwm.set_duty_x1000(params.duty_x1000);
@@ -267,10 +268,10 @@ public:
 
         // Always re-evaluate best profile, because we can come here
         // from different states (including unexpected src caps event).
-        auto idx = pwr.profile_selector.better_pdo_available()
-            ? pwr.profile_selector.better_index
-            : pwr.profile_selector.current_index;
-        auto params = pwr.profile_selector.get_pdo_usage_params(idx);
+        auto idx = profile_selector.better_pdo_available()
+            ? profile_selector.better_index
+            : profile_selector.current_index;
+        auto params = profile_selector.get_pdo_usage_params(idx);
 
         if (!pwr.is_from_caps_update)
         {
@@ -288,7 +289,7 @@ public:
     }
 
     auto on_event(const pd::MsgToDpm_NewPowerLevelRejected&) -> etl::fsm_state_id_t {
-        auto& ps = get_fsm_context().profile_selector;
+        auto& ps = profile_selector;
         // Force re-init on failure
         // NOTE: trigger function MUST be async to avoid deadlock
         dpm.trigger_by_position(ps.default_position, ps.default_mv);
@@ -439,8 +440,8 @@ void DPM_EventListener::on_receive(const pd::MsgToDpm_SrcCapsReceived& msg) {
     power.lock();
 
     power.source_caps = port.source_caps;
-    power.profile_selector.load_pdos(power.source_caps);
-    auto& ps = power.profile_selector;
+    profile_selector.load_pdos(power.source_caps);
+    auto& ps = profile_selector;
     dpm.clear_trigger_to(ps.default_position, ps.default_mv);
 
     power.unlock();
@@ -464,7 +465,7 @@ void DPM_EventListener::on_receive(const pd::MsgToDpm_SelectCapDone&) {
     // APP_LOGD("===== Power: PD Select Cap done, position {}", pdo_pos);
 
     power.lock();
-    power.profile_selector.set_pdo_index(pdo_pos - 1);
+    profile_selector.set_pdo_index(pdo_pos - 1);
     power.unlock();
 }
 

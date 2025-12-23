@@ -30,6 +30,15 @@ public:
         uint32_t duty_x1000{0};
     };
 
+    enum PowerStrategy {
+        ST_UNKNOWN,
+        ST_UP,
+        ST_HOLD,
+        ST_DOWN
+    };
+
+    PowerStrategy power_strategy{ST_UNKNOWN};
+
     etl::vector<PDO_DESCRIPTOR, pd::MaxPdoObjects> descriptors;
     uint32_t current_index{0};
     uint32_t better_index{0};
@@ -100,6 +109,11 @@ public:
 
     auto set_target_power_mw(uint32_t power_mw) -> ProfileSelector& {
         target_power_mw = power_mw;
+        return *this;
+    }
+
+    auto set_power_strategy(PowerStrategy strategy) -> ProfileSelector& {
+        power_strategy = strategy;
         return *this;
     }
 
@@ -346,4 +360,3 @@ public:
         return params;
     }
 };
-

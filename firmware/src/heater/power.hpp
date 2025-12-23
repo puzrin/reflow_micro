@@ -27,6 +27,8 @@ using DPM_EventListener_Base = etl::message_router<class DPM_EventListener,
     pd::MsgToDpm_NewPowerLevelRejected
 >;
 
+extern ProfileSelector profile_selector;
+
 class DPM_EventListener : public DPM_EventListener_Base {
 public:
     DPM_EventListener(class Power& power) : power(power) {}
@@ -90,7 +92,6 @@ public:
     uint32_t next_apdo_mv{0};
 
     Pwm pwm{};
-    ProfileSelector profile_selector{};
 
     void lock() { xSemaphoreTake(_lock, portMAX_DELAY); }
     void unlock() { xSemaphoreGive(_lock); }

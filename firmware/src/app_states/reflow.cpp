@@ -137,6 +137,7 @@ auto Reflow_State::on_event_unknown(const etl::imessage& event) -> etl::fsm_stat
 }
 
 void Reflow_State::on_exit_state() {
+    profile_selector.set_power_strategy(ProfileSelector::ST_UNKNOWN);
     heater.task_stop();
 }
 
@@ -149,5 +150,17 @@ void Reflow_State::task_iterator(int32_t time_ms) {
         return;
     }
 
-    heater.set_temperature(timeline.get_target(time_ms), timeline.get_rate(time_ms));
+    // NOTE: Probably we should not modify ProfileSelector directly and this
+    // should be property of Power to avoid races.
+
+    auto rate = timeline.get_rate(time_ms);
+    if (rate > 0.01f) {
+        profile_selector.set_power_strategy(ProfileSelector::ST_UP);
+    } else if (rate < -0.01f) {
+        profile_selector.set_power_strategy(ProfileSelector::ST_DOWN);
+    } else {
+        profile_selector.set_power_strategy(ProfileSelector::ST_HOLD);
+    }
+
+    heater.set_temperature(timeline.get_target(time_ms), rate);
 }
