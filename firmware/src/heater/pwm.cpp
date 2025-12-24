@@ -19,7 +19,6 @@ public:
     static auto on_enter_state(Pwm& pwm) -> afsm::state_id_t {
         pwm.load_on(false);
         pwm.duty_error = 0;
-        drain_tracker.reset();
 
         pwm._enabled.store(false);
         return No_State_Change;
