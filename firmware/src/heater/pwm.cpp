@@ -1,7 +1,10 @@
 #include <etl/algorithm.h>
 
 #include "drain_tracker.hpp"
+#include "profile_selector.hpp"
 #include "pwm.hpp"
+
+extern ProfileSelector profile_selector;
 
 namespace PwmState {
     enum {
@@ -68,7 +71,8 @@ public:
 
         if (pwm.tick_count >= Pwm::POWER_STABILIZATION_TICKS) {
             // DrainTracker polls INA226 once per tick after stabilization.
-            drain_tracker.collect_data();
+            // Capture profile index at measurement time for eventual consistency.
+            drain_tracker.collect_data(profile_selector.current_index);
         }
 
         if (pwm.tick_count >= pwm.pulse_ticks) { return PwmState::Gap; }

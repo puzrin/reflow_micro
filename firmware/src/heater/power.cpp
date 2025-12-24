@@ -61,7 +61,7 @@ public:
 
         pwr.pwm.enable(false);
         drain_tracker.reset();
-        profile_selector.set_target_power_mw(0);
+        pwr.target_power_mw = 0;
         pwr.set_power_status(PowerStatus::PowerStatus_PwrOff);
         application.enqueue_message(AppCmd::Stop{});
         return No_State_Change;
@@ -82,7 +82,7 @@ public:
 
         pwr.pwm.enable(false);
         drain_tracker.reset();
-        ps.set_target_power_mw(0);
+        pwr.target_power_mw = 0;
         pwr.set_power_status(PowerStatus::PowerStatus_PwrInitializing);
         application.enqueue_message(AppCmd::Stop{});
         return No_State_Change;
@@ -171,6 +171,7 @@ public:
         // Local APDO update complete, and SRC is ready.
         // PWM stays intact, because been updated prior to APDO adjusting.
         pwr.prev_apdo_mv = pwr.next_apdo_mv;
+        pwr.current_plan = pwr.next_plan;
         pwr.is_apdo_updating = false;
         return No_State_Change;
     }
@@ -183,12 +184,15 @@ public:
         auto consumer_valid = drain_info.load_valid;
 
         if (consumer_valid) {
-            // Instant update profile selector with current load.
-            // Here we don't check data actuality, because can arrive only
-            // from 2 states - calibration & profile update. Saving a bit
-            // outdated data is acceptable.
-            //
-            ps.set_load_mohms(drain_info.peak_mv * 1000 / drain_info.peak_ma);
+            // Update feedback with current measurements.
+            // Context from current_plan — that's what was active during measurement.
+            ProfileSelector::FEEDBACK_PARAMS fb{
+                .peak_mv = drain_info.peak_mv,
+                .peak_ma = drain_info.peak_ma,
+                .req_mv = pwr.current_plan.mv,
+                .req_idx = pwr.current_plan.profile_idx
+            };
+            pwr.last_feedback = fb;
         }
 
         if (pwr.is_apdo_updating) {
@@ -204,22 +208,26 @@ public:
             return PWR_STATE::Initializing;
         }
 
+        auto plan = ps.plan_power(pwr.target_power_mw, pwr.last_feedback);
+
         // If completely new PDO required - go to switching state.
-        if (ps.better_pdo_available()) {
-            APP_LOGI("Power: switch to better PDO (position {})", ps.better_index + 1);
+        if (plan.profile_idx != ps.current_index) {
+            APP_LOGI("Power: switch to better PDO (position {})", plan.profile_idx + 1);
             pwr.is_from_caps_update = false;
             return PWR_STATE::WaitContractChange;
         }
 
         auto idx = ps.current_index;
         auto desc = ps.descriptors[idx];
-        auto params = ps.get_pdo_usage_params(idx);
+        auto params = plan;
         if (desc.mv_min == desc.mv_max) {
             // Fixed PDO. Voltage is the same, only adjust duty cycle
             pwr.pwm.set_duty_x1000(params.duty_x1000);
             // Enable PWM if was inactive.
             // It's safe to call this multiple times
             pwr.pwm.enable(true);
+            // Duty applied immediately
+            pwr.current_plan = params;
         } else {
             // APDO
             pwr.pwm.set_duty_x1000(params.duty_x1000);
@@ -233,6 +241,7 @@ public:
             auto mv = (params.mv + 50) / 100 * 100; // Round tp 0.1V precision
             if (mv != pwr.prev_apdo_mv) {
                 pwr.next_apdo_mv = mv;
+                pwr.next_plan = params;
                 //APP_LOGI("Power: prev mV [{}], next mV [{}]", pwr.prev_apdo_mv, pwr.next_apdo_mv);
 
                 // Note, state can be terminated from outside to init/off only.
@@ -241,6 +250,9 @@ public:
                 pwr.is_apdo_updating = true;
                 // NOTE: trigger function MUST be async to avoid deadlock
                 dpm.trigger_by_position(idx + 1, params.mv);
+            } else {
+                // Voltage same, duty updated immediately
+                pwr.current_plan = params;
             }
         }
 
@@ -268,20 +280,19 @@ public:
 
         // Always re-evaluate best profile, because we can come here
         // from different states (including unexpected src caps event).
-        auto idx = profile_selector.better_pdo_available()
-            ? profile_selector.better_index
-            : profile_selector.current_index;
-        auto params = profile_selector.get_pdo_usage_params(idx);
+        auto plan = profile_selector.plan_power(pwr.target_power_mw, pwr.last_feedback);
+        pwr.next_plan = plan;
+        auto idx = plan.profile_idx;
 
         if (!pwr.is_from_caps_update)
         {
             // NOTE: trigger function MUST be async to avoid deadlock
-            dpm.trigger_by_position(idx + 1, params.mv);
+            dpm.trigger_by_position(idx + 1, plan.mv);
         }
         else {
             // If we react to capabilities update, set defaults without
             // triggering DPM flag. Because PE will ask selection itself.
-            dpm.clear_trigger_to(idx + 1, params.mv);
+            dpm.clear_trigger_to(idx + 1, plan.mv);
         }
 
         pwr.is_from_caps_update = false;
@@ -306,6 +317,8 @@ public:
     }
 
     auto on_event(const pd::MsgToDpm_SnkReady&) -> etl::fsm_state_id_t {
+        auto& pwr = get_fsm_context();
+        pwr.current_plan = pwr.next_plan;
         return PWR_STATE::Ready;
     }
 };
@@ -375,10 +388,11 @@ uint32_t Power::get_max_power_mw() {
     auto info = drain_tracker.get_info();
 
     if (!info.load_valid) { return 0; }
-    if (profile_selector.descriptors.size() == 0) { return 0; }
+    if (profile_selector.descriptors.empty()) { return 0; }
+    if (info.peak_ma == 0) { return 0; }
 
-    profile_selector.set_load_mohms(info.peak_mv * 1000 / info.peak_ma);
-    return profile_selector.mw_max(profile_selector.current_index);
+    auto load_mohms = info.peak_mv * 1000 / info.peak_ma;
+    return profile_selector.mw_max(profile_selector.current_index, load_mohms);
 }
 
 void Power::log_pdos() {

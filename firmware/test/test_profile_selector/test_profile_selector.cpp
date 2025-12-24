@@ -6,6 +6,17 @@
 
 using pd::PDO_VARIANT;
 
+// Helper: build feedback from resistance (for tests that specify R)
+static ProfileSelector::FEEDBACK_PARAMS feedback_from_mohms(uint32_t mohms) {
+    // Use 10V as reference voltage for calculating current from R
+    constexpr uint32_t ref_mv = 10000;
+    uint32_t ref_ma = ref_mv * 1000 / mohms;
+    return ProfileSelector::FEEDBACK_PARAMS{
+        .peak_mv = ref_mv,
+        .peak_ma = ref_ma
+    };
+}
+
 // Helper: construct descriptor with derived mohms thresholds
 static ProfileSelector::PDO_DESCRIPTOR make_desc(
     PDO_VARIANT v, uint32_t mv_min, uint32_t mv_max, uint32_t ma_max)
@@ -39,10 +50,11 @@ TEST(ProfileSelectorTest, UpgradeToAPDOWithHeadroom) {
 
     // Start at 5V FIXED, R=3Ω, target a bit above 95% of 5V Pmax to trigger upgrade
     // Pmax(5V, 3Ω) = 25/3 ≈ 8.333W → 95% ≈ 7.916W. Take 8.0W
-    ps.set_pdo_index(0).set_load_mohms(3000).set_target_power_mw(8000);
-
-    ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 2u); // prefer APDO
+    uint32_t target_power_mw = 8000;
+    ps.set_pdo_index(0);
+    auto fb = feedback_from_mohms(3000);
+    auto plan = ps.plan_power(target_power_mw, fb);
+    EXPECT_EQ(plan.profile_idx, 2u); // prefer APDO
 }
 
 TEST(ProfileSelectorTest, ApdoMinVGuardForcesSafeFallback) {
@@ -53,10 +65,11 @@ TEST(ProfileSelectorTest, ApdoMinVGuardForcesSafeFallback) {
     ps.descriptors.push_back(make_desc(PDO_VARIANT::APDO_SPR_AVS, 9000, 21000, 5000));
 
     // Current at AVS, low target: at 9V and R=3Ω → P(minV)=27W > 1.03*target(5W)
-    ps.set_pdo_index(1).set_load_mohms(3000).set_target_power_mw(5000);
-
-    ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 0u); // drop to safe base
+    uint32_t target_power_mw = 5000;
+    ps.set_pdo_index(1);
+    auto fb = feedback_from_mohms(3000);
+    auto plan = ps.plan_power(target_power_mw, fb);
+    EXPECT_EQ(plan.profile_idx, 0u); // drop to safe base
 }
 
 TEST(ProfileSelectorTest, UpgradeToAnyHigherWhenNoApdoMatches) {
@@ -67,10 +80,11 @@ TEST(ProfileSelectorTest, UpgradeToAnyHigherWhenNoApdoMatches) {
     ps.descriptors.push_back(make_desc(PDO_VARIANT::FIXED, 9000, 9000, 2000));
 
     // R=6Ω → Pmax(5V)=25/6≈4.166W; 95%≈3.958W → target=4.0W triggers upgrade
-    ps.set_pdo_index(0).set_load_mohms(6000).set_target_power_mw(4000);
-
-    ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 1u); // pick 9V FIXED
+    uint32_t target_power_mw = 4000;
+    ps.set_pdo_index(0);
+    auto fb = feedback_from_mohms(6000);
+    auto plan = ps.plan_power(target_power_mw, fb);
+    EXPECT_EQ(plan.profile_idx, 1u); // pick 9V FIXED
 }
 
 TEST(ProfileSelectorTest, DowngradeFixedToApdoToAvoidPwm) {
@@ -81,10 +95,11 @@ TEST(ProfileSelectorTest, DowngradeFixedToApdoToAvoidPwm) {
     ps.descriptors.push_back(make_desc(PDO_VARIANT::APDO_PPS, 5000, 11000, 3000));
 
     // R=20Ω, target=3W (< Pmax(9V)=4.05W). Prefer APDO to avoid PWM on FIXED
-    ps.set_pdo_index(0).set_load_mohms(20000).set_target_power_mw(3000);
-
-    ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 1u);
+    uint32_t target_power_mw = 3000;
+    ps.set_pdo_index(0);
+    auto fb = feedback_from_mohms(20000);
+    auto plan = ps.plan_power(target_power_mw, fb);
+    EXPECT_EQ(plan.profile_idx, 1u);
 }
 
 TEST(ProfileSelectorTest, DowngradeFixedToLowerFixedWhenApdoNotSuitable) {
@@ -96,10 +111,11 @@ TEST(ProfileSelectorTest, DowngradeFixedToLowerFixedWhenApdoNotSuitable) {
     ps.descriptors.push_back(make_desc(PDO_VARIANT::APDO_SPR_AVS,  9000, 21000, 5000)); // will be guarded out
 
     // R=27Ω: Pmax(9V)=81/27=3W; require 10% headroom, so target ≤ 2.7W
-    ps.set_pdo_index(0).set_load_mohms(27000).set_target_power_mw(2600);
-
-    ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 1u); // lower fixed selected
+    uint32_t target_power_mw = 2600;
+    ps.set_pdo_index(0);
+    auto fb = feedback_from_mohms(27000);
+    auto plan = ps.plan_power(target_power_mw, fb);
+    EXPECT_EQ(plan.profile_idx, 1u); // lower fixed selected
 }
 
 TEST(ProfileSelectorTest, BestEffortWhenTargetTooHigh) {
@@ -113,10 +129,11 @@ TEST(ProfileSelectorTest, BestEffortWhenTargetTooHigh) {
     // Choose a safe load (R high enough to satisfy 110% current margin)
     // but set a target above all profiles' Pmax so selector picks the strongest.
     // For R=30Ω: Pmax(12V)=144/30=4.8W, 9V=2.7W, 5V≈0.83W. Target 10W > all.
-    ps.set_pdo_index(0).set_load_mohms(30000).set_target_power_mw(10000);
-
-    ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 2u); // strongest safe FIXED (12V)
+    uint32_t target_power_mw = 10000;
+    ps.set_pdo_index(0);
+    auto fb = feedback_from_mohms(30000);
+    auto plan = ps.plan_power(target_power_mw, fb);
+    EXPECT_EQ(plan.profile_idx, 2u); // strongest safe FIXED (12V)
 }
 
 TEST(ProfileSelectorTest, BestEffortPrefersPpsOverFixedWhenAllInsufficient) {
@@ -132,10 +149,11 @@ TEST(ProfileSelectorTest, BestEffortPrefersPpsOverFixedWhenAllInsufficient) {
     // R=10Ω → Pmax(20V)=400/10=40W, Pmax(PPS@21V)=441/10≈44.1W.
     // Target set above all to trigger best-effort. PPS should win as strongest
     // and avoids PWM compared to staying on a high FIXED.
-    ps.set_pdo_index(0).set_load_mohms(10000).set_target_power_mw(100000);
-
-    ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 3u); // prefer PPS over 20V FIXED in best-effort
+    uint32_t target_power_mw = 100000;
+    ps.set_pdo_index(0);
+    auto fb = feedback_from_mohms(10000);
+    auto plan = ps.plan_power(target_power_mw, fb);
+    EXPECT_EQ(plan.profile_idx, 3u); // prefer PPS over 20V FIXED in best-effort
 }
 
 TEST(ProfileSelectorTest, CandidateFilteredBy110PercentCurrentMargin) {
@@ -149,10 +167,11 @@ TEST(ProfileSelectorTest, CandidateFilteredBy110PercentCurrentMargin) {
 
     // R=5.2Ω: 15V requires R >= 5.5Ω (fails 110%), 12V requires R >= 4.4Ω (passes).
     // target > 95% of 9V@5.2Ω (≈15.58W) → choose 12V, not 15V.
-    ps.set_pdo_index(1).set_load_mohms(5200).set_target_power_mw(15000);
-
-    ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 2u);
+    uint32_t target_power_mw = 15000;
+    ps.set_pdo_index(1);
+    auto fb = feedback_from_mohms(5200);
+    auto plan = ps.plan_power(target_power_mw, fb);
+    EXPECT_EQ(plan.profile_idx, 2u);
 }
 
 TEST(ProfileSelectorTest, VoltageVsCurrentLimitSelection) {
@@ -166,10 +185,11 @@ TEST(ProfileSelectorTest, VoltageVsCurrentLimitSelection) {
     // R=4.4Ω: 9V Pmax = min(81/4.4≈18.4, 4*4.4=17.6) → 17.6W (I-limit)
     //          12V Pmax = min(144/4.4≈32.7, 9*4.4=39.6) → 32.7W (V-limit)
     // target just above 95% of 17.6W → triggers upgrade to 12V.
-    ps.set_pdo_index(1).set_load_mohms(4400).set_target_power_mw(17200);
-
-    ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 2u);
+    uint32_t target_power_mw = 17200;
+    ps.set_pdo_index(1);
+    auto fb = feedback_from_mohms(4400);
+    auto plan = ps.plan_power(target_power_mw, fb);
+    EXPECT_EQ(plan.profile_idx, 2u);
 }
 
 TEST(ProfileSelectorTest, ApdoPriorityLastWins) {
@@ -183,10 +203,11 @@ TEST(ProfileSelectorTest, ApdoPriorityLastWins) {
 
     // R=10Ω: Pmax(9V)=8.1W, set target 8.0W to trigger upgrade.
     // Both PPS have ≥10% headroom; scan from end should pick index 3.
-    ps.set_pdo_index(1).set_load_mohms(10000).set_target_power_mw(8000);
-
-    ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 3u);
+    uint32_t target_power_mw = 8000;
+    ps.set_pdo_index(1);
+    auto fb = feedback_from_mohms(10000);
+    auto plan = ps.plan_power(target_power_mw, fb);
+    EXPECT_EQ(plan.profile_idx, 3u);
 }
 
 TEST(ProfileSelectorTest, EprHolesAndAvsGuardFallsBackToSafeNonPwm) {
@@ -210,10 +231,11 @@ TEST(ProfileSelectorTest, EprHolesAndAvsGuardFallsBackToSafeNonPwm) {
 
     // Start on AVS (index 10). R=30Ω → P(minV_AVS)=225/30=7.5W; target=6W → guard triggers.
     // Among FIXED, 15V gives 7.5W (> target, non-PWM). Expect switch to 15V (index 2).
-    ps.set_pdo_index(10).set_load_mohms(30000).set_target_power_mw(6000);
-
-    ASSERT_TRUE(ps.better_pdo_available());
-    EXPECT_EQ(ps.better_index, 2u);
+    uint32_t target_power_mw = 6000;
+    ps.set_pdo_index(10);
+    auto fb = feedback_from_mohms(30000);
+    auto plan = ps.plan_power(target_power_mw, fb);
+    EXPECT_EQ(plan.profile_idx, 2u);
 }
 
 int main(int argc, char **argv) {

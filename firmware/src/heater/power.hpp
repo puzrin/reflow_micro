@@ -68,13 +68,8 @@ public:
         unlock();
     }
 
-    // For external use only. Inside FSM use direct access
-    // to avoid recursive lock.
-    void set_power_mw(uint32_t mw) {
-        lock();
-        profile_selector.set_target_power_mw(mw);
-        unlock();
-    }
+    void set_power_mw(uint32_t mw) { target_power_mw = mw; }
+    uint32_t get_target_power_mw() const { return target_power_mw; }
 
     uint32_t get_peak_mv();
     uint32_t get_peak_ma();
@@ -90,6 +85,12 @@ public:
     bool is_from_caps_update{false};
     uint32_t prev_apdo_mv{0};
     uint32_t next_apdo_mv{0};
+
+    // Power management state
+    etl::atomic<uint32_t> target_power_mw{0};
+    ProfileSelector::POWER_PLAN current_plan{};
+    ProfileSelector::POWER_PLAN next_plan{};
+    ProfileSelector::FEEDBACK_PARAMS last_feedback{};
 
     Pwm pwm{};
 

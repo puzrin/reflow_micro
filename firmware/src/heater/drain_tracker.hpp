@@ -11,10 +11,11 @@ public:
         uint32_t peak_mv = 0;
         uint32_t peak_ma = 0;
         bool load_valid = false;
+        uint32_t ctx_idx = 0;  // Profile index at which measurements were taken
     };
 
     void setup();
-    void collect_data();
+    void collect_data(uint32_t ctx_idx);
     void process_collected_data();
     void clear_collected_data();
     void reset();
@@ -23,7 +24,11 @@ public:
 
 private:
     static constexpr uint32_t ADC_FILTER_SIZE = 8;
-    struct ADC_ITEM { uint16_t v_raw; int16_t i_raw; };
+    struct ADC_ITEM {
+        uint16_t v_raw;
+        int16_t i_raw;
+        uint32_t ctx_idx;  // Profile index at sample time
+    };
 
     static constexpr uint8_t INA226_ADDR = 0x40;
 

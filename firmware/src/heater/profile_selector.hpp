@@ -25,9 +25,20 @@ public:
         uint32_t mohms_min_110_percent{etl::numeric_limits<uint32_t>::max()};
     };
 
-    struct PDO_USAGE_PARAMS {
+    struct POWER_PLAN {
+        uint32_t profile_idx{0}; // 0-based
         uint32_t mv{0};
         uint32_t duty_x1000{0};
+        uint32_t ctx_target_mw{0};
+    };
+
+    struct FEEDBACK_PARAMS {
+        // Measurements
+        uint32_t peak_mv{0};
+        uint32_t peak_ma{0};
+        // Measurements context (for advanced correction)
+        uint32_t req_mv{0};
+        uint32_t req_idx{0};
     };
 
     enum PowerStrategy {
@@ -41,9 +52,6 @@ public:
 
     etl::vector<PDO_DESCRIPTOR, pd::MaxPdoObjects> descriptors;
     uint32_t current_index{0};
-    uint32_t better_index{0};
-    uint32_t load_mohms{0};
-    uint32_t target_power_mw{0};
 
     // Minimal profile (voltage) to use (updated on src caps load).
     // - 5500 mV when APDO available
@@ -102,16 +110,6 @@ public:
         set_pdo_index(0);
     };
 
-    auto set_load_mohms(uint32_t R_mohms) -> ProfileSelector& {
-        load_mohms = R_mohms;
-        return *this;
-    }
-
-    auto set_target_power_mw(uint32_t power_mw) -> ProfileSelector& {
-        target_power_mw = power_mw;
-        return *this;
-    }
-
     auto set_power_strategy(PowerStrategy strategy) -> ProfileSelector& {
         power_strategy = strategy;
         return *this;
@@ -119,25 +117,23 @@ public:
 
     auto set_pdo_index(int32_t index) -> ProfileSelector& {
         current_index = index;
-        better_index = index;
         return *this;
     }
 
-    uint32_t mw_max(uint32_t idx) const {
+    auto plan_power(uint32_t target_power_mw, const FEEDBACK_PARAMS& feedback) -> POWER_PLAN {
+        uint32_t idx = current_index;
+        better_pdo_available(target_power_mw, feedback, idx);
+        return get_pdo_usage_params(idx, target_power_mw, feedback);
+    }
+
+    uint32_t mw_max(uint32_t idx, uint32_t load_mohms) const {
+        if (load_mohms == 0) { return 0; }
         auto& d = descriptors[idx];
         return etl::min(d.mv_max * d.mv_max / load_mohms,
             ((d.ma_max * d.ma_max / 1000) * load_mohms) / 1000);
     }
 
-    uint32_t mw_max_95_percent(uint32_t idx) const {
-        return mw_max(idx) * 95 / 100;
-    }
-
-    uint32_t mw_max_90_percent(uint32_t idx) const {
-        return mw_max(idx) * 90 / 100;
-    }
-
-
+private:
     // Hysteresis and guards, to avoid oscillation and PWM noise:
     // - Upgrade when target > 95% of current Pmax (5% headroom left).
     // - Candidates must provide ≥10% headroom (power and current checks).
@@ -146,7 +142,9 @@ public:
     //   if APDO's minV is above 5 V and P(minV) > target·1.03, we'd need PWM
     //   and have no overcurrent trigger to step down — avoid/leave such APDO.
     // - Prefer APDO when possible; for FIXED try lower voltage if it still meets target.
-    bool better_pdo_available() {
+    bool better_pdo_available(uint32_t target_power_mw, const FEEDBACK_PARAMS& feedback, uint32_t& out_index) {
+        auto load_mohms = get_load_mohms(feedback);
+        out_index = current_index;
         if (descriptors.empty() || load_mohms == 0) { return false; }
 
         uint32_t new_index = current_index;
@@ -184,7 +182,7 @@ public:
 
         // If desired power is close to PDO limit - try to upgrade
         // Upgrade when target exceeds 95% of current Pmax (5% headroom).
-        if (target_power_mw > mw_max_95_percent(new_index)) {
+        if (target_power_mw > mw_max_95_percent(new_index, load_mohms)) {
 
             // First, try to find APDO. Satisfying 2 conditions:
             // - It can get desired power
@@ -206,15 +204,15 @@ public:
                     continue;
                 }
 
-                if (target_power_mw <= mw_max_90_percent(i)) { // candidate has ≥10% headroom
-                    better_index = i;
-                    return better_index != current_index;
+                if (target_power_mw <= mw_max_90_percent(i, load_mohms)) { // candidate has ≥10% headroom
+                    out_index = i;
+                    return out_index != current_index;
                 }
             }
 
             // If no APDO matched, try to find any PDO with higher power
             // above target
-            auto current_max_mw = mw_max_90_percent(new_index); // compare with 10% hysteresis
+            auto current_max_mw = mw_max_90_percent(new_index, load_mohms); // compare with 10% hysteresis
 
             for (uint8_t i = 0; i < descriptors.size(); i++) {
                 auto& d = descriptors[i];
@@ -234,21 +232,21 @@ public:
                 }
 
                 // Decline more weak profiles
-                auto mw_tmp = mw_max_90_percent(i); // consider 10% headroom
+                auto mw_tmp = mw_max_90_percent(i, load_mohms); // consider 10% headroom
                 if (mw_tmp > current_max_mw) {
                     new_index = i;
                     current_max_mw = mw_tmp;
                 }
 
                 if (mw_tmp > target_power_mw) { // candidate exceeds target with 10% headroom
-                    better_index = i;
-                    return better_index != current_index;
+                    out_index = i;
+                    return out_index != current_index;
                 }
             }
 
             // If target power not satisfied, use the best we have
-            better_index = new_index;
-            return better_index != current_index;
+            out_index = new_index;
+            return out_index != current_index;
         }
 
         // For fixed profiles - try to downgrade to lower voltage if possible.
@@ -264,7 +262,7 @@ public:
                 }
                 if (load_mohms < d.mohms_min_110_percent) { continue; } // require 10% current margin
 
-                auto mw_tmp = mw_max_90_percent(i); // needs 10% power headroom
+                auto mw_tmp = mw_max_90_percent(i, load_mohms); // needs 10% power headroom
                 if (mw_tmp < target_power_mw) { continue; }
 
                 // Avoid APDO needing PWM at minV (>5 V): 3% margin
@@ -273,8 +271,8 @@ public:
                     continue;
                 }
 
-                better_index = i;
-                return better_index != current_index;
+                out_index = i;
+                return out_index != current_index;
             }
 
             // No suitable APDO, try to find lower fixed PDO
@@ -283,9 +281,9 @@ public:
                 if (d.pdo_variant != pd::PDO_VARIANT::FIXED) { continue; }
                 if (load_mohms < d.mohms_min_110_percent) { continue; } // require 10% current margin
                 if (d.mv_max >= descriptors[new_index].mv_max) { continue; } // only lower-voltage FIXED
-                if (target_power_mw <= mw_max_90_percent(i)) { // supports target with 10% headroom
-                    better_index = i;
-                    return better_index != current_index;
+                if (target_power_mw <= mw_max_90_percent(i, load_mohms)) { // supports target with 10% headroom
+                    out_index = i;
+                    return out_index != current_index;
                 }
             }
         }
@@ -294,13 +292,16 @@ public:
         // - no change needed
         // - emergencies updated new_index (e.g. to 0 → 5 V FIXED per PD),
         //   but no better profile available. Apply this properly.
-        better_index = new_index;
-        return better_index != current_index;
+        out_index = new_index;
+        return out_index != current_index;
     }
 
-    auto get_pdo_usage_params(uint32_t idx) -> PDO_USAGE_PARAMS {
-        PDO_USAGE_PARAMS params{};
+    auto get_pdo_usage_params(uint32_t idx, uint32_t target_power_mw, const FEEDBACK_PARAMS& feedback) -> POWER_PLAN {
+        POWER_PLAN params{};
+        params.profile_idx = idx;
+        params.ctx_target_mw = target_power_mw;
 
+        auto load_mohms = get_load_mohms(feedback);
         if (idx >= descriptors.size() || load_mohms == 0) {
             return params;
         }
@@ -333,7 +334,7 @@ public:
         {
             // For APDO, calculate voltage to get target power
             // V = sqrt(P * R)
-            auto possible_mw = etl::min(target_power_mw, mw_max(idx));
+            auto possible_mw = etl::min(target_power_mw, mw_max(idx, load_mohms));
             // 32 bits should not overflow but use 64 bits for sure.
             // Sqrt speed will be ~ the same
             uint32_t ideal_mv = isqrt64(static_cast<uint64_t>(possible_mw) * load_mohms);
@@ -358,5 +359,19 @@ public:
 
         // Unknown PDO type, return zeroes
         return params;
+    }
+
+    // Compute load_mohms from feedback
+    uint32_t get_load_mohms(const FEEDBACK_PARAMS& feedback) const {
+        if (feedback.peak_ma == 0) { return 0; }
+        return feedback.peak_mv * 1000 / feedback.peak_ma;
+    }
+
+    uint32_t mw_max_95_percent(uint32_t idx, uint32_t load_mohms) const {
+        return mw_max(idx, load_mohms) * 95 / 100;
+    }
+
+    uint32_t mw_max_90_percent(uint32_t idx, uint32_t load_mohms) const {
+        return mw_max(idx, load_mohms) * 90 / 100;
     }
 };

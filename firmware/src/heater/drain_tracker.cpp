@@ -12,7 +12,7 @@ void DrainTracker::setup() {
     }
 }
 
-void DrainTracker::collect_data() {
+void DrainTracker::collect_data(uint32_t ctx_idx) {
     uint16_t adc_v_raw;
     uint16_t adc_i_raw;
 
@@ -21,7 +21,8 @@ void DrainTracker::collect_data() {
     {
         adc_buffer[adc_count % ADC_FILTER_SIZE] = {
             .v_raw = adc_v_raw,
-            .i_raw = static_cast<int16_t>(adc_i_raw)
+            .i_raw = static_cast<int16_t>(adc_i_raw),
+            .ctx_idx = ctx_idx
         };
         adc_count++;
     }
@@ -33,6 +34,17 @@ void DrainTracker::process_collected_data() {
     }
 
     uint32_t count = adc_count < ADC_FILTER_SIZE ? adc_count : ADC_FILTER_SIZE;
+
+    // Check all samples have consistent profile index.
+    // If idx changed mid-collection, drop this batch - next PWM cycle will retry.
+    uint32_t first_idx = adc_buffer[0].ctx_idx;
+    for (uint32_t i = 1; i < count; i++) {
+        if (adc_buffer[i].ctx_idx != first_idx) {
+            adc_count = 0;
+            return;
+        }
+    }
+
     uint32_t v_sum{0};
     int32_t i_sum{0};
 
@@ -53,6 +65,7 @@ void DrainTracker::process_collected_data() {
     info.peak_mv = peak_mv;
     info.peak_ma = peak_ma;
     info.load_valid = load_valid;
+    info.ctx_idx = first_idx;
     xSemaphoreGive(info_lock);
 
     adc_count = 0;
