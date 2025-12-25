@@ -21,8 +21,6 @@ public:
 
         // For empty record make valid resistance unreachable
         uint32_t mohms_min{etl::numeric_limits<uint32_t>::max()};
-        uint32_t mohms_min_105_percent{etl::numeric_limits<uint32_t>::max()};
-        uint32_t mohms_min_110_percent{etl::numeric_limits<uint32_t>::max()};
     };
 
     struct POWER_PLAN {
@@ -80,8 +78,6 @@ public:
                         ? limits.ma
                         : (limits.pdp * 1000 * 1000 / limits.mv_max);
                     desc.mohms_min = (desc.mv_min * 1000) / desc.ma_max;
-                    desc.mohms_min_105_percent = desc.mohms_min * 105 / 100;
-                    desc.mohms_min_110_percent = desc.mohms_min * 110 / 100;
                     break;
 
                 default:
@@ -134,157 +130,59 @@ public:
     }
 
 private:
-    // Hysteresis and guards, to avoid oscillation and PWM noise:
-    // - Upgrade when target > 95% of current Pmax (5% headroom left).
-    // - Candidates must provide ≥10% headroom (power and current checks).
-    // - Emergency downgrade when R < Rmin·1.05 (5% current margin).
-    // - APDO guard: AVS often min at ~9 V. We clamp minV to 5 V overall;
-    //   if APDO's minV is above 5 V and P(minV) > target·1.03, we'd need PWM
-    //   and have no overcurrent trigger to step down — avoid/leave such APDO.
-    // - Prefer APDO when possible; for FIXED try lower voltage if it still meets target.
+    static constexpr uint32_t PROFILE_UP_SRC_POWER_TERESHOLD_PCT = 5;
+    static constexpr uint32_t PROFILE_UP_DST_POWER_RESERVE_PCT = 10;
+    static constexpr uint32_t PROFILE_DOWN_DST_POWER_RESERVE_PCT = 40;
+    static constexpr uint32_t PROFILE_IN_CURRENT_MARGIN_PCT = 10;
+    static constexpr uint32_t PROFILE_OUT_CURRENT_MARGIN_PCT = 5;
+
+    // Select best PDO for target power.
+    // - Emergency: overcurrent or APDO trap → drop to PDO[0]
+    // - Upgrade: when target > 95% of current max → scan_up with 10% reserve
+    // - Downgrade (FIXED only): when current profile has >40% excess → scan_down
     bool better_pdo_available(uint32_t target_power_mw, const FEEDBACK_PARAMS& feedback, uint32_t& out_index) {
         auto load_mohms = get_load_mohms(feedback);
         out_index = current_index;
         if (descriptors.empty() || load_mohms == 0) { return false; }
 
-        uint32_t new_index = current_index;
+        uint32_t idx = current_index;
 
         // Safety check (this should never happen)
-        if (new_index >= descriptors.size() ||
-            descriptors[new_index].pdo_variant == pd::PDO_VARIANT::UNKNOWN)
+        if (idx >= descriptors.size() ||
+            descriptors[idx].pdo_variant == pd::PDO_VARIANT::UNKNOWN)
         {
-            new_index = 0;
+            idx = 0;
         }
 
         // Emergency case 1: we are close to overcurrent. Force downgrade to
         // first PDO (PD mandates 5 V FIXED at index 0), then continue with exact match.
         // 5% current margin (R < Rmin·1.05) to avoid tripping.
-        if (load_mohms < descriptors[new_index].mohms_min_105_percent) {
-            new_index = 0;
+        if (!has_current_margin(idx, load_mohms, PROFILE_OUT_CURRENT_MARGIN_PCT)) {
+            idx = 0;
         }
 
-        // Emergency case 2: APDO/AVS minimal voltage too high for target
-        // AVS often min at ~9 V. Since we clamp to ≥5 V, if APDO's minV > 5 V
-        // and P(minV) > target·1.03, we'd sit on PWM with no path to step down.
-        // Drop to a safe base to avoid PWM lock.
-        {
-            auto& d = descriptors[new_index];
-            auto min_continuous_mw = (d.mv_min * d.mv_min) / load_mohms;
-            if ((d.pdo_variant == pd::PDO_VARIANT::APDO_SPR_AVS ||
-                d.pdo_variant == pd::PDO_VARIANT::APDO_EPR_AVS) &&
-                d.mv_min > 5000 &&
-                min_continuous_mw > (target_power_mw * 103 / 100))
-            {
-                new_index = 0;
-            }
+        // Emergency case 2: APDO minimal voltage too high for target to stay
+        // without PWM (and profile s with lower voltage available. Drop to a
+        // safe base to avoid PWM lock.
+        if (is_apdo_min_voltage_trap(idx, load_mohms, target_power_mw)) {
+            idx = 0;
         }
-
 
         // If desired power is close to PDO limit - try to upgrade
         // Upgrade when target exceeds 95% of current Pmax (5% headroom).
-        if (target_power_mw > mw_max_95_percent(new_index, load_mohms)) {
-
-            // First, try to find APDO. Satisfying 2 conditions:
-            // - It can get desired power
-            // - it not fall to PWM if min voltage > 5.0v
-            for (int i = descriptors.size() - 1; i >= 0; i--) {
-                auto& d = descriptors[i];
-                if (d.pdo_variant != pd::PDO_VARIANT::APDO_PPS &&
-                    d.pdo_variant != pd::PDO_VARIANT::APDO_SPR_AVS &&
-                    d.pdo_variant != pd::PDO_VARIANT::APDO_EPR_AVS)
-                {
-                    continue;
-                }
-                if (load_mohms < d.mohms_min_110_percent) { continue; } // require 10% current margin
-
-                // Avoid APDO that would require PWM at minV (>5 V): AVS often ~9 V.
-                // If P(minV) > target·1.03 we risk PWM lock with no down-step trigger.
-                auto min_continuous_mw = (d.mv_min * d.mv_min) / load_mohms;
-                if (d.mv_min > 5000 && min_continuous_mw > (target_power_mw * 103 / 100)) {
-                    continue;
-                }
-
-                if (target_power_mw <= mw_max_90_percent(i, load_mohms)) { // candidate has ≥10% headroom
-                    out_index = i;
-                    return out_index != current_index;
-                }
-            }
-
-            // If no APDO matched, try to find any PDO with higher power
-            // above target
-            auto current_max_mw = mw_max_90_percent(new_index, load_mohms); // compare with 10% hysteresis
-
-            for (uint8_t i = 0; i < descriptors.size(); i++) {
-                auto& d = descriptors[i];
-                if (d.pdo_variant == pd::PDO_VARIANT::UNKNOWN) { continue; }
-                if (load_mohms < d.mohms_min_110_percent) { continue; } // require 10% current margin
-
-                // Avoid APDO needing PWM at minV (>5 V): if P(minV) > target·1.03
-                // we might get “stuck” in APDO without an overcurrent downgrade.
-                if ((d.pdo_variant == pd::PDO_VARIANT::APDO_PPS ||
-                     d.pdo_variant == pd::PDO_VARIANT::APDO_SPR_AVS ||
-                     d.pdo_variant == pd::PDO_VARIANT::APDO_EPR_AVS))
-                {
-                    auto min_continuous_mw = (d.mv_min * d.mv_min) / load_mohms;
-                    if (d.mv_min > 5000 && min_continuous_mw > (target_power_mw * 103 / 100)) {
-                        continue;
-                    }
-                }
-
-                // Decline more weak profiles
-                auto mw_tmp = mw_max_90_percent(i, load_mohms); // consider 10% headroom
-                if (mw_tmp > current_max_mw) {
-                    new_index = i;
-                    current_max_mw = mw_tmp;
-                }
-
-                if (mw_tmp > target_power_mw) { // candidate exceeds target with 10% headroom
-                    out_index = i;
-                    return out_index != current_index;
-                }
-            }
-
-            // If target power not satisfied, use the best we have
-            out_index = new_index;
+        if (target_power_mw > mw_max_with_reserve(idx, load_mohms, PROFILE_UP_SRC_POWER_TERESHOLD_PCT)) {
+            out_index = scan_up(idx, load_mohms, target_power_mw);
             return out_index != current_index;
         }
 
-        // For fixed profiles - try to downgrade to lower voltage if possible.
-        if (descriptors[new_index].pdo_variant == pd::PDO_VARIANT::FIXED) {
-            // First, try to find suitable APDO to avoid PWM.
-            for (uint8_t i = 0; i < descriptors.size(); i++) {
-                auto& d = descriptors[i];
-                if (d.pdo_variant != pd::PDO_VARIANT::APDO_PPS &&
-                    d.pdo_variant != pd::PDO_VARIANT::APDO_SPR_AVS &&
-                    d.pdo_variant != pd::PDO_VARIANT::APDO_EPR_AVS)
-                {
-                    continue;
-                }
-                if (load_mohms < d.mohms_min_110_percent) { continue; } // require 10% current margin
-
-                auto mw_tmp = mw_max_90_percent(i, load_mohms); // needs 10% power headroom
-                if (mw_tmp < target_power_mw) { continue; }
-
-                // Avoid APDO needing PWM at minV (>5 V): 3% margin
-                auto min_continuous_mw = (d.mv_min * d.mv_min) / load_mohms;
-                if (d.mv_min > 5000 && min_continuous_mw > (target_power_mw * 103 / 100)) {
-                    continue;
-                }
-
-                out_index = i;
+        // Downgrade: only for FIXED profiles, if lower profile can handle target
+        // with 40% reserve. Such reserve is set to prevent oscillation near
+        // profile boundaries.
+        if (descriptors[idx].pdo_variant == pd::PDO_VARIANT::FIXED) {
+            auto downgrade_candidate = scan_down(idx, load_mohms, target_power_mw);
+            if (downgrade_candidate != idx) {
+                out_index = downgrade_candidate;
                 return out_index != current_index;
-            }
-
-            // No suitable APDO, try to find lower fixed PDO
-            for (uint8_t i = 0; i < descriptors.size(); i++) {
-                auto& d = descriptors[i];
-                if (d.pdo_variant != pd::PDO_VARIANT::FIXED) { continue; }
-                if (load_mohms < d.mohms_min_110_percent) { continue; } // require 10% current margin
-                if (d.mv_max >= descriptors[new_index].mv_max) { continue; } // only lower-voltage FIXED
-                if (target_power_mw <= mw_max_90_percent(i, load_mohms)) { // supports target with 10% headroom
-                    out_index = i;
-                    return out_index != current_index;
-                }
             }
         }
 
@@ -292,7 +190,7 @@ private:
         // - no change needed
         // - emergencies updated new_index (e.g. to 0 → 5 V FIXED per PD),
         //   but no better profile available. Apply this properly.
-        out_index = new_index;
+        out_index = idx;
         return out_index != current_index;
     }
 
@@ -328,12 +226,8 @@ private:
             return params;
         }
 
-        if (d.pdo_variant == pd::PDO_VARIANT::APDO_PPS ||
-            d.pdo_variant == pd::PDO_VARIANT::APDO_SPR_AVS ||
-            d.pdo_variant == pd::PDO_VARIANT::APDO_EPR_AVS)
-        {
-            // For APDO, calculate voltage to get target power
-            // V = sqrt(P * R)
+        if (is_apdo(d.pdo_variant)) {
+            // For APDO, calculate voltage to get target power: V = sqrt(P * R)
             auto possible_mw = etl::min(target_power_mw, mw_max(idx, load_mohms));
             // 32 bits should not overflow but use 64 bits for sure.
             // Sqrt speed will be ~ the same
@@ -367,11 +261,98 @@ private:
         return feedback.peak_mv * 1000 / feedback.peak_ma;
     }
 
-    uint32_t mw_max_95_percent(uint32_t idx, uint32_t load_mohms) const {
-        return mw_max(idx, load_mohms) * 95 / 100;
+    static bool is_apdo(pd::PDO_VARIANT v) {
+        return v == pd::PDO_VARIANT::APDO_PPS ||
+               v == pd::PDO_VARIANT::APDO_SPR_AVS ||
+               v == pd::PDO_VARIANT::APDO_EPR_AVS;
     }
 
-    uint32_t mw_max_90_percent(uint32_t idx, uint32_t load_mohms) const {
-        return mw_max(idx, load_mohms) * 90 / 100;
+    // Check if APDO would require PWM at its min voltage (trap condition).
+    // If minV is above default_mv and P(minV) > target·1.03, we risk PWM lock.
+    bool is_apdo_min_voltage_trap(uint32_t idx, uint32_t load_mohms, uint32_t target_mw) const {
+        auto& d = descriptors[idx];
+        if (!is_apdo(d.pdo_variant)) { return false; }
+        if (d.mv_min <= default_mv) { return false; }
+        auto min_continuous_mw = (d.mv_min * d.mv_min) / load_mohms;
+        return min_continuous_mw > (target_mw * 103 / 100);
+    }
+
+    // Check if profile has enough current margin.
+    bool has_current_margin(uint32_t idx, uint32_t load_mohms, uint32_t margin_pct) const {
+        auto required_mohms = static_cast<uint64_t>(descriptors[idx].mohms_min)
+            * (100 + margin_pct) / 100;
+        return load_mohms >= required_mohms;
+    }
+
+    // Returns max power with specified reserve percentage.
+    // reserve_pct=10 means profile must provide target + 10% headroom.
+    uint32_t mw_max_with_reserve(uint32_t idx, uint32_t load_mohms, uint32_t reserve_pct) const {
+        return mw_max(idx, load_mohms) * (100 - reserve_pct) / 100;
+    }
+
+    // Find profile with more power. Returns index or current if none found.
+    // Prefers APDO over Fixed. Requires 10% power headroom.
+    uint32_t scan_up(uint32_t from_idx, uint32_t load_mohms, uint32_t target_mw) const {
+        // First pass: find suitable APDO (preferred to avoid PWM)
+        for (int i = descriptors.size() - 1; i >= 0; i--) {
+            auto& d = descriptors[i];
+            if (!is_apdo(d.pdo_variant)) { continue; }
+            if (!has_current_margin(i, load_mohms, PROFILE_IN_CURRENT_MARGIN_PCT)) { continue; }
+            if (is_apdo_min_voltage_trap(i, load_mohms, target_mw)) { continue; }
+            if (target_mw <= mw_max_with_reserve(i, load_mohms, PROFILE_UP_DST_POWER_RESERVE_PCT)) {
+                return i;
+            }
+        }
+
+        // Second pass: find any PDO with enough power
+        uint32_t best_idx = from_idx;
+        uint32_t best_mw = mw_max_with_reserve(from_idx, load_mohms, PROFILE_UP_DST_POWER_RESERVE_PCT);
+
+        for (uint32_t i = 0; i < descriptors.size(); i++) {
+            auto& d = descriptors[i];
+            if (d.pdo_variant == pd::PDO_VARIANT::UNKNOWN) { continue; }
+            if (!has_current_margin(i, load_mohms, PROFILE_IN_CURRENT_MARGIN_PCT)) { continue; }
+            if (is_apdo_min_voltage_trap(i, load_mohms, target_mw)) { continue; }
+
+            auto mw_tmp = mw_max_with_reserve(i, load_mohms, PROFILE_UP_DST_POWER_RESERVE_PCT);
+            if (mw_tmp > best_mw) {
+                best_idx = i;
+                best_mw = mw_tmp;
+            }
+            if (mw_tmp > target_mw) {
+                return i;
+            }
+        }
+
+        return best_idx;
+    }
+
+    // Find lower-power profile with sufficient reserve.
+    // Prefers APDO over Fixed. Requires 40% power headroom to prevent oscillation.
+    uint32_t scan_down(uint32_t from_idx, uint32_t load_mohms, uint32_t target_mw) const {
+        // First pass: find suitable APDO (preferred to avoid PWM)
+        for (uint32_t i = 0; i < descriptors.size(); i++) {
+            auto& d = descriptors[i];
+            if (!is_apdo(d.pdo_variant)) { continue; }
+            if (!has_current_margin(i, load_mohms, PROFILE_IN_CURRENT_MARGIN_PCT)) { continue; }
+            if (is_apdo_min_voltage_trap(i, load_mohms, target_mw)) { continue; }
+            if (target_mw <= mw_max_with_reserve(i, load_mohms, PROFILE_DOWN_DST_POWER_RESERVE_PCT)) {
+                return i;
+            }
+        }
+
+        // Second pass: find lower-voltage Fixed
+        auto current_mv = descriptors[from_idx].mv_max;
+        for (uint32_t i = 0; i < descriptors.size(); i++) {
+            auto& d = descriptors[i];
+            if (d.pdo_variant != pd::PDO_VARIANT::FIXED) { continue; }
+            if (!has_current_margin(i, load_mohms, PROFILE_IN_CURRENT_MARGIN_PCT)) { continue; }
+            if (d.mv_max >= current_mv) { continue; }
+            if (target_mw <= mw_max_with_reserve(i, load_mohms, PROFILE_DOWN_DST_POWER_RESERVE_PCT)) {
+                return i;
+            }
+        }
+
+        return from_idx;
     }
 };

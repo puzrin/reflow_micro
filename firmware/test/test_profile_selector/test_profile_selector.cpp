@@ -28,14 +28,10 @@ static ProfileSelector::PDO_DESCRIPTOR make_desc(
     d.ma_max = ma_max;
     // Derived thresholds
     if (d.ma_max == 0u) {
-        // Treat as unusable/UNKNOWN-like: make thresholds unreachable
+        // Treat as unusable/UNKNOWN-like: make threshold unreachable
         d.mohms_min = etl::numeric_limits<uint32_t>::max();
-        d.mohms_min_105_percent = etl::numeric_limits<uint32_t>::max();
-        d.mohms_min_110_percent = etl::numeric_limits<uint32_t>::max();
     } else {
         d.mohms_min = (d.mv_min * 1000u) / d.ma_max; // Rmin = Vmin / Imax
-        d.mohms_min_105_percent = d.mohms_min * 105u / 100u;
-        d.mohms_min_110_percent = d.mohms_min * 110u / 100u;
     }
     return d;
 }
@@ -110,8 +106,8 @@ TEST(ProfileSelectorTest, DowngradeFixedToLowerFixedWhenApdoNotSuitable) {
     ps.descriptors.push_back(make_desc(PDO_VARIANT::FIXED,         9000,  9000, 3000)); // desired lower
     ps.descriptors.push_back(make_desc(PDO_VARIANT::APDO_SPR_AVS,  9000, 21000, 5000)); // will be guarded out
 
-    // R=27Ω: Pmax(9V)=81/27=3W; require 10% headroom, so target ≤ 2.7W
-    uint32_t target_power_mw = 2600;
+    // R=27Ω: Pmax(9V)=81/27=3W; require 40% headroom, so target ≤ 1.8W
+    uint32_t target_power_mw = 1700;
     ps.set_pdo_index(0);
     auto fb = feedback_from_mohms(27000);
     auto plan = ps.plan_power(target_power_mw, fb);
