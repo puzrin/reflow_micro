@@ -133,8 +133,8 @@ private:
     static constexpr uint32_t PROFILE_UP_SRC_POWER_TERESHOLD_PCT = 5;
     static constexpr uint32_t PROFILE_UP_DST_POWER_RESERVE_PCT = 10;
     static constexpr uint32_t PROFILE_DOWN_DST_POWER_RESERVE_PCT = 40;
-    static constexpr uint32_t PROFILE_IN_CURRENT_MARGIN_PCT = 10;
-    static constexpr uint32_t PROFILE_OUT_CURRENT_MARGIN_PCT = 5;
+    static constexpr uint32_t PROFILE_IN_CURRENT_MARGIN_PCT = 5;
+    static constexpr uint32_t PROFILE_OUT_CURRENT_MARGIN_PCT = 2;
 
     // Select best PDO for target power.
     // - Emergency: overcurrent or APDO trap → drop to PDO[0]
