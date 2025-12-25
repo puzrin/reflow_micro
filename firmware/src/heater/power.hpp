@@ -70,6 +70,7 @@ public:
 
     void set_power_mw(uint32_t mw) { target_power_mw = mw; }
     uint32_t get_target_power_mw() const { return target_power_mw; }
+    void minimize_idle_heating(bool enable);
 
     uint32_t get_peak_mv();
     uint32_t get_peak_ma();

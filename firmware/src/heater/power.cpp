@@ -363,6 +363,10 @@ void Power::log_unknown_event(const etl::imessage& msg) {
     APP_LOGD("Power: Unknown event! msg id [{}], state id [{}]", msg.get_message_id(), get_state_id());
 }
 
+void Power::minimize_idle_heating(bool enable) {
+    pwm.reduce_idle_rate(enable);
+}
+
 uint32_t Power::get_peak_mv() {
     auto info = drain_tracker.get_info();
     return info.peak_mv;

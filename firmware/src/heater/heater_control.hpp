@@ -14,6 +14,8 @@ public:
     uint32_t get_time_ms() const override { return Time::now(); }
 
     void set_power(float power_w) override;
+    auto task_start(int32_t task_id, HeaterTaskIteratorFn task_iterator = nullptr) -> bool;
+    void task_stop();
 
     bool get_head_params_pb(std::vector<uint8_t>& pb_data) override;
     bool set_head_params_pb(const std::vector<uint8_t>& pb_data) override;

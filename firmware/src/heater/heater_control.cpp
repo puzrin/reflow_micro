@@ -41,6 +41,17 @@ void HeaterControl::set_power(float power_w) {
     power.set_power_mw(static_cast<uint32_t>(power_w * 1000));
 }
 
+auto HeaterControl::task_start(int32_t task_id, HeaterTaskIteratorFn task_iterator) -> bool {
+    if (!HeaterControlBase::task_start(task_id, task_iterator)) { return false; }
+    power.minimize_idle_heating(false);
+    return true;
+}
+
+void HeaterControl::task_stop() {
+    HeaterControlBase::task_stop();
+    power.minimize_idle_heating(true);
+}
+
 bool HeaterControl::get_head_params_pb(std::vector<uint8_t>& pb_data) {
     return head.get_head_params_pb(pb_data);
 }

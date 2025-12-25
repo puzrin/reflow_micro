@@ -23,6 +23,7 @@ public:
     uint32_t get_duty_x1000() const;
 
     void enable(bool enable);
+    void reduce_idle_rate(bool reduce);
     void load_on(bool on);
 
     // PWM cycle bookkeeping
@@ -45,6 +46,7 @@ public:
     }
 
     etl::atomic<bool> _enabled{false};
+    etl::atomic<bool> _reduce_idle_rate{true};
 
 private:
     using Base = afsm::fsm<Pwm>;

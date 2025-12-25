@@ -36,7 +36,7 @@ public:
     static auto on_enter_state(Pwm& pwm) -> afsm::state_id_t {
         auto duty_x1000 = pwm.get_duty_x1000();
 
-        if (duty_x1000 == 0) {
+        if (duty_x1000 == 0 && pwm._reduce_idle_rate.load()) {
             pwm.pulse_ticks = Pwm::PWM_MIN_PULSE_TICKS;
             pwm.gap_ticks = Pwm::PWM_IDLE_PERIOD_TICKS;
             pwm.duty_error = 0; // reset carry when idle pulsing
@@ -166,6 +166,10 @@ void Pwm::enable(bool enable) {
         // Disable immediately
         change_state(PwmState::Disabled);
     }
+}
+
+void Pwm::reduce_idle_rate(bool reduce) {
+    _reduce_idle_rate.store(reduce);
 }
 
 void Pwm::load_on(bool on) {
