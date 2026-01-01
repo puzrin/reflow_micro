@@ -130,7 +130,7 @@ public:
     }
 
 private:
-    static constexpr uint32_t PROFILE_UP_SRC_POWER_TERESHOLD_PCT = 5;
+    static constexpr uint32_t PROFILE_UP_SRC_POWER_THRESHOLD_PCT = 5;
     static constexpr uint32_t PROFILE_UP_DST_POWER_RESERVE_PCT = 10;
     static constexpr uint32_t PROFILE_DOWN_DST_POWER_RESERVE_PCT = 40;
     static constexpr uint32_t PROFILE_IN_CURRENT_MARGIN_PCT = 3;
@@ -155,22 +155,21 @@ private:
         }
 
         // Emergency case 1: we are close to overcurrent. Force downgrade to
-        // first PDO (PD mandates 5 V FIXED at index 0), then continue with exact match.
-        // 5% current margin (R < Rmin·1.05) to avoid tripping.
+        // first PDO (PD mandates 5 V FIXED at index 0), then continue with
+        // standard search.
         if (!has_current_margin(idx, load_mohms, PROFILE_OUT_CURRENT_MARGIN_PCT)) {
             idx = 0;
         }
 
         // Emergency case 2: APDO minimal voltage too high for target to stay
-        // without PWM (and profile s with lower voltage available. Drop to a
-        // safe base to avoid PWM lock.
+        // without PWM. Drop to a safe base to avoid PWM lock.
         if (is_apdo_min_voltage_trap(idx, load_mohms, target_power_mw)) {
             idx = 0;
         }
 
         // If desired power is close to PDO limit - try to upgrade
         // Upgrade when target exceeds 95% of current Pmax (5% headroom).
-        if (target_power_mw > mw_max_with_reserve(idx, load_mohms, PROFILE_UP_SRC_POWER_TERESHOLD_PCT)) {
+        if (target_power_mw > mw_max_with_reserve(idx, load_mohms, PROFILE_UP_SRC_POWER_THRESHOLD_PCT)) {
             out_index = scan_up(idx, load_mohms, target_power_mw);
             return out_index != current_index;
         }
