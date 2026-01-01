@@ -17,7 +17,6 @@ top_dia = 10;
 top_h = 10;
 
 mnt_wall = 2;
-mnt_w = 5;
 mnt_hole = 1.8;
 mnt_y = 13.5;
 
@@ -54,7 +53,7 @@ module bottom () {
         // mount holes
         dupe_y() tr_y(mnt_y) {
             tr_z(-e) cylinder(mnt_wall+2*e, d = mnt_hole);
-            tr_z(mnt_wall+e) cylinder(100, d = 4.0);
+            tr_z(mnt_wall+e) cylinder(100, d = 4.8); // M2 Smax(4.0) / cos(30) = 4,6188
         }
     }
 }
