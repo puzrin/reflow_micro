@@ -2,6 +2,7 @@ export type POWER_DATA = {
   mv_min: number
   mv_max: number
   ma_max: number
+  pdp_w?: number
 }
 
 // Simulated charger: 140W with PPS support

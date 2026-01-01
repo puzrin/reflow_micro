@@ -6,6 +6,7 @@ export interface PDO_DESCRIPTOR {
   mv_min: number
   mv_max: number
   ma_max: number
+  pdp_mw: number
 
   // Computed resistance limit
   mohms_min: number
@@ -43,11 +44,17 @@ export class ProfileSelector {
 
     for (const pdo of pdos) {
       const mv_min = pdo.mv_min < 5000 ? 5000 : pdo.mv_min  // Clamp to >=5V
-      const ma_max = pdo.ma_max
+      const pdp_mw = (pdo.pdp_w ?? 0) * 1000
+      let ma_max = pdo.ma_max
+      if (ma_max <= 0 && pdp_mw > 0 && mv_min > 0) {
+        ma_max = Math.floor((pdp_mw * 1000) / mv_min)
+        if (ma_max > 5000) ma_max = 5000
+      }
       const desc: PDO_DESCRIPTOR = {
         mv_min,
         mv_max: pdo.mv_max,
         ma_max,
+        pdp_mw,
         mohms_min: ma_max > 0 ? (mv_min * 1000) / ma_max : Number.MAX_SAFE_INTEGER,
       }
 
@@ -97,10 +104,13 @@ export class ProfileSelector {
     if (d.ma_max <= 0) {
       return 0
     }
-    return Math.min(
-      (d.mv_max * d.mv_max) / load_mohms,
-      ((d.ma_max * d.ma_max / 1000) * load_mohms) / 1000
-    )
+    const mw_voltage = (d.mv_max * d.mv_max) / load_mohms
+    const mw_current = ((d.ma_max * d.ma_max / 1000) * load_mohms) / 1000
+    let mw = Math.min(mw_voltage, mw_current)
+    if (d.pdp_mw > 0) {
+      mw = Math.min(mw, d.pdp_mw)
+    }
+    return mw
   }
 
   private is_adjustable(desc: PDO_DESCRIPTOR): boolean {
@@ -261,11 +271,12 @@ export class ProfileSelector {
       // FIXED PDO
       const mv = d.mv_min
       const max_mw = (mv * mv) / load_mohms
+      const possible_mw = Math.min(this.target_power_mw, this.mw_max(idx, load_mohms))
 
-      if (this.target_power_mw > max_mw) {
+      if (possible_mw > max_mw) {
         params.duty_x1000 = 1000
       } else {
-        params.duty_x1000 = max_mw === 0 ? 0 : this.target_power_mw * 1000 / max_mw
+        params.duty_x1000 = max_mw === 0 ? 0 : possible_mw * 1000 / max_mw
       }
 
       params.mv = mv

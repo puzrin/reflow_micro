@@ -19,13 +19,14 @@ static ProfileSelector::FEEDBACK_PARAMS feedback_from_mohms(uint32_t mohms) {
 
 // Helper: construct descriptor with derived mohms thresholds
 static ProfileSelector::PDO_DESCRIPTOR make_desc(
-    PDO_VARIANT v, uint32_t mv_min, uint32_t mv_max, uint32_t ma_max)
+    PDO_VARIANT v, uint32_t mv_min, uint32_t mv_max, uint32_t ma_max, uint32_t pdp_mw = 0)
 {
     ProfileSelector::PDO_DESCRIPTOR d{};
     d.pdo_variant = v;
     d.mv_min = mv_min < 5000 ? 5000 : mv_min; // clamp to ≥5 V
     d.mv_max = mv_max;
     d.ma_max = ma_max;
+    d.pdp_mw = pdp_mw;
     // Derived thresholds
     if (d.ma_max == 0u) {
         // Treat as unusable/UNKNOWN-like: make threshold unreachable
@@ -232,6 +233,17 @@ TEST(ProfileSelectorTest, EprHolesAndAvsGuardFallsBackToSafeNonPwm) {
     auto fb = feedback_from_mohms(30000);
     auto plan = ps.plan_power(target_power_mw, fb);
     EXPECT_EQ(plan.profile_idx, 2u);
+}
+
+TEST(ProfileSelectorTest, PdpLimitCapsPower) {
+    ProfileSelector ps{};
+    ps.descriptors.clear();
+    // FIXED 36V, current limit 5A, but PDP 140W should cap max power.
+    ps.descriptors.push_back(make_desc(PDO_VARIANT::FIXED, 36000, 36000, 5000, 140000));
+
+    auto load_mohms = 7000u; // R=7Ω => V^2/R ≈ 185W
+    auto max_mw = ps.mw_max(0, load_mohms);
+    EXPECT_EQ(max_mw, 140000u);
 }
 
 int main(int argc, char **argv) {

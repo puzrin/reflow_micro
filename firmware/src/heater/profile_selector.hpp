@@ -18,6 +18,7 @@ public:
         uint32_t mv_min{0};
         uint32_t mv_max{0};
         uint32_t ma_max{0};
+        uint32_t pdp_mw{0}; // Optional power limit in mW
 
         // For empty record make valid resistance unreachable
         uint32_t mohms_min{etl::numeric_limits<uint32_t>::max()};
@@ -74,10 +75,20 @@ public:
                     // Clamp to ≥5 V: PD 3.2 bans <5 V, and our HW requires ≥5 V.
                     desc.mv_min = limits.mv_min < 5000 ? 5000 : limits.mv_min;
                     desc.mv_max = limits.mv_max;
-                    desc.ma_max = limits.ma > 0
-                        ? limits.ma
-                        : (limits.pdp * 1000 * 1000 / limits.mv_max);
-                    desc.mohms_min = (desc.mv_min * 1000) / desc.ma_max;
+                    desc.pdp_mw = limits.pdp * 1000;
+                    if (limits.ma > 0) {
+                        desc.ma_max = limits.ma;
+                    } else if (limits.pdp > 0 && desc.mv_min > 0) {
+                        // EPR AVS: derive max current from PDP at min voltage, clamp to PD 5 A.
+                        desc.ma_max = (limits.pdp * 1000u * 1000u) / desc.mv_min;
+                        if (desc.ma_max > 5000) { desc.ma_max = 5000; }
+                    }
+
+                    if (desc.ma_max > 0) {
+                        desc.mohms_min = (desc.mv_min * 1000) / desc.ma_max;
+                    } else {
+                        desc.mohms_min = etl::numeric_limits<uint32_t>::max();
+                    }
                     break;
 
                 default:
@@ -125,8 +136,11 @@ public:
     uint32_t mw_max(uint32_t idx, uint32_t load_mohms) const {
         if (load_mohms == 0) { return 0; }
         auto& d = descriptors[idx];
-        return etl::min(d.mv_max * d.mv_max / load_mohms,
-            ((d.ma_max * d.ma_max / 1000) * load_mohms) / 1000);
+        auto mw_voltage = d.mv_max * d.mv_max / load_mohms;
+        auto mw_current = ((d.ma_max * d.ma_max / 1000) * load_mohms) / 1000;
+        auto mw = etl::min(mw_voltage, mw_current);
+        if (d.pdp_mw > 0) { mw = etl::min(mw, d.pdp_mw); }
+        return mw;
     }
 
 private:
@@ -209,15 +223,16 @@ private:
         if (d.pdo_variant == pd::PDO_VARIANT::FIXED) {
             auto mv = d.mv_min;
             auto max_mw = (mv * mv) / load_mohms;
+            auto possible_mw = etl::min(target_power_mw, mw_max(idx, load_mohms));
 
-            if (target_power_mw > max_mw) {
+            if (possible_mw > max_mw) {
                 params.duty_x1000 = 1000;
             } else {
                 if (max_mw == 0) {
                     // This is dead branch, formal check for division by zero
                     params.duty_x1000 = 0;
                 } else {
-                    params.duty_x1000 = target_power_mw * 1000 / max_mw;
+                    params.duty_x1000 = possible_mw * 1000 / max_mw;
                 }
             }
 
