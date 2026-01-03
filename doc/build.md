@@ -69,7 +69,8 @@ countersink.
 Then install the rest of the hotplate components.
 
 - Use RoHS 217°C paste; it is important.
-- Use 0.6 mm copper wire for the power lines.
+- Use 0.4/0.3 mm dia copper wire for the power lines. Small cross-section
+  required to keep heat transfer low.
 - Tin the wire first, then solder it to the hotplate.
 - Use a large iron tip at 350-400°C so there is enough heat.
 - Clean the flux with IPA.
@@ -89,7 +90,7 @@ Prepare the foil reflector layer.
 
 Install the foil and frame on the hotplate.
 
-- Use spacers to set a 12 mm gap between the heater top and the reflector.
+- Use spacers to set a 10 mm gap between the heater top and the reflector.
 - For each corner, insert the spacer, snug the top nut first, then tighten
   the bottom nut; spring lock washers go underneath.
 

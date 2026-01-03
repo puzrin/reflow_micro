@@ -15,27 +15,34 @@ This BOM extends the default one; be sure to buy it as well.
 
 &nbsp; | Name | Comment
 -------|------|--------
-1 | Hotplate and clamps | See details below the table.
-2 | [M1.6 SS screws 18 mm, cone cap](https://www.aliexpress.com/item/32946954901.html) | DIN965/GB819. Mount the heater plate to the reflector.
-3 | [M1.6 SS screws 8 mm, cone cap](https://www.aliexpress.com/item/32946954901.html) | DIN965/GB819. MCH mount.
-4 | [M1.6 SS washers](https://www.aliexpress.com/item/32975217522.html) | Hotplate mount.
-5 | [MCH 70*14 2R](https://www.aliexpress.com/item/32966428374.html) | Two heaters are required; buy 5-10 to match their resistance.
-6 | [Thermally conductive paste](https://www.aliexpress.com/item/1005002400161049.html) | Use Thermal Grizzly Kryonaut. The paste must handle 300°C, so skip the cheap stuff.
-7 | [Milliohm meter](https://www.aliexpress.com/item/1005006408703765.html) | For pairing the MCH heaters.
-8 | [Dental diamond disks](https://www.aliexpress.com/item/4001138228461.html) | For cutting the stainless clamps. Grab a mandrel too.
+1 | Hotplate and clamps | See details below.
+2 | M1.6 countersunk SS screws 8 mm (×6) | [EDLW-S1-M1.6-L8](https://jlcmc.com/product/s/E02/EDLW/gb-t-819-phillips-countersunk-head-screw?k=EDLW-S1-M1.6-L8&productModelNumber=EDLW-S1-M1.6-L8). MCH mount.
+3 | M1.6 SS flat washers (×4) | [EPDA-S1W-B-1.6](https://jlcmc.com/product/s/E06/EPDA/flat-washer-level-a?k=EPDA-S1W-B-1.6&productModelNumber=EPDA-S1W-B-1.6). Hotplate mount.
+4 | [MCH 70*14 2R (×2)](https://www.aliexpress.com/item/32966428374.html) | Two heaters are required; buy 5-10 to match their resistance.
+5 | [Thermally conductive paste](https://www.aliexpress.com/item/1005002400161049.html) | Use Thermal Grizzly Kryonaut. The paste must handle 300°C, so skip the cheap stuff.
 
-Hotplate (jlc3dp, CNC):
+**Hotplate (jlccnc)**:
 
 - File `hotplate_80x70x2.8.step`
 - Material: Aluminum 6061.
 - Surface Finish: "Bead blasting + Anodizing" (Natural color).
 
-MCH mounting (jlc3dp, SS print)
+**MCH mounting (jlc3dp)**
 
 - File `ss_mch_mount.stl`
 - `SLM(Metal)` process, 316L steel. Don't try `BJ(Metal)`; it will be rejected.
 - Comment: "All defects are acceptable in advance." The design is on the edge
   of the printing requirements, so this comment helps avoid order declines.
+
+**Optional**
+
+Treat this as a checklist; pick what you are missing from your bench.
+
+&nbsp; | Name | Comment
+-------|------|--------
+1 | [Milliohm meter](https://www.aliexpress.com/item/1005006408703765.html) | For pairing the MCH heaters.
+2 | [Dental diamond disks](https://www.aliexpress.com/item/4001138228461.html) | For cutting the stainless clamps. Grab a mandrel too.
+3 | Phosphoric Acid | To tin MCH wires, if you dont' have other active flux. [Dental Etchant Gel](https://www.aliexpress.com/i/1005006254467176.html) works pretty well. Soldering tip cleaner should be ok too.
 
 
 ## MCH heaters resistance matching
@@ -43,11 +50,15 @@ MCH mounting (jlc3dp, SS print)
 The build uses two MCH heaters, so their resistance needs to match closely for
 balanced heating. Buy a few extras so you can pair them.
 
-Aim for roughly 2% tolerance. Use a milliohm meter (see the BOM) and connect
-Kelvin clips directly to the MCH pads for accurate readings.
+- Aim for roughly 2% tolerance.
+- Prefer use a milliohm meter (see the BOM) and connect Kelvin clips directly to
+  the MCH pads for accurate readings.
+- If you don't wish to buy milliohm meter - solder each heater one-by-one to
+  head base board, and check debug info for resistance.
+  - Charger with PPS 21v/5a required/
+  - Ensure to have similar wires length for all MCH-s.
 
 Buying ten heaters typically yields three or four usable pairs.
-
 
 ## Cut SS clamps
 
