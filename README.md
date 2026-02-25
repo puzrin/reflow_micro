@@ -6,7 +6,7 @@ area. Built for hobby projects when you don't want a bulky professional machine
 taking over the desk.
 
 - [Documentation](doc/README.md)
-- [EasyEDA project page](https://oshwlab.com/reflow/reflow-usb-pd-headless) -
+- [EasyEDA project page](https://oshwlab.com/puzrin/reflow-table-usb-pd) -
   Schematic & PCB. Order almost everything in a couple of clicks.
 - [Hackaday.io](https://hackaday.io/project/204503-reflow-micro-table) page.
 

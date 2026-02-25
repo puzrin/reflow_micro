@@ -1,21 +1,33 @@
 include <fan_pi5_data.scad>;
 include <lib/utils.scad>;
+include <lib/nut_trap.scad>;
 
 $fn = $preview ? 16 : 64;
 $ra_fn = $preview ? 3 : 16;
 
-// Inserts size for PCB mount (M1.6)
-insert_d = 3.5 + 0.1;
-insert_h = 4 + 1;
-insert_pcb_x_offset = 3.0;
-insert_pcb_y_offset = 25;
+make_debug_hole = 0;
+
+cap_screw_hole_d = 3.3;
+cap_screw_hole_selftap = 2.6;
+
+cap_screw_axis_offset = 3.15;
+cap_screw_mount_h = 6;
+cap_screw_head_h = 1.7 // screw head height
+    + (4 -1.6) // D4L4 Magnet outset over tray case
+    + 0.5; // Extra spase
+
+// PCB mount holes
+pcb_mount_x_offset = 3.0;
+pcb_mount_y_offset = 25;
+pcb_mount_zw = 3.0;
 
 // !!! Measure magnets height before case order.
 // Magnets from Aliexpress can be smaller than declared size
 magnet_d = 6;
-magnet_h = 6;
-magnet_margin_h = 0.2;
-magnet_axis_offset = 3.5;
+magnet_h = 6.1 + 0.1; // D3L3 x 2 - a bit more than 6.0, + margin
+magnet_hole_d = magnet_d + 0.3;
+magnet_wall = 1.5;
+magnet_axis_offset = 3.15;
 
 wall_hor = 2;
 wall_side = 1.75;
@@ -38,17 +50,18 @@ case_r_vert = pcb_r + wall_side;
 case_r_bottom = 2;
 case_r_top = 2;
 
-cap_stiffener_h = 12 + 4;
-
 tray_inner_h = 8; //6.7;
 tray_h  = tray_inner_h + wall_hor + pcb_h;
 
-// plate (4) + space (12) + reflector (1.2/1.6) + space (4) + shield (1.2) + extra (1)
-//cap_inner_h = 4 + 12 + 1.6 + 4 + 1.2 + 2;
-cap_inner_h = 31.5;
+// plate (2.8) + space (10) + reflector (1.6) + space (4) + shield (1.2)
+// + space(5) + cap(1.6) + extra (1)
+cap_inner_h = 27.5;
 
 cap_h = cap_inner_h + wall_hor;
 cap_pcb_margin = 0.1;
+
+cap_stiffener_h = cap_inner_h - 14;
+cap_stiffener_w = 4.4;
 
 // Set btn height to make hole h = 3mm. For easy cleanup with drill bit.
 btn_h = 3.3; // 3.5mm - 2*margin
@@ -109,69 +122,104 @@ module usb_hole() {
     }
 }
 
-module tray_pcb_holder() {
-    r = insert_d/2 + 1.5;
+module usb_debug_hole() {
+    w = 12.0;
+    h = 7.0;
+    r = 3;
+
+    tr_z(tray_h - h)
+    tr_y(-(pcb_wy/2-3))
+    tr_x(58.5-45)
+    rotate_x(90)
+    tr_x(-w/2)
+    ra_cube([w, h+10, 10], r=r, center = false, fn=$ra_fn);
+
+}
+
+module tray_pcb_holders() {
+    r = 4/2 + 1.7;
     h = tray_inner_h; // - 0.3;
 
+    dupe_xy()
+    tr_xy(-pcb_wx/2 + pcb_mount_x_offset, pcb_mount_y_offset)
     tr_z(wall_hor-e)
     difference() {
         ra_cube([2*r, 2*r, h], r=[0, 0, r, r], center = true, fn=$ra_fn);
-        tr_z(h+e) mirror_z() ra_cube([insert_d, insert_d, insert_h],
-            r=insert_d/2, fn=$ra_fn);
+
+        tr_z(e) cylinder(h, d=2.5); // screw hole
+        tr_y(-2.5/2) cube([10, 2.5, h - pcb_mount_zw]); // dust remove channel
+        tr_z(h - pcb_mount_zw) mirror_z() nut_trap(h=1.6, side_depth=20, clearance=0.05); // nut trap
+        // extra nut indentation, to hold in place after insert
+        tr_z(h - pcb_mount_zw - 0.6) mirror_z() nut_trap(h=1.6, clearance=0.05);
     }
 }
 
-module magnet_supports_tray(h = 20) {
-    r = magnet_d/2;
-    reserve_w = 1;
-    mh = magnet_h + magnet_margin_h;
-    assert(mh <= tray_inner_h, "Tray inner too small for desired magnet height");
-
-    pin_h = 0.5;
-    pin_w = 1.25;
-
+module magnet_supports_add() {
     dupe_xy()
-    tr_xy(pcb_wx/2 - magnet_axis_offset + e, pcb_wy/2 - magnet_axis_offset + e)
-    union() {
-        quoter_cylinder(r=pin_w, h=h-mh, $ra_fn);
-        quoter_cylinder(r=magnet_axis_offset, h=h-mh-pin_h, $ra_fn);
+    tr_z(wall_hor-e)
+    tr_xy(-pcb_wx/2 - e, -pcb_wy/2 - e)
+    ra_cube(
+        [magnet_hole_d + magnet_wall, magnet_hole_d + magnet_wall, tray_inner_h],
+        r = [pcb_r, 0, magnet_hole_d/2 + magnet_wall, 0],
+        rbottom = -1,
+        center = false
+    );
+}
+
+module magnet_supports_remove() {
+    dupe_xy()
+    tr_z(tray_inner_h + wall_hor + e)
+    tr_xy(-pcb_wx/2 + magnet_axis_offset, -pcb_wy/2 + magnet_axis_offset)
+    mirror_z() {
+        cylinder(h = magnet_h, d = magnet_hole_d);
+
+        rotate_z(45)
+        tr_x(magnet_hole_d/2) linear_extrude(magnet_h) square([magnet_hole_d, 3.5], center=true);
     }
 }
 
-module magnet_supports_cap(h = 20) {
-    r = magnet_d/2;
-    reserve_w = 1;
-    mh = magnet_h + magnet_margin_h;
-    assert(mh <= tray_inner_h, "Tray inner too small for desired magnet height");
-
-    pin_h = 0.5;
-    pin_w = 1.25;
+module cap_locks(h = 20) {
+    h = cap_inner_h - cap_screw_head_h;
 
     dupe_xy()
-    tr_xy(pcb_wx/2 - magnet_axis_offset + e, pcb_wy/2 - magnet_axis_offset + e)
-    union() {
-        quoter_round_wall(r+1.5, r, h = cap_inner_h, fn=$ra_fn);
-        quoter_cylinder(r=pin_w, h=h-mh, $ra_fn);
-        quoter_cylinder(r=magnet_axis_offset, h=h-mh-pin_h, $ra_fn);
+    tr_z(wall_hor-e)
+    tr_xy(-pcb_wx/2 - e, -pcb_wy/2 - e)
+    difference() {
+        union() {
+            // screw mounting
+            tr_z(h -  cap_screw_mount_h)
+            tr_xy(-1, -1)
+            ra_cube(
+                [7 + 1, 7 + 1, cap_screw_mount_h],
+                r = [pcb_r, 0, 0, 0],
+                center = false
+            );
 
-        guide_top = [
-            [r, 0],
-            [r-1, -1],
-            [-magnet_axis_offset, -1],
-            [-magnet_axis_offset, 1],
-            [r-1, 1],
-        ];
-
-        tr_z(h-mh-pin_h)
-        rotate_z(-135)
-        hull () {
-            linear_extrude(e) polygon(guide_top);
-            tr_z(-2) linear_extrude(e) polygon(guide_top);
-            tr_z(-12) tr_x(-magnet_axis_offset) ra_cube([e, 2, e], r=0, fn=$ra_fn);
+            // guide
+            tr_xy(8, 8)
+            cylinder(h = h, r = 5.35);
         }
+
+        // screw hole
+        tr_xy(cap_screw_axis_offset, cap_screw_axis_offset)
+        union() {
+            cylinder(h=cap_inner_h, d=cap_screw_hole_d);
+            tr_z(h + e) mirror_z()
+                cylinder(h=0.4, d1=cap_screw_hole_d+0.4*2, d2=cap_screw_hole_d);
+        }
+
+        // walls
+        translate([8, 8, -e])
+        union() {
+            cylinder(h = h + 2*e, r = 3.75);
+            tr_z(h + 2*e) mirror_z()
+                cylinder(h = 0.5, r1 = 3.75 + 0.5, r2 = 3.75);
+        }
+
+        translate([7, 0, -e]) cube([50, 50, 50]);
+        translate([0, 7, -e]) cube([50, 50, 50]);
     }
 }
-
 
 module stiffener_x(len=100, center=true) {
     fillet = 0.5;
@@ -246,57 +294,64 @@ module _tray_base() {
 
 
 module tray() {
-    _tray_base();
+    difference () {
+        union () {
+            _tray_base();
 
-    tr_z(wall_hor-e) magnet_supports_tray(tray_inner_h);
+            magnet_supports_add();
+            tray_pcb_holders();
 
-    // Inserts holders
-    dupe_xy()
-    tr_xy(-pcb_wx/2 + insert_pcb_x_offset, insert_pcb_y_offset)
-    tray_pcb_holder();
+            // PCB supports
+            dupe_xy()
+            tr_xy(7, -pcb_wy/2) tr_z(wall_hor--e) cube([1.5, 1.5, tray_inner_h]);
 
-    // PCB supports
-    dupe_xy()
-    tr_xy(7, -pcb_wy/2) tr_z(wall_hor--e) cube([1.5, 1.5, tray_inner_h]);
+            // Button guides
+            dupe_x()
+            tr_z(wall_hor-e)
+            tr_x(btn_pusher_w/2 + 0.25)
+            tr_y(-pcb_wy/2 + btn_pusher_pcb_depth + 1)
+            mirror_y() cube([2, 4, 1.7]);
 
-    // Button guides
-    dupe_x()
-    tr_z(wall_hor-e)
-    tr_x(btn_pusher_w/2 + 0.25)
-    tr_y(-pcb_wy/2 + btn_pusher_pcb_depth + 1)
-    mirror_y() cube([2, 4, 1.7]);
+            // Stiffeners
+            /*mirror_x() tr_x(9) stiffener_x(pcb_wx/2 - 9, false);
+            dupe_y() tr_y(20) stiffener_x(pcb_wx);
 
-    // Stiffeners
-    mirror_x() tr_x(9) stiffener_x(pcb_wx/2 - 9, false);
-    dupe_y() tr_y(20) stiffener_x(pcb_wx);
+            tr_x(-9) stiffener_y(pcb_wy);
+            tr_x(-27) stiffener_y(pcb_wy);
+            dupe_y() {
+                tr_xy(9, 20) stiffener_y(pcb_wy/2-20, false);
+                tr_xy(27, 20) stiffener_y(pcb_wy/2-20, false);
+            }*/
+        }
 
-    tr_x(-9) stiffener_y(pcb_wy);
-    tr_x(-27) stiffener_y(pcb_wy);
-    dupe_y() {
-        tr_xy(9, 20) stiffener_y(pcb_wy/2-20, false);
-        tr_xy(27, 20) stiffener_y(pcb_wy/2-20, false);
+        magnet_supports_remove();
+        if (make_debug_hole) {
+            usb_debug_hole();
+        }
     }
 }
 
 module cap_stiffener_x() {
     h = cap_stiffener_h;
+    w = cap_stiffener_w;
 
-    tr_y(-pcb_wy/2-cap_pcb_margin-e)
+    tr_y(-pcb_wy/2 - e)
     tr_z(wall_hor-e) tr_x(1)
     rotate_y(-90)
     linear_extrude(2)
-    polygon([[0,0], [h,0], [h-4,4], [0,4]]);
+    polygon([[0, 0], [h, 0], [h - w, w], [0, w]]);
 }
 
 module cap_stiffener_y() {
     h = cap_stiffener_h;
+    w = cap_stiffener_w;
 
-    tr_x(pcb_wx/2+cap_pcb_margin+e)
+    tr_x(pcb_wx/2 + e)
     rotate_z(90)
     tr_z(wall_hor-e) tr_x(1)
     rotate_y(-90)
     linear_extrude(2)
-    polygon([[0,0], [h,0], [h-4,4], [0,4]]);
+    polygon([[0, 0], [h, 0], [h - w, w], [0, w]]);
 }
 
 module cap() {
@@ -307,13 +362,24 @@ module cap() {
 
             // Inner
             tr_z(wall_hor)
-            ra_cube([pcb_wx+cap_pcb_margin*2, pcb_wy+cap_pcb_margin*2, cap_h],
+            ra_cube([pcb_wx, pcb_wy, cap_h],
                 magnet_d/2, 0, 0.7, fn=$ra_fn);
+
+            // PCB margin
+            tr_z(cap_h - cap_screw_head_h + e)
+            ra_cube([pcb_wx+cap_pcb_margin*2, pcb_wy+cap_pcb_margin*2, cap_h],
+                magnet_d/2, 0, 0, fn=$ra_fn);
 
             // Small cone conductors for alu cover
             gap = 0.6;
 
-            tr_z(cap_h+e)
+            tr_z(cap_h + e)
+            hull() {
+                ra_cube([pcb_wx + gap*2, pcb_wy + gap*2, 1], pcb_r + gap, 0, 0, fn=$ra_fn);
+                tr_z(-gap)
+                    ra_cube([pcb_wx, pcb_wy, e], pcb_r, 0, 0, fn=$ra_fn);
+            }
+            /*tr_z(cap_h+e)
             mirror_z()
             linear_extrude(gap, scale=[pcb_wx/(pcb_wx + gap*2), 1])
             square([pcb_wx + gap*2, pcb_wy-2*(magnet_d/2+pcb_support_w)], center=true);
@@ -321,7 +387,7 @@ module cap() {
             tr_z(cap_h+e)
             mirror_z()
             linear_extrude(gap, scale=[1, pcb_wy/(pcb_wy + gap*2)])
-            square([pcb_wx-2*(magnet_d/2+pcb_support_w), pcb_wy + gap*2], center=true);
+            square([pcb_wx-2*(magnet_d/2+pcb_support_w), pcb_wy + gap*2], center=true);*/
 
             tr_z(-e)
             rotate_z(90)
@@ -329,7 +395,7 @@ module cap() {
             logo();
         }
 
-        tr_z(wall_hor-e) magnet_supports_cap(cap_inner_h);
+        cap_locks(cap_inner_h);
 
         // Stiffeneres
         dupe_y() {

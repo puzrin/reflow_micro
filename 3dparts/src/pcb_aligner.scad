@@ -9,6 +9,7 @@ pcb_space = pcb_h + 0.3;
 base_h = 13;
 latch = 0.3; // Update if needed
 latch_w = 3;
+latch_offset = 6;
 margin = 5;
 clones = 5;
 
@@ -37,7 +38,7 @@ module aligner (last) {
         tr_z(-pcb_space+e)
         rotate(45) mirror_z() linear_extrude(5) square(w*sqrt(2), center=true);
 
-        tr_xy(11, 11)
+        tr_xy(12, 12)
         tr_z(-pcb_space+e)
         rotate(45) mirror_z() linear_extrude(5) square(w*sqrt(2), center=true);
 
@@ -45,12 +46,14 @@ module aligner (last) {
 
     // latch
     tr_z(-pcb_h + latch)
-    tr_xy(w/2, w/2)
+    tr_xy(latch_offset, latch_offset)
     tr_z(-1) rotate_z(45) tr_y(latch_w/2) rotate_x(90)
     linear_extrude(latch_w) polygon([[-1.4,0.2], [0,1], [1.4,0.2], [1.4,-1], [-1.4,-1]]);
 
     // clones connector
     if (!last) {
+        tr_xy(w-e, -wall) cube([margin+4, 2, 2]);
+        tr_z(11)
         tr_xy(w-e, -wall) cube([margin+4, 2, 2]);
     }
 }

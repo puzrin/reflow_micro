@@ -3,9 +3,8 @@ Device build <!-- omit in toc -->
 
 - [PCB assembly](#pcb-assembly)
 - [Heater assembly](#heater-assembly)
-- [Case](#case)
 - [Firmware upload](#firmware-upload)
-- [Final assembly](#final-assembly)
+- [Case](#case)
 
 
 ## PCB assembly
@@ -105,65 +104,6 @@ Attach the hotplate base.
 <img src="./images/head_assembled.jpg" width="30%">
 
 
-## Case
-
-### Heat-set inserts (for nylon) <!-- omit in toc -->
-
-If you have a nylon case with holes for heat-set inserts, install them first.
-This is much easier than gluing. A dedicated soldering iron tip works best.
-
-If you don't have one, try threading an M2 10 mm screw into the insert and
-pressing down on it with the iron tip. Add solder to the tip for better heat
-transfer. Set the temperature to about 200°C.
-
-
-### Bonding parts <!-- omit in toc -->
-
-Install the magnets (and insert nuts for ordinary plastic) into the case. For
-ordinary plastics, a CA gel or UV glue can work in a pinch, but PA-12 nylon
-needs a dedicated PA adhesive. Do not rely on general-purpose glues; they will
-not bond well. In general, it's better to use the same nylon glue type for
-other plastics.
-
-- Check the glue datasheet: it must be rated for PA/Nylon (low-energy surfaces).
-- Because we bond metal to plastic, the glue should stay slightly flexible. MMA
-  adhesives work best.
-- In a pinch, you can try a slow epoxy (not recommended). Avoid "metal-filled"
-  epoxies; they are too rigid and can crack after temperature changes. Also
-  avoid fast epoxies and prefer ones with a static mixer for easier work.
-- MMA glue often comes in tubes. It is highly recommended to transfer it into
-  a cartridge with a static mixer for easier application.
-
-Prep the parts before bonding:
-
-- Degrease the magnets with IPA and stack them so their orientation stays
-  consistent.
-- Thread screws into the insert nuts to protect the threads and make handling
-  easier.
-- Make sure the nuts slide fully into the tray holes without force.
-- Check the magnet height. Trim the support pins if needed.
-
-Bonding steps:
-
-- Use a mini electronics vise to hold the case. It is convenient and reduces
-  the risk of getting resin on the case.
-- Apply glue to each insert nut and press it into the holes.
-- One by one, apply enough glue to each tray corner, place the magnet, and use
-  the printed clamp until the glue hardens.
-- Reverse the magnet stack and repeat for the cap, double-checking the
-  orientation.
-- Check that the case is clean. If you accidentally get resin on it, wipe it
-  off with a cloth.
-
-<img src="./images/case_glued_tray.jpg" width="30%"> <img src="./images/case_glued_cap.jpg" width="30%">
-
-### Install tray pads <!-- omit in toc -->
-
-After the glue has cured, install the silicone feet on the bottom of the case.
-
-<img src="./images/case_tray_pads.jpg" width="30%">
-
-
 ## Firmware upload
 
 1. Install [VS Code](https://code.visualstudio.com/).
@@ -180,12 +120,32 @@ After the glue has cured, install the silicone feet on the bottom of the case.
 Now assemble everything and move on to calibration.
 
 
-## Final assembly
+## Case
 
-Drop the button into the tray, then mount the main board and board cover with
-the 6 mm screws.
+### Tray <!-- omit in toc -->
+
+Install the silicone feet on the bottom of the case.
+
+<img src="./images/case_tray_pads.jpg" width="30%">
+
+Connect the main PCB and coved with screw.
+
+TBD Image.
+
+Place button, nuts and magnets into the tray.
+
+TBD Image.
+
+Then mount the main board and board cover with the 8 mm screws.
 
 <img src="./images/table_base.jpg" width="30%">
+
+### Cap <!-- omit in toc -->
+
+TBD
+
+
+### Final assembly <!-- omit in toc -->
 
 Then insert the head and you're ready to go!
 

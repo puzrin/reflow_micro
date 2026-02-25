@@ -1,5 +1,5 @@
 include <lib/utils.scad>;
-include <lib/threads.scad>;
+include <lib/nut_trap.scad>;
 
 $fn = $preview ? 64 : 64;
 
@@ -37,11 +37,10 @@ module mount_plate () {
 module mount_plate_substract () {
     dupe_y() tr_y(mnt_y) {
         tr_z(-2*e) cylinder(mnt_wall+4*e, d = mnt_hole);
-        
-        //tr_z(mnt_wall+e) cylinder(100, d = 4.8); // M2 Smax(4.0) / cos(30) = 4,6188
+
         rotate([0, 0, 38])
         tr_z(mnt_wall+e)
-        cylinder(h=fan_h+mnt_wall, r=HexAcrossCorners(2)/2-0.5*0.4, $fn=6);
+        nut_trap(h=fan_h+mnt_wall, clearance=0);
     }
 }
 
@@ -107,7 +106,7 @@ module top () {
 
 if (!draw_top && !draw_bottom) {
     rotate_x(180) bottom();
-    //tr_z(2) top();
+    tr_z(2) top();
 }
 
 if (draw_top) { top(); }

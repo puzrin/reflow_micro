@@ -24,15 +24,14 @@ const p = (name) => new URL(name, import.meta.url).pathname
 
 const builds = {
   tray: ['case.scad', '-D DRAW_TRAY=1'],
-  'tray_insert_3.25': ['case.scad', '-D DRAW_TRAY=1 -D insert_d=3.25'],
-  cap: ['case.scad', '-D DRAW_CAP=1'],
+  tray_debug: ['case.scad', '-D DRAW_TRAY=1 -D make_debug_hole=1'],
+  cap_sla: ['case.scad', '-D DRAW_CAP=1'],
+  cap_mjf_pa12: ['case.scad', '-D DRAW_CAP=1 -D cap_screw_hole_d=2.6'],
   button: ['case.scad', '-D DRAW_BTN=1'],
   air_duct_pi5_top: ['air_duct_pi5.scad', '-D draw_top=1'],
   air_duct_pi5_bottom: ['air_duct_pi5.scad', '-D draw_bottom=1'],
   pcb_aligner: ['pcb_aligner.scad', '-D latch=0.3'],
-  magnet_clamp: ['magnet_clamp.scad', '-D space=7.5'],
   tool_spacer: ['tool_spacer.scad', ''],
-  ss_mch_mount: ['ss_mch_mount.scad', ''],
   drill_conductor: ['drill_conductor.scad', '']
 }
 

@@ -20,7 +20,7 @@ frame_wall = 3;
 frame_x_space = 1;
 frame_y_space = 3;
 
-edge_holes_dist = mch_count == 2 ? 48 : 60;
+edge_holes_dist = mch_count == 2 ? 56 : 60;
 plate_y_positions = mch_count == 2 ?
     [-edge_holes_dist/2, 0, edge_holes_dist/2] :
     [-edge_holes_dist/2, -edge_holes_dist/2/3, edge_holes_dist/2/3, edge_holes_dist/2];

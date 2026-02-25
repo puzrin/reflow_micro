@@ -24,7 +24,7 @@ const p = (name) => new URL(name, import.meta.url).pathname
 
 const builds = {
   ss_mount_2mch: ['ss_mount_tcr.scad', ''],
-  ss_mount_3mch: ['ss_mount_tcr.scad', '-D mch_count=3'],
+  //ss_mount_3mch: ['ss_mount_tcr.scad', '-D mch_count=3'],
 }
 
 function build(name) {
