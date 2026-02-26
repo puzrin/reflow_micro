@@ -9,7 +9,7 @@
 
 class ProfileSelector {
 public:
-    static constexpr uint32_t DEFAULT_MV_DESIRED = 5500;
+    static constexpr uint32_t DEFAULT_MV_DESIRED = 6000;
     static constexpr uint32_t DEFAULT_MV_FALLBACK = 5000;
 
     struct PDO_DESCRIPTOR {

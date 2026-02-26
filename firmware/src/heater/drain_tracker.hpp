@@ -7,6 +7,12 @@
 
 class DrainTracker {
 public:
+    enum class ADC_INA_CHIP {
+        Unknown,
+        INA226,
+        INA238
+    };
+
     struct DRAIN_INFO {
         uint32_t peak_mv = 0;
         uint32_t peak_ma = 0;
@@ -30,14 +36,16 @@ private:
         uint32_t ctx_idx;  // Profile index at sample time
     };
 
-    static constexpr uint8_t INA226_ADDR = 0x40;
+    static constexpr uint8_t ADC_INA_ADDR = 0x40;
 
-    bool ina226_init();
-    bool ina226_read_reg16(uint8_t reg, uint16_t &data);
-    bool ina226_write_reg16(uint8_t reg, uint16_t data);
+    bool adc_ina_detect();
+    bool adc_ina_init();
+    bool adc_ina_read_reg16(uint8_t reg, uint16_t &data);
+    bool adc_ina_write_reg16(uint8_t reg, uint16_t data);
 
     ADC_ITEM adc_buffer[ADC_FILTER_SIZE]{};
     uint32_t adc_count{0};
+    ADC_INA_CHIP adc_ina_chip{ADC_INA_CHIP::Unknown};
 
     mutable SemaphoreHandle_t info_lock{xSemaphoreCreateMutex()};
     DRAIN_INFO info{};

@@ -69,7 +69,7 @@ public:
         pwm.tick_count++;
 
         if (pwm.tick_count >= Pwm::POWER_STABILIZATION_TICKS) {
-            // DrainTracker polls INA226 once per tick after stabilization.
+            // DrainTracker polls INAxxx current monitor once per tick after stabilization.
             // Capture profile index at measurement time for eventual consistency.
             drain_tracker.collect_data(profile_selector.current_index);
         }
