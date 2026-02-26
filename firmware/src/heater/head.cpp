@@ -324,7 +324,9 @@ bool Head::set_head_params(const HeadParams& params) {
 }
 
 bool Head::is_tcr_sensor() const {
-    return last_sensor_value_uv.load() <= SENSOR_SHORTED_LEVEL_MV * 1000;
+    // New boards have no RTD support at all.
+    return true;
+    //return last_sensor_value_uv.load() <= SENSOR_SHORTED_LEVEL_MV * 1000;
 }
 
 int32_t Head::get_temperature_x10() {
