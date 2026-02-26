@@ -169,7 +169,15 @@ bool DrainTracker::adc_ina_init() {
 
         // VBUSCT=VSHCT=3 (~280 us), AVG=0 (x1); MODE = Continuous shunt + bus
         // Effective full cycle is ~560 us: (280 + 280) * 1.
-        if (!adc_ina_write_reg16(0x01, 0xB6D8)) {
+        // if (!adc_ina_write_reg16(0x01, 0xB6D8)) {
+        //     APP_LOGE("INA238: Failed to write ADC_CONFIG");
+        //     return false;
+        // }
+
+        // Using faster fetch with hw averaging reduce noise.
+        // VBUSCT=VSHCT=1 (~84 us), AVG=1 (x4); MODE = Continuous shunt + bus
+        // Effective full cycle is ~672 us: (84 + 84) * 4.
+        if (!adc_ina_write_reg16(0x01, 0xB249)) {
             APP_LOGE("INA238: Failed to write ADC_CONFIG");
             return false;
         }
