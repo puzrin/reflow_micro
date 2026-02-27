@@ -1,11 +1,15 @@
 Bill of Materials
 =================
 
+Note, this BOM does NOT include MCH heater components. See
+[separate document](./mch_head/README.md) for details. It will edd extra 30$
+cost.
+
 ### General
 
 &nbsp; | Name | Comment
 -------|------|--------
-1 | [PCB & Components](https://oshwlab.com/puzrin/reflow-table-usb-pd) | Open the EasyEDA project and order both in a couple of clicks. Order the PCB first, components second so you can combine shipping.
+1 | [PCB & Components](https://oshwlab.com/puzrin/reflow-table-pd) | Open the EasyEDA project and order both in a couple of clicks. Order the PCB first, components second so you can combine shipping.
 2 | Locatin pins 1.0 or 0.6 mm | For SMT stencil positioning. [FDWQ-M1-D1-L10](https://jlcmc.com/product/s/F02/FDWQ/hexagonal-flange-face-self-tapping-drill-tail-screw?k=FDWQ-M1-D1-L10&productModelNumber=FDWQ-M1-D1-L10) / [AliExpress](https://www.aliexpress.com/item/1005007439330472.html). Also any 1.0/0.6 mm wire is suitable.
 3 | M1.6 countersunk SS screws 16 mm (×4) | [EDLW-S1-M1.6-L16](https://jlcmc.com/product/s/E02/EDLW/gb-t-819-phillips-countersunk-head-screw?k=EDLW-S1-M1.6-L16&productModelNumber=EDLW-S1-M1.6-L16). Mount the heater plate to the reflector. Make sure they are stainless steel.
 4 | M1.6 SS spring lock washers (×8) | [EPDC-S1W-1.6](https://jlcmc.com/product/s/E06/EPDC/spring-washer-standard-spring-washers?k=EPDC-S1W-1.6&productModelNumber=EPDC-S1W-1.6). Hardware for the head mount.
@@ -20,8 +24,11 @@ Bill of Materials
 13 | [0.4 mm bare copper wire](https://www.aliexpress.com/item/1005009540818990.html) | For MCPCB head only, power wires. The small cross-section helps reduce heat transfer.
 14 | [Vinyl Electrical Tape 0.15 mm, black](https://www.aliexpress.com/item/1005010360658475.html) | For SLA print only. Use to install M3 screws into cap
 
-**Note.** If male connectors with boss pins (Liansheng FH-00147) not available,
-use any SMD 2mm 2x10P connectors with height 4.6 mm or below (body + pins).
+**LCSC order Notes.**
+
+- Ensure to order components from both `main` and `head_base_XX` boards.
+- If male connectors with boss pins (Liansheng FH-00147) not available, use any
+  SMD 2mm 2x10P connectors with height 4.6 mm or below (body + pins).
 
 ### Optional
 
@@ -40,9 +47,9 @@ Treat this as a checklist; pick what you are missing from your bench.
 
 ## JLCPCB / LCSC order notes
 
-https://oshwlab.com/reflow/reflow-usb-pd-headless
+https://oshwlab.com/puzrin/reflow-table-pd
 
-1. `pcb_main`: 1.6 mm, green (other colors for 4-layer PCBs are pricey).
+1. `main`: 1.6 mm, green (other colors for 4-layer PCBs are pricey).
    - Stencil is strongly recommended, it adds roughly $3 to the order and saves
      a ton of effort:
      - Bottom side only.
@@ -50,12 +57,14 @@ https://oshwlab.com/reflow/reflow-usb-pd-headless
      - Select "Custom size" and set 90 x 80 mm so the stencil stays compact and
        lightweight, keeping delivery costs down.
      - Select "Confirm production file" (ensure positional holes are properly generated)
-2. `pcb_cap`: 1.6 mm, white.
+2. `cap`: 1.6 mm, white.
 3. `head_base_2R` / `head_base_7R`: 1.2 mm, white.
-   - Use any for MCPCB heaher. For MCH-nased heater use appropriate to MCH
+   - Use any for MCPCB heater. For MCH-based heater use appropriate to MCH
      resistance. The difference is in MCH connection - consecutive or parallel.
 4. `head_reflector`: 1.6 mm, white.
-5. `head_heater`: aluminum, 1.6 mm, 1 oz.
+5. `mcpcb_heater`: aluminum, 1.6 mm, 1 oz.
+   - Simple and cheap, but only up to 180°C
+   - For 250°C see [MCH heater](./mch_head/README.md) detils (with extra BOM).
 6. `foil_conductor`: 1.0 mm, red.
 
 jlc3dp prints:

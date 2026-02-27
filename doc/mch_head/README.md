@@ -18,7 +18,7 @@ This BOM extends the default one; be sure to buy it as well.
 1 | Hotplate and clamps | See details below.
 2 | M1.6 countersunk SS screws 8 mm (×6) | [EDLW-S1-M1.6-L8](https://jlcmc.com/product/s/E02/EDLW/gb-t-819-phillips-countersunk-head-screw?k=EDLW-S1-M1.6-L8&productModelNumber=EDLW-S1-M1.6-L8). MCH mount.
 3 | M1.6 SS flat washers (×4) | [EPDA-S1W-B-1.6](https://jlcmc.com/product/s/E06/EPDA/flat-washer-level-a?k=EPDA-S1W-B-1.6&productModelNumber=EPDA-S1W-B-1.6). Hotplate mount.
-4 | [MCH 70*14 2R / 7R (×2)](https://www.aliexpress.com/item/32966428374.html) | Two heaters are required; buy 5-10 to match their resistance. Note, 10R variant is actually 7R, but that's no guaranteed. Also, select a proper base board variant for MCH resistance.
+4 | [MCH 70*14 2R / 7R (×2)](https://www.aliexpress.com/item/32966428374.html) | Two heaters are required; buy 5-10 to match their resistance. Note, 10R variant is actually 7R, but that's no guaranteed. Also, select a proper base board variant for MCH resistance. 7R is recommended for better heating performance.
 5 | [Thermally conductive paste](https://www.aliexpress.com/item/1005002400161049.html) | Use Thermal Grizzly Kryonaut. The paste must handle 300°C, so skip the cheap stuff.
 
 **Hotplate (jlccnc)**:

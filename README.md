@@ -6,7 +6,7 @@ area. Built for hobby projects when you don't want a bulky professional machine
 taking over the desk.
 
 - [Documentation](doc/README.md)
-- [EasyEDA project page](https://oshwlab.com/puzrin/reflow-table-usb-pd) -
+- [EasyEDA project page](https://oshwlab.com/puzrin/reflow-table-pd) -
   Schematic & PCB. Order almost everything in a couple of clicks.
 - [Hackaday.io](https://hackaday.io/project/204503-reflow-micro-table) page.
 
@@ -34,7 +34,7 @@ Use cases:
 
 - Reflow soldering with Sn42Bi58 (138°C) paste using the MCPCB-based head.
 - Pre-heating (130-150°C) for hot air work.
-- Reflow soldering with Sn63Pb37 (183°C) paste using the MCH-based head (experimental).
+- Reflow soldering with Sn63Pb37 (183°C) paste using the MCH-based head.
 - Other tinkering, like drying parts or baking paint.
 
 This project isn't unique on the market, but the feature balance is tuned for
