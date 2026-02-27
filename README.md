@@ -21,11 +21,12 @@ hobby needs.
 
 Key points:
 
-- Very small, doesn't eat much space when not in use.
+- Very small and doesn't take much space when not in use.
 - Powered from a 100-140 W USB PD charger.
 - Controlled from a web browser (desktop and mobile).
 - 80x70 mm working area.
-- Components cost about $80 with simple MCPCB heater, +40$ for MCH heater.
+- Components cost about $80 with the simple MCPCB heater, plus about $40 for
+  the MCH heater.
 - Simple heating profile management.
 - Up to 180°C with the simple MCPCB-based head.
 - Up to 300°C with the MCH-based head.

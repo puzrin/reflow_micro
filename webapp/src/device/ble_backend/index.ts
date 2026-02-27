@@ -50,7 +50,8 @@ export class BleBackend implements IBackend {
       this.device.history.id = history_chunk.type
     }
 
-    // If data size is max allowed => it could be shrinked => repeat request
+    // If the chunk size hits the maximum, it may have been truncated, so
+    // repeat the request.
     if (history_chunk.data.length >= Constants.MAX_HISTORY_CHUNK) {
       await this.fetch_history()
     }
@@ -82,7 +83,7 @@ export class BleBackend implements IBackend {
     this.client_history_version = -1
     this.config_data_loaded = false
 
-    // Call explicit, to cover re-attach case when device already connected
+    // Call explicitly to cover the re-attach case when the device is already connected.
     await this.pick_connector_status()
   }
 

@@ -14,7 +14,7 @@ low-temperature (138°C) paste gives you plenty of margin, forgives minor
 mistakes, and keeps the heater requirements modest.
 
 
-## Aluminum PCB based heater
+## Aluminum PCB-based heater
 
 **Pros:**
 
@@ -48,7 +48,7 @@ Conclusion:
 - Needs a 140 W supply.
 - Right now the dynamics above 200°C are weak - roughly 1°C per second (work in
   progress).
-- Overall there's little headroom for leaded or RoHS reflow profiles. Each
+- Overall, there's little headroom for leaded or RoHS reflow profiles. Each
   profile has to be tuned to the specific PCB, usually with a foil cap. It's too
   easy to damage a board, so beginners should steer clear.
 

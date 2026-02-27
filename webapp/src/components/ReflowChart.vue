@@ -28,12 +28,12 @@ function buildChart() {
 
   const root = d3.select(`#${props.id} .root`)
 
-  // Ensure to drop any ongoing transitions from previous draw. This is
+  // Be sure to drop any ongoing transitions from the previous draw. This is
   // important when page goes to background and RAF is blocked. On wake up
   // the list of postponed animations can be huge and freeze the UI.
   // Alternate approach is to make background draws without transitions, but
   // visibility API is not ok under Linux. Anyway, the selected approach is
-  // ok for expected chart behaviour and is more simple.
+  // okay for the expected chart behavior and is simpler.
   root.selectAll('*').interrupt()
 
   const width = svgRef.value.parentElement.clientWidth - margin.left - margin.right

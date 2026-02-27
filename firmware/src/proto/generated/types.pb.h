@@ -39,7 +39,7 @@ typedef enum _HeadStatus {
 typedef enum _PowerStatus {
     PowerStatus_PwrOff = 0,
     PowerStatus_PwrInitializing = 1,
-    PowerStatus_PwrTransition = 2, /* PC contract change */
+    PowerStatus_PwrTransition = 2, /* PD contract change */
     PowerStatus_PwrOK = 3,
     PowerStatus_PwrFailure = 4
 } PowerStatus;
@@ -108,10 +108,10 @@ typedef struct _HeadParams {
     /* Scale. Max derivative / power */
     float adrc_b0;
     /* ω_observer = N / τ. Usually 3..10
- 5 is good for the start. Increase until oscillates, then back 10-20%. */
+ 5 is a good starting point. Increase it until it oscillates, then back off by 10-20%. */
     float adrc_N;
     /* ω_controller = ω_observer / M. Usually 2..5
- 3 is a good for the start. Probably, changes not required. */
+ 3 is a good starting point. Changes are probably not required. */
     float adrc_M;
 } HeadParams;
 

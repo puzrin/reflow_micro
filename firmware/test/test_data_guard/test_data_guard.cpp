@@ -41,7 +41,7 @@ TEST(DataGuardTest, SnapshotStaysSameWithoutNewWrite) {
 TEST(DataGuardTest, TransactionBlocksSnapshot) {
     DataGuard<std::string> dataGuard;
 
-    dataGuard.writeData("first");
+    dataGuard.writeData("word");
 
     dataGuard.beginWrite();
 
@@ -53,7 +53,7 @@ TEST(DataGuardTest, TransactionBlocksSnapshot) {
 
     success = dataGuard.makeSnapshot();
     ASSERT_TRUE(success);
-    EXPECT_EQ(dataGuard.snapshot, "farst");
+    EXPECT_EQ(dataGuard.snapshot, "ward");
 }
 
 int main(int argc, char **argv) {

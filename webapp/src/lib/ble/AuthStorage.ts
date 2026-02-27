@@ -1,5 +1,5 @@
-// Due wish to keep BLE RPC self-suffucient, auth storage implemented
-// "manually", instead of Pinia persistance.
+// To keep BLE RPC self-sufficient, auth storage is implemented manually
+// instead of using Pinia persistence.
 
 function hex2bytes(hex: string): Uint8Array {
     return new Uint8Array(hex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));

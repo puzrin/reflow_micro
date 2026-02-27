@@ -164,7 +164,7 @@ export function headStatusToJSON(object: HeadStatus): string {
 export enum PowerStatus {
   PwrOff = 0,
   PwrInitializing = 1,
-  /** PwrTransition - PC contract change */
+  /** PwrTransition - PD contract change */
   PwrTransition = 2,
   PwrOK = 3,
   PwrFailure = 4,
@@ -355,12 +355,12 @@ export interface HeadParams {
   adrc_b0: number;
   /**
    * ω_observer = N / τ. Usually 3..10
-   * 5 is good for the start. Increase until oscillates, then back 10-20%.
+   * 5 is a good starting point. Increase it until it oscillates, then back off by 10-20%.
    */
   adrc_N: number;
   /**
    * ω_controller = ω_observer / M. Usually 2..5
-   * 3 is a good for the start. Probably, changes not required.
+   * 3 is a good starting point. Changes are probably not required.
    */
   adrc_M: number;
 }

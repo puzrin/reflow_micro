@@ -57,7 +57,8 @@ export class BleClientChunker implements BinaryTransport {
     // Max DLE data size is 251 bytes. Every R/W to characteristic should be
     // 244 or 495 bytes to fit into 1 or 2 DLE packets (including overheads).
     // That maximizes speed on bulk transfers.
-    // In real world, 495 bytes do not give any notable benefits. So, use 244 bytes.
+    // In the real world, 495 bytes do not give any notable benefits. So use
+    // 244 bytes.
     private static readonly MAX_BLOB_SIZE = 244;
 
     constructor(io: IO) {

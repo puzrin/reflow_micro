@@ -179,18 +179,19 @@ void HeaterControl::update_fan_speed() {
     bool working = is_task_active.load();
 
     if (working) {
-        // Setpoint is valid only when task is active AND temperature control enabled
+        // The setpoint is valid only when a task is active and temperature
+        // control is enabled.
         if (temperature_control_enabled.load()) {
             //
-            // We should solve 2 problems:
-            // - Cool down reasonable fast
+            // We need to solve two problems:
+            // - Cool down reasonably fast
             // - Avoid interference with ADRC control.
             //
-            // Use simple logic with safe threshold and small hysteresis
+            // Use simple logic with a safe threshold and small hysteresis:
             // - If temperature > 4C above desired => full speed
             // - If temperature < 3C above desired => off
             //
-            // This is simple and should be ok. If not - can be improved later.
+            // This is simple and should be okay. If needed, it can be improved later.
             //
             if (temperature_x10 > setpoint_x10 + C_DIFF_ON_X10) {
                 // Enable fan ONLY when ADRC output is about zero,
@@ -201,12 +202,12 @@ void HeaterControl::update_fan_speed() {
             }
             if (temperature_x10 < setpoint_x10 + C_DIFF_OFF_X10) { fan.off(); }
         } else {
-            // If task is working, but without temperature control - disable fan.
-            // This is valid scenario for calibration-related things.
+            // If a task is running but temperature control is disabled, turn
+            // the fan off. This is a valid scenario for calibration-related tasks.
             fan.off();
         }
     } else {
-        // No task => always cool down to low temperature, if head attached
+        // No task: always cool down to a low temperature if the head is attached.
         if (head.get_head_status() == HeadStatus_HeadConnected &&
             temperature_x10 != head.UNKNOWN_TEMPERATURE_X10)
         {
@@ -214,7 +215,7 @@ void HeaterControl::update_fan_speed() {
             else { fan.off(); }
         }
         else {
-            // Fan off when no head OR in TCR mode without power
+            // Turn the fan off when no head is attached, or in TCR mode without power
             // (with "unknown" temperature, powered via debug connector)
             fan.off();
         }

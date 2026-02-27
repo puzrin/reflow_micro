@@ -80,7 +80,8 @@ export class VirtualBackend implements IBackend {
       this.device.history.id = history_slice.type
     }
 
-    // If data size is max allowed => it could be shrinked => repeat request
+    // If the chunk size hits the maximum, it may have been truncated, so
+    // repeat the request.
     if (history_slice.data.length >= Constants.MAX_HISTORY_CHUNK) {
       await this.fetch_history()
     }

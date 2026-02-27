@@ -105,7 +105,7 @@ using HEAD_STATES = afsm::state_pack<
 >;
 
 Head::Head() {
-    // Don't start FSM here, because int requires ADC & I2C setup
+    // Don't start the FSM here, because it requires ADC and I2C setup.
     set_states<HEAD_STATES>(afsm::Uninitialized);
 }
 

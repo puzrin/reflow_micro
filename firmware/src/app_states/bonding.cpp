@@ -7,13 +7,13 @@ auto Bonding_State::on_enter_state() -> etl::fsm_state_id_t {
 
     get_fsm_context().showBondingLoop();
 
-    // Enable bonding for 30 seconds
+    // Enable bonding for 15 seconds.
     xTimeoutTimer = xTimerCreate("BondingTimeout", pdMS_TO_TICKS(BONDING_PERIOD_MS), pdFALSE, (void *)0,
         [](TimerHandle_t){
             application.enqueue_message(AppCmd::BondOff{});
         });
 
-    // Ideally, we should check all returned statuses, but who cares...
+    // Ideally, we should check all returned statuses, but this path is best-effort.
     if (xTimeoutTimer) { xTimerStart(xTimeoutTimer, 0); }
 
     pairing_enable();

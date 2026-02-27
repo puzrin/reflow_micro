@@ -54,7 +54,7 @@ export class Device {
     points: [] as Point[],
     id: 0,
   })
-  // wrapper to aggregate this.history data
+  // Wrapper to aggregate `this.history` data.
   // NOTE: mutate history.points in-place (splice/push) so sparseHistory stays
   // in sync. If you replace the array entirely, rebind sparseHistory via
   // SparseHistory.from(...).
@@ -112,26 +112,26 @@ export class Device {
   // Control
   // id: computed(() => driverKey.value);
   async selectBackend(id: backendIdType) {
-    // Don't reselect the same backend
+    // Don't reselect the same backend.
     if (this.backend_id.value === id) return;
-    // Detach old one if exists
+    // Detach the old one if it exists.
     if (this.backend) await this.backend.detach();
 
-    // On wrong value restore from localStore - adjust to default
+    // If the stored value is invalid, fall back to the default backend.
     if (!this.available_backends[id]) id = BleBackend.id;
 
-    // Attach new one
+    // Attach the new backend.
     this.backend = this.available_backends[id];
     this.backend_id.value = id;
     await this.backend.attach();
 
-    // Remember selection
+    // Remember the selection.
     const localStore = useLocalSettingsStore()
     localStore.backend = id
   };
 
   async loadProfilesData(reset: boolean = false) {
-    // Remove old tracker if exists
+    // Remove the old tracker if it exists.
     this.unsubscribeProfilesStore?.()
     this.unsubscribeProfilesStore = null
 

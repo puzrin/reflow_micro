@@ -15,10 +15,10 @@
 
 class Head : public afsm::fsm<Head> {
 public:
-    // We have 2.5v ref voltage and 560R +PT100 divider. That gives ~
-    // [0.32..0.5] V range for [-50..+400] C.
+    // We have a 2.5 V reference and a 560R + PT100 divider. That gives an
+    // approximately 0.32..0.5 V range for -50..+400 C.
     //
-    // Set 2 levels to detect shorted and floating sensor:
+    // Set two levels to detect a shorted or floating sensor:
     // - Open => Not attached
     // - Shorted => With embedded sensor
     // - In between => With PT100 sensor

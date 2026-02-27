@@ -24,13 +24,13 @@ const profilesStore = useProfilesStore()
 const localSettingsStore = useLocalSettingsStore()
 const el = ref<UseDraggableReturn>()
 
-// On drag - move profile with store's method to keep reactivity working
+// On drag, move the profile with the store method to keep reactivity working.
 function customUpdate(evt: SortableEvent) {
   const { oldIndex, newIndex } = evt
   profilesStore.move(oldIndex ?? 0, newIndex ?? 0)
 }
 
-// Stuff for profile delete confirmation dialog
+// Profile delete confirmation dialog
 
 const deleteDlgRef = ref<InstanceType<typeof ConfirmDialog>>()
 function deleteProfile(profileId: number) {
@@ -39,7 +39,7 @@ function deleteProfile(profileId: number) {
   })
 }
 
-// Stuff for reset profiles to default
+// Reset-profiles confirmation dialog
 
 const resetDlgRef = ref<InstanceType<typeof ConfirmDialog>>()
 function resetProfiles() {
@@ -50,7 +50,7 @@ function resetProfiles() {
   })
 }
 
-// Stuff for BLE name
+// BLE name form
 
 const bleName = ref('')
 const bleNameError = ref(false)
@@ -148,7 +148,7 @@ async function saveBleNameHandler() {
         <input v-model="bleName" type="text" minlength="3" maxlength="30" class="w-full" />
         <ButtonNormal ref="saveBleNameBtn" @click="saveBleNameHandler">Update</ButtonNormal>
       </div>
-      <div v-if="bleNameError" class="text-xs text-red-500 mt-0.5">Name must be 3-30 characters, ASCII only</div>
+      <div v-if="bleNameError" class="text-xs text-red-500 mt-0.5">Name must be 3-30 ASCII characters</div>
     </div>
 
     <div class="flex items-center mb-4">
@@ -181,7 +181,7 @@ async function saveBleNameHandler() {
   <!-- Profiles reset confirmation dialog -->
 
   <ConfirmDialog ref="resetDlgRef" v-slot="{ closeAs }">
-    <p class="mt-2">Confirm profiles reset? All your changes will be lost</p>
+    <p class="mt-2">Reset all profiles? All your changes will be lost.</p>
     <div class="mt-4">
       <ButtonDanger class="me-2" @click="closeAs('ok')">Yes</ButtonDanger>
       <ButtonNormal class="me-2" @click="closeAs('cancel')">Cancel</ButtonNormal>
@@ -191,7 +191,7 @@ async function saveBleNameHandler() {
   <!-- Profile delete confirmation dialog -->
 
   <ConfirmDialog ref="deleteDlgRef" v-slot="{ closeAs }">
-    <p class="mt-2">Confirm profile remove?</p>
+    <p class="mt-2">Remove this profile?</p>
     <div class="mt-4">
       <ButtonDanger class="me-2" @click="closeAs('ok')">Yes</ButtonDanger>
       <ButtonNormal class="me-2" @click="closeAs('cancel')">Cancel</ButtonNormal>

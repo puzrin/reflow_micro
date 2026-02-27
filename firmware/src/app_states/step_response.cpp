@@ -74,7 +74,7 @@ void StepResponse_State::task_iterator(int32_t time_ms) {
 
     auto& app = get_fsm_context();
 
-    // Check if max log size reached
+    // Check if the max log size has been reached.
     if (log.size() >= MAX_LOG_SIZE) {
         app.enqueue_message(AppCmd::Stop{});
         return;
@@ -100,7 +100,7 @@ void StepResponse_State::task_iterator(int32_t time_ms) {
     }
 
     //
-    // Analyze log to find response time & b0
+    // Analyze the log to find the response time and b0.
     //
 
     // - Heater has long tail. Early window (28/63) use is preferable over S-K (35/85)
@@ -127,8 +127,8 @@ void StepResponse_State::task_iterator(int32_t time_ms) {
     APP_LOGI("Step response analysis:");
     APP_LOGI("  t max = {}°C", static_cast<int>(t_max));
 
-    APP_LOGI("  P1(28%) = {}°C, {}sec", static_cast<int>(t_28), static_cast<int>(c_28));
-    APP_LOGI("  P3(63%) = {}°C, {}sec", static_cast<int>(t_63), static_cast<int>(c_63));
+    APP_LOGI("  28% point = {}°C, {} sec", static_cast<int>(c_28), static_cast<int>(t_28));
+    APP_LOGI("  63% point = {}°C, {} sec", static_cast<int>(c_63), static_cast<int>(t_63));
     APP_LOGI("  response = {}s, effective delay = {}s", τ_str.c_str(), L_str.c_str());
 
     // Step is 0 => constant power.

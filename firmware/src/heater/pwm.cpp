@@ -80,8 +80,8 @@ public:
 
     static void on_exit_state(Pwm& pwm) {
         if (pwm.tick_count >= pwm.pulse_ticks) {
-            // End reached naturally => process ADC data averaged over the pulse tail
-            // (otherwise, we are being disabled, skip this step)
+            // The end was reached naturally, so process ADC data averaged over
+            // the pulse tail. Otherwise, we are being disabled, so skip this step.
             drain_tracker.process_collected_data();
         }
     }
@@ -139,7 +139,7 @@ void Pwm::setup() {
 
     xTaskCreate(
         // Set high priority
-        // TODO: Ensure it's ok with NimBLE stack.
+        // TODO: Ensure it's okay with the NimBLE stack.
         [](void* params) {
             auto* self = static_cast<Pwm*>(params);
             while (true) {

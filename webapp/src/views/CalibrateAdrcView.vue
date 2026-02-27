@@ -66,12 +66,12 @@ onBeforeRouteLeave(async () => {
   return true
 })
 
-// Update temperature "on the fly" (only when testing active)
+// Update the temperature on the fly (only while testing is active)
 watchDebounced(test_temperature, async () => {
   if (is_testing.value) await device.run_adrc_test(toNumber(test_temperature.value))
 }, { debounce: 500 })
 
-// Reload ADRC settings when finish any task
+// Reload ADRC settings when any task finishes
 watch(activity, async (newState) => {
   if (newState === DeviceActivityStatus.Idle && device.is_ready.value) {
     configToRefs(await device.get_head_params())
@@ -141,7 +141,7 @@ async function default_adrc_params() {
         </div>
         <div v-if="adrc_error_tau" class="text-xs text-red-500 mt-0.5">Not a number</div>
         <div class="text-sm text-slate-400 mt-0.5">
-          Response time for step input. Execute step response to detect.
+          Response time for a step input. Run the step response test to detect it.
         </div>
       </div>
 
@@ -152,7 +152,7 @@ async function default_adrc_params() {
         </div>
         <div v-if="adrc_error_b0" class="text-xs text-red-500 mt-0.5">Not a number</div>
         <div class="text-sm text-slate-400 mt-0.5">
-          Controller scale factor. Execute step response to detect.
+          Controller scale factor. Run the step response test to detect it.
         </div>
       </div>
 
@@ -180,7 +180,7 @@ async function default_adrc_params() {
 
       <div class="mb-8">
         <ButtonNormal ref="saveBtn" @click="save_adrc_params" class="mr-2">Save</ButtonNormal>
-        <ButtonNormal ref="resetBtn" @click="default_adrc_params">Load default params</ButtonNormal>
+        <ButtonNormal ref="resetBtn" @click="default_adrc_params">Load default parameters</ButtonNormal>
       </div>
 
 
@@ -189,8 +189,8 @@ async function default_adrc_params() {
 
       <h3 class="text-base mb-4 text-slate-800">Measure step response</h3>
       <p class="text-sm text-slate-400 mb-4">
-          Used to calculate <b>τ</b> and <b>b0</b> params. Use the same power
-          as you would for baking.
+          Used to calculate the <b>τ</b> and <b>b0</b> parameters. Use the same
+          power you would use for baking.
       </p>
       <div class="mb-8">
         <div class="flex gap-2 flex-nowrap w-full">
@@ -198,7 +198,7 @@ async function default_adrc_params() {
           <ButtonNormal @click="device.run_step_response(toNumber(step_response_power))" :disabled="!is_idle">Run</ButtonNormal>
           <ButtonNormal @click="device.stop()" :disabled="!is_step_response">Stop</ButtonNormal>
         </div>
-        <div class="text-xs text-slate-400 mt-0.5">Power {{step_response_power}}W</div>
+        <div class="text-xs text-slate-400 mt-0.5">Power {{ step_response_power }} W</div>
       </div>
 
 
@@ -210,7 +210,7 @@ async function default_adrc_params() {
           <ButtonNormal @click="device.run_adrc_test(toNumber(test_temperature))" :disabled="!is_idle">Run</ButtonNormal>
           <ButtonNormal @click="device.stop(true)" :disabled="!is_testing">Stop</ButtonNormal>
         </div>
-        <div class="text-xs text-slate-400 mt-0.5">Temperature {{test_temperature}}°C</div>
+        <div class="text-xs text-slate-400 mt-0.5">Temperature {{ test_temperature }} °C</div>
       </div>
 
       <div class="mt-4 relative rounded-md bg-slate-100 h-[300px]">

@@ -56,8 +56,8 @@ errors.*
 
 ## Temperature controller
 
-The default settings are for MCPCB-based heater, so there's a
-good chance you won't need to touch the ADRC values.
+The default settings are for the MCPCB-based heater, so there's a good chance
+you won't need to touch the ADRC values.
 
 For an MCH-based heater, or if you change the heater size, follow the
 instructions below.
@@ -76,8 +76,8 @@ This automatically estimates the head response time and scale factor.
 ### Tune N/M parameters
 
 - Set `M` = 2 and don't change it.
-- In the `Test controller` section, set the temperature to the main working range,
-  depending on heater type (170-210°C), and press `Run`.
+- In the `Test controller` section, set the temperature to the main working
+  range for the heater type (170-210°C), and press `Run`.
 - When the temperature stabilizes, start increasing `N` from 10 until you see
   power jitter > 20% in debug info.
 - After jitter appears, reduce `N` by 10-20%.

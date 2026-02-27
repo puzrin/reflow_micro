@@ -82,7 +82,7 @@ async function stop() {
 </template>
 
 <style scoped>
-/* :disabled not works for menu elements, use class */
+/* `:disabled` does not work for menu elements, use a class instead. */
 .disabled {
   pointer-events: none;
   opacity: 0.5;

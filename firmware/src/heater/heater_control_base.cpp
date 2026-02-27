@@ -15,16 +15,16 @@ void HeaterControlBase::get_history(int32_t client_history_version, float from, 
     history.lock();
 
     if (history_version != client_history_version) {
-        // If client version mismatch - send from the beginning
+        // If the client version mismatches, send from the beginning.
         from_idx = 0;
         chunk_length = std::min(data.size(), static_cast<size_t>(MAX_HISTORY_CHUNK));
     } else {
         if (data.empty() || data.back().x < int_from) {
-            // If no data - send empty
+            // If there is no data, send an empty chunk.
             from_idx = 0;
             chunk_length = 0;
         } else {
-            // Search from the back, that's usually faster
+            // Search from the back; that's usually faster.
             if (data.front().x >= int_from) {
                 // Special case, nothing to skip
                 from_idx = 0;
@@ -79,7 +79,7 @@ void HeaterControlBase::tick() {
     uint32_t now = get_time_ms();
     uint32_t dt_ms = now - prev_tick_ms;
 
-    // If temperature controller active - use it to update power
+    // If the temperature controller is active, use it to update power.
     if (is_task_active.load()) {
         if (temperature_control_enabled) {
             static constexpr float dt_inv_multiplier = 1.0F / 1000;
@@ -104,7 +104,7 @@ void HeaterControlBase::tick() {
             history_last_recorded_ts = seconds;
         }
 
-        // Task can have custom iterator, execute it is needed
+        // A task can have a custom iterator; execute it if needed.
         if (task_iterator) task_iterator(task_time_ms);
     }
 

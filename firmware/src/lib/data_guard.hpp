@@ -30,7 +30,7 @@ public:
         // If version is odd, it means that value is being updated right now.
         if (last_snapshot_version != version_before && version_before % 2 == 0) {
             snapshot = value;
-            // If version is still the same => snapshot is useable.
+            // If the version is still the same, the snapshot is usable.
             if (version_before == data_version.load(etl::memory_order_acquire)) {
                 last_snapshot_version = version_before;
                 return true;

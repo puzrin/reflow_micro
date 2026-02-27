@@ -5,12 +5,12 @@ import { Device } from '@/device'
 
 const device: Device = inject('device')!
 
-// Views are remounted in 2 cases:
+// Views are remounted in two cases:
 //
-// 1) route changes (normal behavior)
-// 2) device ready status changed
+// 1) the route changes (normal behavior)
+// 2) the device-ready status changes
 //
-// The second required for proper page data fetch on page reload
+// The second case is required so page data is fetched correctly after a reload.
 </script>
 
 <template>

@@ -4,7 +4,7 @@
 #include <cmath>
 #include <cstdint>
 
-// TODO: Consider use M4 Aggregate for packing
+// TODO: Consider using M4 Aggregate for packing.
 
 class SparseHistory {
 public:

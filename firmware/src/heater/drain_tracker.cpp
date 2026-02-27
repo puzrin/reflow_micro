@@ -50,8 +50,9 @@ void DrainTracker::process_collected_data() {
 
     uint32_t count = adc_count < ADC_FILTER_SIZE ? adc_count : ADC_FILTER_SIZE;
 
-    // Check all samples have consistent profile index.
-    // If idx changed mid-collection, drop this batch - next PWM cycle will retry.
+    // Check that all samples have a consistent profile index.
+    // If the index changed mid-collection, drop this batch; the next PWM cycle
+    // will retry.
     uint32_t first_idx = adc_buffer[0].ctx_idx;
     for (uint32_t i = 1; i < count; i++) {
         if (adc_buffer[i].ctx_idx != first_idx) {
@@ -174,7 +175,7 @@ bool DrainTracker::adc_ina_init() {
         //     return false;
         // }
 
-        // Using faster fetch with hw averaging reduce noise.
+        // Using faster sampling with hardware averaging reduces noise.
         // VBUSCT=VSHCT=1 (~84 us), AVG=1 (x4); MODE = Continuous shunt + bus
         // Effective full cycle is ~672 us: (84 + 84) * 4.
         if (!adc_ina_write_reg16(0x01, 0xB249)) {

@@ -50,7 +50,7 @@ public:
             return;
         }
 
-        // Start measure jitter
+        // Start measuring jitter.
         if (unfilteredBtn != driver.get()) {
             unfilteredBtn = driver.get();
             unfilteredBtnTimestamp = ms_timestamp;
@@ -116,7 +116,7 @@ public:
             return;
 
         case WAIT_SHORT_RELEASE:
-            // If button pressed fast again => proceed next click
+            // If the button is pressed again quickly, proceed to the next click.
             if (btnPressed && currentPeriod < SHORT_PRESS_THRESHOLD) {
                 state = WAIT_SHORT_PRESS;
                 return;
@@ -134,14 +134,14 @@ public:
             return;
 
         case WAIT_SHORT_PRESS:
-            // If button pressed too long => bad sequence of short dials
+            // If the button is pressed too long, the short-press sequence is invalid.
             if (btnPressed && currentPeriod >= SHORT_PRESS_THRESHOLD) {
                 state = START;
                 //handleEvent(ButtonEventId::BUTTON_SEQUENCE_END);
                 return;
             }
 
-            // If button released fast enouth => go to pause measurement
+            // If the button is released quickly enough, go to pause measurement.
             if (!btnPressed) {
                 shortPressesCounter++;
                 state = WAIT_SHORT_RELEASE;

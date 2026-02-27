@@ -17,7 +17,7 @@ import DeleteIcon from '@heroicons/vue/24/outline/XMarkIcon'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import ReflowChart from '@/components/ReflowChart.vue'
 
-// GUI fields restrictions
+// GUI field limits
 const limits = {
   targetMin: 30,
   targetMax: 300,
@@ -33,7 +33,7 @@ const localSettingsStore = useLocalSettingsStore()
 
 const saveBtn = ref()
 
-// Load profile object from store or create new one
+// Load the profile from the store or create a new one
 const srcProfile: Profile = profilesStore.exists(props.id) ?
   toRaw(profilesStore.find(props.id))! : {
     id: 0,
@@ -43,7 +43,7 @@ const srcProfile: Profile = profilesStore.exists(props.id) ?
     ]
   }
 
-// Create reactive clone to accumulate and track changes
+// Create a reactive clone to accumulate and track changes
 const profile = reactive(structuredClone(srcProfile)!)
 const isProfileEdited = ref(false)
 
@@ -52,7 +52,8 @@ watch(profile, () => isProfileEdited.value = true, { deep: true })
 const formRef = ref<HTMLFormElement>()
 
 function saveForm() {
-  // Save profile to store & auto-update id to avoid dupes on next save
+  // Save the profile to the store and auto-update the ID to avoid duplicates
+  // on the next save.
   profile.id = profilesStore.add(toRaw(profile))
   isProfileEdited.value = false
   saveBtn.value?.showSuccess()
@@ -91,7 +92,7 @@ function heatingSpeed(segmentIdx: number) {
   return `${(speed * 60).toFixed(1)}°C/min`
 }
 
-// Cleanup & recast for numeric inputs
+// Clean up and recast numeric input
 const str2int = (str: string) => parseInt(str.replace(/[^0-9]/g, '')) || 0
 </script>
 
@@ -190,7 +191,7 @@ const str2int = (str: string) => parseInt(str.replace(/[^0-9]/g, '')) || 0
   </PageLayout>
 
   <ConfirmDialog ref="exitDlgRef" v-slot="{ closeAs }">
-    <p class="mt-2">You have unsaved data, it will be lost on exit. Are you sure?</p>
+    <p class="mt-2">You have unsaved changes. They will be lost when you leave this page. Continue?</p>
     <div class="mt-4">
       <ButtonNormal class="me-2" @click="closeAs('ok')">Save</ButtonNormal>
       <ButtonDanger class="me-2" @click="closeAs('dismiss')">Dismiss</ButtonDanger>

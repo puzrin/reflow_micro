@@ -89,14 +89,14 @@ auto Reflow_State::on_enter_state() -> etl::fsm_state_id_t {
     auto& app = get_fsm_context();
     APP_LOGI("State => Reflow");
 
-    // Pick active profile, terminate on fail
+    // Pick the active profile and terminate on failure.
     auto profile = std::make_unique<Profile>();
     if (!profiles_config.get_selected_profile(*profile)) {
         app.beepTaskTerminated();
         return DeviceActivityStatus_Idle;
     }
 
-    // Load timeline and try to execute the task
+    // Load the timeline and try to execute the task.
     timeline.load(*profile);
     auto status = heater.task_start(profile->id, [this](int32_t time_ms) {
         task_iterator(time_ms);
@@ -106,7 +106,7 @@ auto Reflow_State::on_enter_state() -> etl::fsm_state_id_t {
         return DeviceActivityStatus_Idle;
     }
 
-    // Enable ADRC & blink about success
+    // Enable ADRC and signal success with the LED.
     heater.temperature_control_on();
     app.showReflowStart();
     app.beepTaskStarted();
@@ -150,8 +150,8 @@ void Reflow_State::task_iterator(int32_t time_ms) {
         return;
     }
 
-    // NOTE: Probably we should not modify ProfileSelector directly and this
-    // should be property of Power to avoid races.
+    // NOTE: We probably should not modify ProfileSelector directly, and this
+    // should be a property of Power to avoid races.
 
     auto rate = timeline.get_rate(time_ms);
     if (rate > 0.01f) {

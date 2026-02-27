@@ -81,7 +81,7 @@ export class TaskStepResponse extends HeaterTask {
         }
       }
 
-      // Analyze log to find response time & b0
+      // Analyze the log to find the response time and b0.
       const t_initial = temperature_log[0].temperature
 
       // Find maximum temperature in log
@@ -92,7 +92,7 @@ export class TaskStepResponse extends HeaterTask {
         }
       }
 
-      // Helper function to find index at ratio of (t_max - t_initial)
+      // Helper to find the index for a given ratio of (t_max - t_initial).
       const find_t_idx_of = (ratio: number): number => {
         if (ratio >= 1.0) {
           let max_idx = 0
@@ -139,8 +139,8 @@ export class TaskStepResponse extends HeaterTask {
 
       console.log('Step response analysis:')
       console.log(`  t max = ${t_max.toFixed(0)}°C`)
-      console.log(`  P1(28%) = ${t_28.toFixed(0)}°C, ${c_28.toFixed(0)}sec`);
-      console.log(`  P2(63%) = ${t_63.toFixed(0)}°C, ${c_63.toFixed(0)}sec`);
+      console.log(`  28% point = ${c_28.toFixed(0)}°C, ${t_28.toFixed(0)} sec`);
+      console.log(`  63% point = ${c_63.toFixed(0)}°C, ${t_63.toFixed(0)} sec`);
       console.log(`  response = ${τ.toFixed(2)}s, effective delay = ${L.toFixed(2)}s`)
 
       const du = temperature_log[idx_63].power

@@ -68,7 +68,7 @@ countersink.
 Then install the rest of the hotplate components.
 
 - Use RoHS 217°C paste; it is important.
-- Use 0.4/0.3 mm dia copper wire for the power lines. Small cross-section
+- Use 0.4/0.3 mm dia copper wire for the power lines. A small cross-section is
   required to keep heat transfer low.
 - Tin the wire first, then solder it to the hotplate.
 - Use a large iron tip at 350-400°C so there is enough heat.
@@ -128,15 +128,15 @@ Install the silicone feet on the bottom of the case.
 
 <img src="./images/case_tray_pads.jpg" width="30%">
 
-Connect the main PCB and coved with screw.
+Connect the main PCB and the cover with screws.
 
 TBD Image.
 
-Place button, nuts and magnets into the tray.
+Place the button, nuts, and magnets into the tray.
 
 TBD Image.
 
-Then mount the main board and board cover with the 8 mm screws.
+Then mount the main board and its cover with the 8 mm screws.
 
 <img src="./images/table_base.jpg" width="30%">
 

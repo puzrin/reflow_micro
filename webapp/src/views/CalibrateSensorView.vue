@@ -54,7 +54,7 @@ onBeforeRouteLeave(async () => {
   return true
 })
 
-// Update power "on the fly" (only when baking on progress)
+// Update power on the fly (only while baking is in progress)
 watchDebounced(power, async () => {
   if (is_baking.value) await device.run_sensor_bake(toNumber(power.value))
 }, { debounce: 500 })
@@ -112,7 +112,7 @@ async function save_p1() {
     </div>
     <template v-else>
       <p class="text-slate-400 mb-8">
-        Set temperature at 2 points for proper sensor calibration.
+        Set the temperature at two points for proper sensor calibration.
       </p>
 
 
@@ -124,7 +124,7 @@ async function save_p1() {
         <span>Not calibrated</span>
       </div>
       <p class="text-sm text-slate-400 mb-4">
-        For cold hotplate, set the real value of room temperature.
+        With a cold hotplate, enter the actual room temperature.
       </p>
 
       <div class="mb-8">
@@ -137,7 +137,7 @@ async function save_p1() {
       </div>
 
 
-      <h2 class="text-2xl mb-0.5 text-slate-800">Heat point 2 (below max allowed)</h2>
+      <h2 class="text-2xl mb-0.5 text-slate-800">Heat point 2 (below the allowed maximum)</h2>
       <div v-if="is_p1_calibrated" class="mb-1 text-xs text-green-600">
         <span>Calibrated at {{ Math.round(p1_orig) }}°C</span>
       </div>
@@ -145,9 +145,10 @@ async function save_p1() {
         <span>Not calibrated</span>
       </div>
       <p class="text-sm text-slate-400 mb-4">
-        Select power to get below max supported temperature (~ 25W/170°C for
-        MCPCB heater, ~ 50W/250°C for MCH-based heater). Wait until
-        temperature become stable, and enter the real value. Adjust power if needed.
+        Select a power level that stays below the maximum supported temperature
+        (~25 W / 170°C for the MCPCB heater, ~50 W / 250°C for the MCH-based
+        heater). Wait until the temperature becomes stable, then enter the
+        actual value. Adjust the power if needed.
       </p>
 
       <div class="mb-8">
@@ -156,7 +157,7 @@ async function save_p1() {
           <ButtonNormal @click="device.run_sensor_bake(toNumber(power))" :disabled="!is_idle">Bake</ButtonNormal>
           <ButtonNormal @click="device.stop()" :disabled="!is_baking">Stop</ButtonNormal>
         </div>
-        <div class="text-xs text-slate-400 mt-0.5">Power {{power}}W</div>
+        <div class="text-xs text-slate-400 mt-0.5">Power {{ power }} W</div>
       </div>
 
       <div class="mb-8">

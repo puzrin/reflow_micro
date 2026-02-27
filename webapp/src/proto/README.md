@@ -1,7 +1,7 @@
-Google Protobuf files/data generator
-====================================
+Google Protobuf file/data generator
+===================================
 
-You should install `nanopb` to generate cpp sources.
+Install `nanopb` to generate the C++ sources.
 
 ```sh
 pip3 install nanopb grpcio-tools protobuf
@@ -12,4 +12,3 @@ Run from `webapp` root:
 ```sh
 npm run gen:proto
 ```
-

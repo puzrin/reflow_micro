@@ -38,7 +38,7 @@ auto Idle_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
             app.showLongPressProgress();
             break;
 
-        // Stops animation if long press not reached
+        // Stop the animation if the long press is not reached.
         case ButtonEventId::BUTTON_LONG_PRESS_FAIL:
             APP_LOGI("Long press fail");
             app.showOff();
@@ -56,7 +56,7 @@ auto Idle_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
 }
 
 auto Idle_State::on_event(const AppCmd::Stop&) -> etl::fsm_state_id_t {
-    // This empty handler exists only to dim unknown event reporting
+    // This empty handler exists only to suppress unknown-event reporting.
     return No_State_Change;
 }
 
@@ -68,6 +68,6 @@ auto Idle_State::on_event_unknown(const etl::imessage& event) -> etl::fsm_state_
 void Idle_State::on_exit_state() {
     auto& app = get_fsm_context();
 
-    // Ensure to disable test animations
+    // Make sure test animations are disabled.
     app.showOff();
 }

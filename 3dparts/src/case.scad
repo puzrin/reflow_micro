@@ -14,7 +14,7 @@ cap_screw_axis_offset = 3.15;
 cap_screw_mount_h = 6;
 cap_screw_head_h = 1.7 // screw head height
     + (4 -1.6) // D4L4 Magnet outset over tray case
-    + 0.5; // Extra spase
+    + 0.5; // Extra space
 
 // PCB mount holes
 pcb_mount_x_offset = 3.0;
@@ -67,7 +67,7 @@ cap_stiffener_w = 4.4;
 btn_h = 3.3; // 3.5mm - 2*margin
 btn_w = 9.8;
 btn_margin = 0.1;
-btn_marks = 1; // to visully distinguish sizes
+btn_marks = 1; // to visually distinguish sizes
 btn_protrusion = 1.5;
 
 btn_pusher_w = 12;
@@ -82,7 +82,7 @@ module case_front(ofs = 0) { tr_y(ofs - case_wy/2) children(); }
 module case_back(ofs = 0) { tr_y(ofs + case_wy/2) children(); }
 
 // esp32 - 3.2mm, USB - 3.26mm
-assert(tray_inner_h > 3.5, "Not enougth room for PCB components");
+assert(tray_inner_h > 3.5, "Not enough room for PCB components");
 
 module quoter_cylinder(r=10, h=30, fn=16) {
     ra_cube([r, r, h], r=[0, 0, r, 0], center=false, fn=fn);
@@ -287,7 +287,7 @@ module _tray_base() {
             }
         }*/
 
-        // Partially remove stifffeners for pi5 fan connector
+        // Partially remove stiffeners for the Pi 5 fan connector
         //tr_xy(-pcb_wx/2 + 68.5, -pcb_wy/2 + 21) tr_z(wall_hor) cylinder(h=3, r=7);
     }
 }

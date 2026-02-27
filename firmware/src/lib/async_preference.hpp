@@ -130,12 +130,12 @@ public:
         valueUpdateEnd();
     }
 
-    // Those are public for case, when user wish to modify complex object
+    // These are public for the case when the user wishes to modify complex object
     // internals instead of .set() method. Not recommended for direct use.
     void valueUpdateBegin() {
-        // This should not usually happen, because user call .get() at the start
-        // to restore persistance. But if write is called first, we should
-        // disable persistance restore.
+        // This should not usually happen, because the user calls .get() at the
+        // start to restore persistence. But if write is called first, we should
+        // disable persistence restore.
         is_preloaded = true;
 
         databox.beginWrite();

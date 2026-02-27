@@ -95,7 +95,7 @@ export class BleRpcClient {
                         this.rpcIO.setCharacteristic(rpcChar);
                         this.authIO.setCharacteristic(authChar);
 
-                        // Init flags to "just connected" state
+                        // Initialize flags for the "just connected" state.
                         this.isConnectedFlag = true;
                         this.needPairingFlag = false;
                         this.isAuthenticatedFlag = false;
@@ -149,7 +149,7 @@ export class BleRpcClient {
         // Get primary service
         const services = await this.gattServer.getPrimaryServices();
         if (services?.length !== 1) {
-            throw new Error(`Bad amount of services (${services.length}).`);
+            throw new Error(`Unexpected number of services (${services.length}).`);
         }
         const service = services[0];
 
@@ -175,12 +175,12 @@ export class BleRpcClient {
             if (!this.authStorage.hasSecret(device_id)) {
                 if (!auth_info.pairable) return false;
 
-                this.log('Try to pair...');
+                this.log('Trying to pair...');
 
                 const new_secret  = await this.authCaller.invoke('pair', client_id) as Uint8Array;
                 this.authStorage.setSecret(device_id, new_secret);
                 secret = new_secret;
-                // Re-fetch new hmac message value
+                // Re-fetch the new HMAC message value.
                 auth_info = msgpack_decode(await this.authCaller.invoke('auth_info') as Uint8Array) as AuthInfo;
 
                 this.log('Paired!');
@@ -194,7 +194,7 @@ export class BleRpcClient {
             const authenticated = await this.authCaller.invoke('authenticate', client_id, signature, Date.now()) as boolean;
 
             if (!authenticated) {
-                // Wrong key. Drop it.
+                // Wrong key. Clear it.
                 this.log('Wrong auth key. Clearing...');
 
                 this.authStorage.setSecret(device_id, null);
