@@ -17,22 +17,42 @@ This BOM extends the default one; be sure to buy it as well.
 -------|------|--------
 1 | Hotplate and clamps | See details below.
 2 | M1.6 countersunk SS screws 8 mm (×6) | [EDLW-S1-M1.6-L8](https://jlcmc.com/product/s/E02/EDLW/gb-t-819-phillips-countersunk-head-screw?k=EDLW-S1-M1.6-L8&productModelNumber=EDLW-S1-M1.6-L8). MCH mount.
-3 | M1.6 SS flat washers (×4) | [EPDA-S1W-B-1.6](https://jlcmc.com/product/s/E06/EPDA/flat-washer-level-a?k=EPDA-S1W-B-1.6&productModelNumber=EPDA-S1W-B-1.6). Hotplate mount.
-4 | [MCH 70*14 2R / 7R (×2)](https://www.aliexpress.com/item/32966428374.html) | Two heaters are required; buy 5-10 to match their resistance. Note: the 10R variant is actually 7R, but that's not guaranteed. Also select the proper base-board variant for the MCH resistance. 7R is recommended for better heating performance.
-5 | [Thermally conductive paste](https://www.aliexpress.com/item/1005002400161049.html) | Use Thermal Grizzly Kryonaut. The paste must handle 300°C, so skip the cheap stuff.
+3 | [MCH 70*14 2R / 7R (×2)](https://www.aliexpress.com/item/32966428374.html) | Two heaters are required; buy 5-10 to match their resistance. Note: the 10R variant is actually 7R, but that's not guaranteed. Also select the proper base-board variant for the MCH resistance. 7R is recommended for better heating performance.
+4 | [Thermally conductive paste](https://www.aliexpress.com/item/1005002400161049.html) | Use Thermal Grizzly Kryonaut. The paste must handle 300°C, so skip the cheap stuff.
 
 **Hotplate (jlccnc)**:
 
 - File `hotplate_80x70x2.8.step`
-- Material: Aluminum 6061.
-- Surface Finish: "Bead blasting + Anodizing" (Natural color).
+  - Material: Aluminum 6061.
+  - Surface Finish: "Anodizing" (Natural color, glossy).
+  - Comment: "Face mill both top and bottom flat surfaces. No raw stock surface acceptable."
 
 **MCH mounting (jlc3dp)**
 
 - File `ss_mch_mount.stl`
-- `SLM(Metal)` process, 316L steel. Don't try `BJ(Metal)`; it will be rejected.
-- Comment: "All defects are acceptable in advance." The design is on the edge
-  of the printing requirements, so this comment helps avoid order declines.
+  - `SLM(Metal)` process, 316L steel. Don't try `BJ(Metal)`; it will be rejected.
+  - Comment: "All defects are acceptable in advance." The design is on the edge
+    of the printing requirements, so this comment helps avoid order declines.
+
+**Thermal paste stencil** (jlcpcb)
+
+This is optional. It guarantees easy thermal conductive paste apply.
+
+https://oshwlab.com/puzrin/reflow-table-pd
+
+- `thermal_paste_stencil`
+  - Top side only.
+  - Custom size 100x46 mm.
+  - Thickness 0.1 mm.
+  - Select "Confirm production file"
+  - Comment "**Make stencil according to paste mask file**".
+
+**Termal paste conductor (jlc3dp)**
+
+Stenscil conductor (optional too).
+
+- File `thermal_paste_conductor.stl`
+  - SLA, LEDO 6060.
 
 **Optional**
 
