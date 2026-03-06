@@ -33,7 +33,7 @@ What that means in practice:
 - If the paste separates because of rough shipping or long storage, don't
   worry. Connect two syringes with a luer-lock adapter and pump the paste back
   and forth a few times. It will mix back to normal.
-- Avoid ordering paste in the peak of summer when long deliveries sit in high
+- Avoid ordering paste at the height of summer when long deliveries sit in high
   heat.
 
 

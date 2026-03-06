@@ -21,7 +21,7 @@ and fix any issues with a soldering iron and flux. If you're going to wash the
 PCB in an ultrasonic bath, leave the buzzer off until after cleaning so it
 stays safe.
 
-Then solder the heating head connectors on the top side of the PCB. Also solder
+Then solder the heating head connectors to the top side of the PCB. Also solder
 the USB connector mounting holes.
 
 <img src="./images/pcb_main_bottom.jpg" width="30%"> <img src="./images/pcb_main_top.jpg" width="30%">
@@ -39,8 +39,8 @@ screws.
 
 Start by positioning the head connector accurately.
 
-- Place the male connector on the main board sockets. Do not press it in yet.
-- Add the alignment conductors on the corners and rest the head base on top.
+- Place the male connector into the main board sockets. Do not press it in yet.
+- Add the alignment conductors at the corners and rest the head base on top.
 - Tack the edge pins on the outer side to lock the position.
 
 <img src="./images/head_base_connector1.jpg" width="30%"> <img src="./images/head_base_connector2.jpg" width="30%">
@@ -50,13 +50,13 @@ the RTD pins to enable the TCR-based temperature sensor.
 
 <img src="./images/head_base_bottom.jpg" width="30%">
 
-Continue with the hotplate. Countersink the screw heads with a zero-flute
+Continue with the hotplate. Countersink the mounting holes with a zero-flute
 countersink.
 
 - Set the countersink angle so it touches both rails of the drilling conductor
   evenly. Shift the conductor if needed.
-- If you use a screwdriver, drill freehand while resting the countersink on the
-  conductor and pressing through the hole; this keeps the angle correct.
+- If you use a screwdriver, countersink freehand while resting the countersink
+  on the conductor and pressing through the hole; this keeps the angle correct.
 - Run at the lowest speed and clear chips often so they do not scrape the
   conductor.
 - Check the depth: insert a screw and slide the conductor above it—the screw
@@ -68,10 +68,10 @@ countersink.
 Then install the rest of the hotplate components.
 
 - Use RoHS 217°C paste; it is important.
-- Use 0.4/0.3 mm dia copper wire for the power lines. A small cross-section is
+- Use AWG 26 (0.4 mm diameter) copper wire for the power lines. A small cross-section is
   required to keep heat transfer low.
 - Tin the wire first, then solder it to the hotplate.
-- Use a large iron tip at 350-400°C so there is enough heat.
+- Use a large iron tip at 350°C to provide enough heat.
 - Clean the flux with IPA.
 - Install the corner screws with spring washers.
 
@@ -97,7 +97,7 @@ Install the foil and frame on the hotplate.
 
 Attach the hotplate base.
 
-- Install the 4 mm insert nuts with the 3 mm screws into the heating head base.
+- Install the 4 mm insert nuts into the heating head base using the 3 mm screws.
 - Solder the hotplate power wires.
 - Clean the flux with IPA.
 

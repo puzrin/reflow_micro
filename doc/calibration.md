@@ -21,7 +21,7 @@ fine.
 These budget thermometers can drift by a couple of degrees. That's usually not a
 deal-breaker, but if you prefer more accuracy, compare it with a known-good room
 thermometer and note the delta. The Xiaomi Mijia BT thermometer, for example,
-claims only 0.5°C error.
+claims only 0.5°C of error.
 
 Open the app and go to the temperature calibration page.
 
@@ -36,12 +36,12 @@ need the second point.
 
 ### Max temperature entry
 
-Now you need to bake the sensor a bit below the max operating value.
+Now you need to bake the sensor a bit below the maximum operating value.
 
-- 170°C for PCB-based heater. ~ 25 W.
-- 250°C for MCH-based heater. ~ 50 W.
+- 170°C for the PCB-based heater, about 25 W.
+- 250°C for the MCH-based heater, about 50 W.
 
-Don't exceed the maximum or you can damage the heater.
+Don't exceed that temperature, or you can damage the heater.
 
 - Set the recommended power and press `Bake`.
 - Wait for the temperature to stabilize. It can take 10-15 minutes.
@@ -79,10 +79,10 @@ This automatically estimates the head response time and scale factor.
 - In the `Test controller` section, set the temperature to the main working
   range for the heater type (170-210°C), and press `Run`.
 - When the temperature stabilizes, start increasing `N` from 10 until you see
-  power jitter > 20% in debug info.
+  power jitter above 20% in the debug info.
 - After jitter appears, reduce `N` by 10-20%.
 
-Usually, this is OK:
+Usually, these values are OK:
 
 - MCPCB head: `M = 2`, `N = 50`.
 - MCH head: `M = 2`, `N = 60`.
