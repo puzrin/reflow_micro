@@ -18,7 +18,7 @@ This BOM extends the default one; be sure to order it as well.
 1 | Hotplate and clamps | See details below.
 2 | M1.6 countersunk SS screws 8 mm (×6) | [EDLW-S1-M1.6-L8](https://jlcmc.com/product/s/E02/EDLW/gb-t-819-phillips-countersunk-head-screw?k=EDLW-S1-M1.6-L8&productModelNumber=EDLW-S1-M1.6-L8). MCH mount.
 3 | [MCH 70*14 2R / 7R (×2)](https://www.aliexpress.com/item/32966428374.html) | Two heaters are required; buy 5-10 so you can match their resistance. Note: the 10R variant is actually 7R, but that's not guaranteed. Also select the proper base-board variant for the MCH resistance. 7R is recommended for better heating performance.
-4 | [Thermally conductive paste](https://www.aliexpress.com/item/1005002400161049.html) | Use Thermal Grizzly Kryonaut. The paste must handle 300°C, so skip the cheap stuff.
+4 | [Thermally conductive paste](https://www.aliexpress.com/item/1005009116482403.html) | Note, paste should be durable at 250°C. Pastes from 3d printer hotends are good candidates.
 
 **Hotplate (JLCCNC)**:
 
@@ -34,7 +34,7 @@ This BOM extends the default one; be sure to order it as well.
   - Comment: "All defects are acceptable in advance." The design is on the edge
     of the printing requirements, so this comment helps avoid order declines.
 
-**Thermal paste stencil** (JLCPCB)
+**Thermal paste stencil (JLCPCB)**
 
 This is optional. It makes applying the thermally conductive paste easier.
 

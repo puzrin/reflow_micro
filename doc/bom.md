@@ -22,8 +22,8 @@ the cost.
 11 | [M2 4 mm insert nuts (×7)](https://www.aliexpress.com/item/1005008644449489.html) | Hardware for the head mount.
 12 | [Magnets D6 L3 (×8)](https://www.aliexpress.com/item/1005010676875849.html) | Cap lock. N52 preferred, look for "magnets for 3d printers".
 13 | [Magnets D4 L4 (×4)](https://www.aliexpress.com/item/1005010676875849.html) | Cap lock (double D4 L2 ok too). N52 preferred, look for "magnets for 3d printers".
-14 | [Raspberry Pi 5 fan](https://he.aliexpress.com/item/1005006547048892.html) | Side-blowing fan for plate cooling.
-15 | [AWG 26 wire](https://he.aliexpress.com/item/1005010779278423.html) | For MCPCB head only, power wires. Any 0.4 mm (0.126 mm²) tinned copper wire will be ok. The small cross-section helps reduce heat transfer.
+14 | [Raspberry Pi 5 fan](https://www.aliexpress.com/item/1005006547048892.html) | Side-blowing fan for plate cooling.
+15 | [AWG 26 wire](https://www.aliexpress.com/item/1005010779278423.html) | For MCPCB head only, power wires. Any 0.4 mm (0.126 mm²) tinned copper wire will be ok. The small cross-section helps reduce heat transfer.
 16 | [Vinyl Electrical Tape 0.15 mm, black](https://www.aliexpress.com/item/1005010360658475.html) | For SLA prints only. Use it when installing M3 screws into the cap.
 
 **LCSC order notes.**
