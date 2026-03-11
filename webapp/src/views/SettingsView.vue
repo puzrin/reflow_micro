@@ -1,28 +1,25 @@
 <script setup lang="ts">
-import PageLayout from '@/components/PageLayout.vue'
-import { RouterLink } from 'vue-router'
 import { useProfilesStore } from '@/stores/profiles'
 import { useLocalSettingsStore } from '@/stores/localSettings'
 import { ref, inject, onMounted } from 'vue'
-import { type UseDraggableReturn, VueDraggable, type SortableEvent } from 'vue-draggable-plus'
+import { VueDraggable, type SortableEvent } from 'vue-draggable-plus'
+import { useRouter } from 'vue-router'
 import { Device } from '@/device'
-
-import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
-import EditIcon from '@heroicons/vue/24/outline/PencilIcon'
-import DeleteIcon from '@heroicons/vue/24/outline/XMarkIcon'
-import DragIcon from '@heroicons/vue/24/outline/ArrowsUpDownIcon'
-
-import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
-import ButtonDanger from '@/components/buttons/ButtonDanger.vue'
-import ButtonNormalSquareSmall from '@/components/buttons/ButtonNormalSquareSmall.vue'
-
-import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import { confirm } from '@/composables/confirm'
+import { notify } from '@/composables/notify'
+import { usePageShell } from '@/composables/appShell'
 
 const device: Device = inject('device')!
+const router = useRouter()
 
 const profilesStore = useProfilesStore()
 const localSettingsStore = useLocalSettingsStore()
-const el = ref<UseDraggableReturn>()
+
+usePageShell(() => ({
+  title: 'Settings',
+  nav: { kind: 'back', to: { name: 'home' } },
+  pageMode: 'default',
+}))
 
 // On drag, move the profile with the store method to keep reactivity working.
 function customUpdate(evt: SortableEvent) {
@@ -30,178 +27,226 @@ function customUpdate(evt: SortableEvent) {
   profilesStore.move(oldIndex ?? 0, newIndex ?? 0)
 }
 
-// Profile delete confirmation dialog
-
-const deleteDlgRef = ref<InstanceType<typeof ConfirmDialog>>()
-function deleteProfile(profileId: number) {
-  deleteDlgRef.value?.run().then((result) => {
-    if (result === 'ok') profilesStore.remove(profileId)
-  })
+function openProfile(profileId: number) {
+  router.push({ name: 'profile', params: { id: profileId } })
 }
 
-// Reset-profiles confirmation dialog
-
-const resetDlgRef = ref<InstanceType<typeof ConfirmDialog>>()
-function resetProfiles() {
-  resetDlgRef.value?.run().then((result) => {
-    if (result === 'ok') {
-      device.loadProfilesData(true)
-    }
+async function deleteProfile(profileId: number) {
+  const result = await confirm({
+    title: 'Remove profile?',
+    actions: [
+      { key: 'remove', label: 'Remove', color: 'error' },
+      { key: 'cancel', label: 'Cancel' },
+    ],
   })
+
+  if (result === 'remove') profilesStore.remove(profileId)
+}
+
+async function resetProfiles() {
+  const result = await confirm({
+    title: 'Reset profiles?',
+    description: 'All custom changes to your heating profiles will be lost.',
+    actions: [
+      { key: 'reset', label: 'Reset', color: 'error' },
+      { key: 'cancel', label: 'Cancel' },
+    ],
+  })
+
+  if (result === 'reset') {
+    device.loadProfilesData(true)
+  }
 }
 
 // BLE name form
 
 const bleName = ref('')
+const bleNameDraft = ref('')
 const bleNameError = ref(false)
-const saveBleNameBtn = ref<InstanceType<typeof ButtonNormal>>()
+const bleNameDialogOpen = ref(false)
 
 onMounted(async () => {
   if (!device.is_ready.value) return
   bleName.value = await device.get_ble_name()
 })
 
+function openBleNameDialog() {
+  bleNameDraft.value = bleName.value
+  bleNameError.value = false
+  bleNameDialogOpen.value = true
+}
+
+function closeBleNameDialog() {
+  bleNameDialogOpen.value = false
+  bleNameError.value = false
+}
+
 async function saveBleNameHandler() {
   bleNameError.value = false
 
-  if (bleName.value.length < 3) {
+  if (bleNameDraft.value.length < 3) {
     bleNameError.value = true
-    saveBleNameBtn.value?.showFailure()
     return
   }
 
   // Check for ASCII only (printable characters 32-126)
-  const isAscii = /^[\x20-\x7E]*$/.test(bleName.value)
+  const isAscii = /^[\x20-\x7E]*$/.test(bleNameDraft.value)
   if (!isAscii) {
     bleNameError.value = true
-    saveBleNameBtn.value?.showFailure()
     return
   }
 
   try {
-    await device.set_ble_name(bleName.value)
-    saveBleNameBtn.value?.showSuccess()
+    await device.set_ble_name(bleNameDraft.value)
+    bleName.value = bleNameDraft.value
+    bleNameDialogOpen.value = false
   } catch {
     bleNameError.value = true
-    saveBleNameBtn.value?.showFailure()
+    notify({ message: 'Failed to update', color: 'error' })
   }
 }
 
 </script>
 
 <template>
-  <PageLayout>
-    <template #toolbar>
-      <RouterLink :to="{ name: 'home' }" class="mr-2 -ml-0.5">
-        <BackIcon class="w-8 h-8" />
-      </RouterLink>
-      <span>Settings</span>
-    </template>
-
-    <h2 class="mb-4 text-lg font-semibold">Heating profiles</h2>
-
-    <VueDraggable
-      ref="el"
-      v-model="profilesStore.items"
-      :animation="150"
-      handle=".handle"
-      ghostClass="ghost"
-      class="mb-4"
-      :customUpdate="customUpdate"
-    >
-      <div
-        v-for="profile in profilesStore.items"
-        :key="profile.id"
-        class="flex gap-x-2 items-center mb-3 rounded-lg p-2 border border-gray-30"
+  <v-container class="py-4 d-flex flex-column ga-4">
+    <v-card>
+      <v-card-item title="Heating profiles" />
+      <v-divider />
+      <VueDraggable
+        v-model="profilesStore.items"
+        tag="div"
+        target=".profiles-list"
+        :animation="150"
+        handle=".profile-handle"
+        :customUpdate="customUpdate"
       >
-        <div class="handle cursor-move">
-          <DragIcon class="w-3 h-3" />
-        </div>
-        <div class="grow -ml-1 whitespace-nowrap text-ellipsis overflow-hidden">{{ profile.name }}</div>
-        <RouterLink :to="{ name: 'profile', params: { id: profile.id } }">
-          <ButtonNormalSquareSmall>
-            <EditIcon class="w-4 h-4" />
-          </ButtonNormalSquareSmall>
-        </RouterLink>
-        <ButtonNormalSquareSmall
-          :disabled="profilesStore.items.length < 2"
-          @click="deleteProfile(profile.id)"
+        <v-list class="profiles-list" lines="one">
+          <v-list-item
+            v-for="profile in profilesStore.items"
+            :key="profile.id"
+            link
+            @click="openProfile(profile.id)"
+          >
+            <v-list-item-title class="text-truncate">{{ profile.name }}</v-list-item-title>
+
+            <template #append>
+              <v-list-item-action end>
+                <v-menu location="bottom end">
+                  <template #activator="{ props }">
+                    <v-btn
+                      v-bind="props"
+                      size="x-small"
+                      icon="mdi-dots-vertical"
+                      variant="text"
+                      aria-label="Profile actions"
+                      @click.stop
+                      @mousedown.stop
+                    />
+                  </template>
+
+                  <v-list>
+                    <v-list-item
+                      title="Edit"
+                      :to="{ name: 'profile', params: { id: profile.id } }"
+                    />
+                    <v-list-item
+                      title="Remove"
+                      :disabled="profilesStore.items.length < 2"
+                      @click="deleteProfile(profile.id)"
+                    />
+                  </v-list>
+                </v-menu>
+                <v-btn
+                  class="profile-handle"
+                  icon="mdi-reorder-vertical"
+                  size="x-small"
+                  variant="text"
+                  aria-label="Drag profile"
+                  @click.stop
+                  @mousedown.stop
+                />
+              </v-list-item-action>
+            </template>
+          </v-list-item>
+        </v-list>
+      </VueDraggable>
+      <v-divider />
+      <v-card-actions>
+        <v-btn color="primary" variant="text" size="large" :to="{ name: 'profile', params: { id: 0 } }">Add</v-btn>
+        <v-btn variant="text" size="large" @click="resetProfiles">Reset</v-btn>
+      </v-card-actions>
+    </v-card>
+
+    <v-card>
+      <v-card-item title="General" />
+      <v-divider />
+      <v-list lines="two">
+        <v-list-item
+          title="Bluetooth name"
+          :subtitle="bleName || '--'"
+          link
+          @click="openBleNameDialog"
+        />
+        <v-list-item
+          title="Show debug info"
+          :subtitle="localSettingsStore.showDebugInfo ? 'On' : 'Off'"
+          @click="localSettingsStore.showDebugInfo = !localSettingsStore.showDebugInfo"
         >
-          <DeleteIcon class="w-4 h-4" />
-        </ButtonNormalSquareSmall>
-      </div>
-    </VueDraggable>
+          <template #append>
+            <v-switch
+              :model-value="localSettingsStore.showDebugInfo"
+              hide-details
+              @click.stop
+              @update:model-value="localSettingsStore.showDebugInfo = !!$event"
+            />
+          </template>
+        </v-list-item>
+      </v-list>
+    </v-card>
 
-    <div class="mb-4">
-      <RouterLink :to="{ name: 'profile', params: { id: 0 } }" class="me-2">
-        <ButtonNormal>Add</ButtonNormal>
-      </RouterLink>
-      <ButtonNormal @click="resetProfiles">Reset</ButtonNormal>
-    </div>
+    <v-card>
+      <v-card-item title="Calibration" />
+      <v-divider />
+      <v-list lines="one">
+        <v-list-item
+          title="Calibrate temperature sensor"
+          :to="{ name: 'calibrate_sensor' }"
+        />
+        <v-list-item
+          title="Calibrate temperature controller"
+          :to="{ name: 'calibrate_adrc' }"
+        />
+        </v-list>
+      </v-card>
+  </v-container>
 
-
-    <h2 class="mb-4 mt-4 text-lg font-semibold">General</h2>
-
-    <div class="mb-6">
-      <div class="mb-1 text-gray-C00">Bluetooth name</div>
-      <div class="flex gap-2 flex-nowrap w-full">
-        <input v-model="bleName" type="text" minlength="3" maxlength="30" class="w-full" />
-        <ButtonNormal ref="saveBleNameBtn" @click="saveBleNameHandler">Update</ButtonNormal>
-      </div>
-      <div v-if="bleNameError" class="text-xs text-red-500 mt-0.5">Name must be 3-30 ASCII characters</div>
-    </div>
-
-    <div class="flex items-center mb-4">
-      <input
-        id="debug-on"
-        type="checkbox"
-        v-model="localSettingsStore.showDebugInfo"
-        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-      >
-      <label for="debug-on" class="ms-2 text-gray-900">Show debug info</label>
-    </div>
-
-    <h2 class="mb-4 mt-4 text-lg font-semibold">Calibration</h2>
-
-    <div class="mb-4">
-      <RouterLink :to="{ name: 'calibrate_sensor' }" class="me-2">
-        <ButtonNormal>Calibrate temperature sensor</ButtonNormal>
-      </RouterLink>
-    </div>
-    <div class="mb-4">
-      <RouterLink :to="{ name: 'calibrate_adrc' }" class="me-2">
-        <ButtonNormal>Calibrate temperature controller</ButtonNormal>
-      </RouterLink>
-    </div>
-
-    <div class=" mb-4">
-    </div>
-  </PageLayout>
-
-  <!-- Profiles reset confirmation dialog -->
-
-  <ConfirmDialog ref="resetDlgRef" v-slot="{ closeAs }">
-    <p class="mt-2">Reset all profiles? All your changes will be lost.</p>
-    <div class="mt-4">
-      <ButtonDanger class="me-2" @click="closeAs('ok')">Yes</ButtonDanger>
-      <ButtonNormal class="me-2" @click="closeAs('cancel')">Cancel</ButtonNormal>
-    </div>
-  </ConfirmDialog>
-
-  <!-- Profile delete confirmation dialog -->
-
-  <ConfirmDialog ref="deleteDlgRef" v-slot="{ closeAs }">
-    <p class="mt-2">Remove this profile?</p>
-    <div class="mt-4">
-      <ButtonDanger class="me-2" @click="closeAs('ok')">Yes</ButtonDanger>
-      <ButtonNormal class="me-2" @click="closeAs('cancel')">Cancel</ButtonNormal>
-    </div>
-  </ConfirmDialog>
+  <v-dialog v-model="bleNameDialogOpen" max-width="30rem">
+    <v-card>
+      <v-card-item title="Bluetooth name" />
+      <v-card-text>
+        <v-text-field
+          v-model="bleNameDraft"
+          label="Bluetooth name"
+          minlength="3"
+          maxlength="30"
+          :error-messages="bleNameError ? ['Name must be 3-30 ASCII characters'] : []"
+        />
+      </v-card-text>
+      <v-card-actions>
+        <v-btn @click="closeBleNameDialog">Cancel</v-btn>
+        <v-btn color="primary" variant="elevated" @click="saveBleNameHandler">Save</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <style scoped>
-.ghost {
-  opacity: 0.5;
-  background: #c8ebfb;
+.profile-handle {
+  cursor: grab;
+}
+
+.profile-handle:active {
+  cursor: grabbing;
 }
 </style>

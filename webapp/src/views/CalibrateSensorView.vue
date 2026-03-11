@@ -1,30 +1,31 @@
 <script setup lang="ts">
-import PageLayout from '@/components/PageLayout.vue'
-import { RouterLink, onBeforeRouteLeave } from 'vue-router'
+import { onBeforeRouteLeave } from 'vue-router'
 import { watchDebounced } from '@vueuse/core'
 import { inject, ref, computed, watch } from 'vue'
 import { Device } from '@/device'
 import ReflowChart from '@/components/ReflowChart.vue'
-import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
-import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
 import { DeviceActivityStatus, HeadStatus, Constants } from '@/proto/generated/types'
-import ToolbarIndicator from '@/components/ToolbarIndicator.vue'
 import { useLocalSettingsStore } from '@/stores/localSettings'
 import DebugInfo from '@/components/DebugInfo.vue'
+import { notify } from '@/composables/notify'
+import { usePageShell } from '@/composables/appShell'
 
 const localSettingsStore = useLocalSettingsStore()
 
 const device: Device = inject('device')!
 
-const saveP0Btn = ref()
-const saveP1Btn = ref()
-
 const status = device.status
 const is_idle = computed(() => status.activity === DeviceActivityStatus.Idle)
 const is_baking = computed(() => status.activity === DeviceActivityStatus.SensorBake)
 
-const p0 = ref('')
-const p1 = ref('')
+usePageShell(() => ({
+  title: 'Calibrate temperature sensor',
+  nav: { kind: 'back', to: { name: 'settings' } },
+  pageMode: 'default',
+}))
+
+const p0 = ref<number | null>(null)
+const p1 = ref<number | null>(null)
 const p0_orig = ref(0)
 const p1_orig = ref(0)
 
@@ -56,133 +57,159 @@ onBeforeRouteLeave(async () => {
 
 // Update power on the fly (only while baking is in progress)
 watchDebounced(power, async () => {
-  if (is_baking.value) await device.run_sensor_bake(toNumber(power.value))
+  if (is_baking.value) await device.run_sensor_bake(power.value)
 }, { debounce: 500 })
 
-function isNumberLike(val: string | number): boolean {
-  if (typeof val === 'number') return true
-  return  !isNaN(Number(val.replace(',', '.'))) && val.trim() !== ''
-}
-
-function toNumber(val: string | number) {
-  if (typeof val === 'number') return val
-  return parseFloat(val.replace(',', '.')) || 0
-}
-
 async function save_p0() {
-  if (p0.value === '') return
-  if (!isNumberLike(p0.value)) { show_p0_error.value = true; return }
+  if (p0.value == null) { show_p0_error.value = true; return }
 
   show_p0_error.value = false
-  await device.set_cpoint0(toNumber(p0.value))
-
-  saveP0Btn.value?.showSuccess()
-  await loadCalibrationStatus()
-  p0.value = ''
+  try {
+    await device.set_cpoint0(p0.value)
+    await loadCalibrationStatus()
+    p0.value = null
+  } catch {
+    notify({ message: 'Failed to save', color: 'error' })
+  }
 }
 
 async function save_p1() {
-  if (p1.value === '') return
-  if (!isNumberLike(p1.value)) { show_p1_error.value = true; return }
+  if (p1.value == null) { show_p1_error.value = true; return }
 
   show_p1_error.value = false
-  await device.set_cpoint1(toNumber(p1.value))
+  try {
+    await device.set_cpoint1(p1.value)
+    await loadCalibrationStatus()
+    p1.value = null
+  } catch {
+    notify({ message: 'Failed to save', color: 'error' })
+    return
+  }
 
-  saveP1Btn.value?.showSuccess()
-  await loadCalibrationStatus()
-  p1.value = ''
-  await device.stop(true)
+  try {
+    await device.stop(true)
+  } catch {
+    notify({ message: 'Failed to stop', color: 'error' })
+  }
+}
+
+async function startBake() {
+  try {
+    await device.run_sensor_bake(power.value)
+  } catch {
+    notify({ message: 'Failed to start baking', color: 'error' })
+  }
+}
+
+async function stopBake() {
+  try {
+    await device.stop()
+  } catch {
+    notify({ message: 'Failed to stop', color: 'error' })
+  }
 }
 </script>
 
 <template>
-  <PageLayout>
-    <template #toolbar>
-      <RouterLink :to="{ name: 'settings' }" class="mr-2 -ml-0.5">
-        <BackIcon class="w-8 h-8" />
-      </RouterLink>
-      <div class="mr-2 grow text-ellipsis overflow-hidden whitespace-nowrap">
-        Calibrate temperature sensor
-      </div>
-      <ToolbarIndicator :status="status" />
-    </template>
-
-    <div v-if="status.head !== HeadStatus.HeadConnected" class="text-red-500 mb-4">
+  <v-container class="py-4 d-flex flex-column ga-4">
+    <v-alert v-if="status.head !== HeadStatus.HeadConnected" type="error">
       Hotplate not connected
-    </div>
+    </v-alert>
     <template v-else>
-      <p class="text-slate-400 mb-8">
+      <v-alert>
         Set the temperature at two points for proper sensor calibration.
-      </p>
+      </v-alert>
 
+      <v-card>
+        <v-card-item title="Heat point 1 (room)">
+          <template #append>
+            <v-chip :color="is_p0_calibrated ? 'success' : 'warning'" variant="outlined" size="x-small">
+              {{ is_p0_calibrated ? `at ${Math.round(p0_orig)}°C` : 'missing' }}
+            </v-chip>
+          </template>
+        </v-card-item>
+        <v-divider />
+        <v-card-text>
+          <div class="mb-3 text-medium-emphasis">
+            With a cold hotplate, enter the actual room temperature.
+          </div>
+          <v-number-input
+            v-model="p0"
+            label="Temperature (°C)"
+            inset
+            :min="10"
+            :max="100"
+            :step="0.1"
+            :precision="1"
+            :error-messages="show_p0_error ? ['Required'] : []"
+            @update:model-value="show_p0_error = false"
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="primary" variant="text" size="large" @click="save_p0" :disabled="!is_idle">Save</v-btn>
+        </v-card-actions>
+      </v-card>
 
-      <h2 class="text-2xl mb-0.5 text-slate-800">Heat point 1 (room temp)</h2>
-      <div v-if="is_p0_calibrated" class="mb-1 text-xs text-green-600">
-        <span>Calibrated at {{ Math.round(p0_orig) }}°C</span>
-      </div>
-      <div v-if="!is_p0_calibrated" class="mb-1 text-xs text-orange-500">
-        <span>Not calibrated</span>
-      </div>
-      <p class="text-sm text-slate-400 mb-4">
-        With a cold hotplate, enter the actual room temperature.
-      </p>
+      <v-card>
+        <v-card-item title="Heat point 2 (max)">
+          <template #append>
+            <v-chip :color="is_p1_calibrated ? 'success' : 'warning'" variant="outlined" size="x-small">
+              {{ is_p1_calibrated ? `at ${Math.round(p1_orig)}°C` : 'missing' }}
+            </v-chip>
+          </template>
+        </v-card-item>
+        <v-divider />
+        <v-card-text>
+          <div class="mb-3 text-medium-emphasis">
+            Select a power level that stays below the maximum supported temperature
+            (~25 W / 170°C for the MCPCB heater, ~50 W / 250°C for the MCH-based heater).
+            Wait until the temperature stabilizes, then enter the actual value.
+          </div>
+          <v-slider v-model="power" min="1" max="100" thumb-label="always">
+            <template v-slot:thumb-label="{ modelValue }">
+              {{ Math.round(modelValue * 10)/10 }}&nbsp;W
+            </template>
+          </v-slider>
 
-      <div class="mb-8">
-        <div class="flex gap-2 flex-nowrap w-full">
-          <input v-model="p0" type="number" inputmode="numeric" min="10" max="100" class="w-full" />
-          <ButtonNormal ref="saveP0Btn" @click="save_p0" :disabled="!is_idle">Save</ButtonNormal>
+          <div class="mb-3 text-medium-emphasis">
+            Enter actual value when temperature become stable.
+          </div>
+          <v-number-input
+            v-model="p1"
+            label="Temperature (°C)"
+            inset
+            :min="150"
+            :max="300"
+            :step="0.1"
+            :precision="1"
+            :disabled="!is_baking"
+            :error-messages="show_p1_error ? ['Required'] : []"
+            @update:model-value="show_p1_error = false"
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="red" variant="text" size="large" @click="startBake" :disabled="!is_idle">Bake</v-btn>
+          <v-btn variant="text" size="large" @click="stopBake" :disabled="!is_baking">Stop</v-btn>
+          <v-btn color="primary" variant="text" size="large" @click="save_p1" :disabled="!is_baking">Save</v-btn>
+        </v-card-actions>
+      </v-card>
+
+      <v-sheet class="chart-host chart-host--fixed-h flex-fill pa-4 rounded border">
+        <div class="chart-host-wrap1">
+          <div class="chart-host-wrap2">
+            <ReflowChart id="calibrate-sensor-bake"
+              :profile="null"
+              :history="device.history.points"
+              :show_history="device.history.id === Constants.HISTORY_ID_SENSOR_BAKE_MODE" />
+
+            <DebugInfo
+              v-if="localSettingsStore.showDebugInfo"
+              class="chart-host-debug--bottom"
+              :status="status"
+            />
+          </div>
         </div>
-        <div v-if="show_p0_error" class="text-xs text-red-500 mt-0.5">Not a number</div>
-        <div class="text-xs text-slate-400 mt-0.5">Temperature, °C</div>
-      </div>
-
-
-      <h2 class="text-2xl mb-0.5 text-slate-800">Heat point 2 (below the allowed maximum)</h2>
-      <div v-if="is_p1_calibrated" class="mb-1 text-xs text-green-600">
-        <span>Calibrated at {{ Math.round(p1_orig) }}°C</span>
-      </div>
-      <div v-if="!is_p1_calibrated" class="mb-1 text-xs text-orange-500">
-        <span>Not calibrated</span>
-      </div>
-      <p class="text-sm text-slate-400 mb-4">
-        Select a power level that stays below the maximum supported temperature
-        (~25 W / 170°C for the MCPCB heater, ~50 W / 250°C for the MCH-based
-        heater). Wait until the temperature becomes stable, then enter the
-        actual value. Adjust the power if needed.
-      </p>
-
-      <div class="mb-8">
-        <div class="flex gap-2 flex-nowrap w-full">
-          <input v-model="power" type="range" min="1" max="100" class="w-full" />
-          <ButtonNormal @click="device.run_sensor_bake(toNumber(power))" :disabled="!is_idle">Bake</ButtonNormal>
-          <ButtonNormal @click="device.stop()" :disabled="!is_baking">Stop</ButtonNormal>
-        </div>
-        <div class="text-xs text-slate-400 mt-0.5">Power {{ power }} W</div>
-      </div>
-
-      <div class="mb-8">
-        <div class="flex gap-2 flex-nowrap w-full">
-          <input v-model="p1" type="number" inputmode="numeric" min="150" max="300" class="w-full" />
-          <ButtonNormal ref="saveP1Btn" @click="save_p1" :disabled="!is_baking">Save</ButtonNormal>
-        </div>
-        <div v-if="show_p1_error" class="text-xs text-red-500 mt-0.5">Not a number</div>
-        <div class="text-xs text-slate-400 mt-0.5">Temperature, °C</div>
-      </div>
-
-
-      <div class="mt-4 relative rounded-md bg-slate-100 h-[300px]">
-        <div class="absolute top-0 left-0 right-0 bottom-0">
-          <ReflowChart id="calibrate-sensor-bake"
-            :profile="null"
-            :history="device.history.points"
-            :show_history="device.history.id === Constants.HISTORY_ID_SENSOR_BAKE_MODE" />
-        </div>
-        <DebugInfo
-          v-if="localSettingsStore.showDebugInfo"
-          class="absolute bottom-10 right-3 text-right text-xs opacity-50"
-          :status="status"
-        />
-      </div>
+      </v-sheet>
     </template>
-  </PageLayout>
+  </v-container>
 </template>

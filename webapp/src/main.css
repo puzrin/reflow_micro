@@ -1,22 +1,43 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+.chart-host {
+  display: flex;
+  flex-direction: column;
+  background-color: color-mix(in srgb, steelblue 10%, white);
+}
 
-body {
-  font-family:
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    'Fira Sans',
-    'Droid Sans',
-    'Helvetica Neue',
-    sans-serif;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+.chart-host-wrap1 {
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+}
+
+.chart-host-wrap2 {
+  position: absolute;
+  inset: 0;
+  bottom: -4px;
+  left: -4px;
+}
+
+.chart-host--fixed-h {
+  height: 300px;
+}
+
+.chart-host-debug--top {
+  position: absolute;
+  right: 0;
+  top: 12px;
+}
+
+.chart-host-debug--bottom {
+  position: absolute;
+  right: 0;
+  bottom: 40px;
+}
+
+
+@media (min-width: 1200px) {
+  .v-main > .v-container {
+    width: 100%;
+    max-width: 1000px;
+    margin-inline: auto;
+  }
 }

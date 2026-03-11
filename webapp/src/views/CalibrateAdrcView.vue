@@ -1,17 +1,15 @@
 <script setup lang="ts">
-import PageLayout from '@/components/PageLayout.vue'
-import { RouterLink, onBeforeRouteLeave } from 'vue-router'
+import { onBeforeRouteLeave } from 'vue-router'
 import { watchDebounced } from '@vueuse/core'
 import { inject, ref, computed, watch } from 'vue'
 import { Device } from '@/device'
 import ReflowChart from '@/components/ReflowChart.vue'
-import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
-import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
 import { HeadParams, DeviceActivityStatus, HeadStatus, Constants } from '@/proto/generated/types'
 import { DEFAULT_HEAD_PARAMS_PB } from '@/proto/generated/defaults'
-import ToolbarIndicator from '@/components/ToolbarIndicator.vue'
 import { useLocalSettingsStore } from '@/stores/localSettings'
 import DebugInfo from '@/components/DebugInfo.vue'
+import { notify } from '@/composables/notify'
+import { usePageShell } from '@/composables/appShell'
 
 const localSettingsStore = useLocalSettingsStore()
 
@@ -23,13 +21,16 @@ const is_idle = computed(() => activity.value === DeviceActivityStatus.Idle)
 const is_testing = computed(() => activity.value === DeviceActivityStatus.AdrcTest)
 const is_step_response = computed(() => activity.value === DeviceActivityStatus.StepResponse)
 
-const saveBtn = ref()
-const resetBtn = ref()
+usePageShell(() => ({
+  title: 'Calibrate temperature controller',
+  nav: { kind: 'back', to: { name: 'settings' } },
+  pageMode: 'default',
+}))
 
-const adrc_param_tau = ref('')
-const adrc_param_b0 = ref('')
-const adrc_param_n = ref('')
-const adrc_param_m = ref('')
+const adrc_param_tau = ref<number | null>(null)
+const adrc_param_b0 = ref<number | null>(null)
+const adrc_param_n = ref<number | null>(null)
+const adrc_param_m = ref<number | null>(null)
 const adrc_error_tau = ref(false)
 const adrc_error_b0 = ref(false)
 const adrc_error_n = ref(false)
@@ -38,16 +39,16 @@ const adrc_error_m = ref(false)
 const test_temperature = ref(170)
 const step_response_power = ref(25)
 
-function toPrecisionStr(num: number, valuableDigits: number = 2): string {
+function toPrecisionNumber(num: number, valuableDigits: number = 2): number {
   // `Number` required to remove scientific notation and trailing zeros
-  return Number(num.toPrecision(valuableDigits)).toString();
+  return Number(num.toPrecision(valuableDigits))
 }
 
 function configToRefs(config: HeadParams) {
-  adrc_param_tau.value = toPrecisionStr(config.adrc_response, 3)
-  adrc_param_b0.value = toPrecisionStr(config.adrc_b0, 3)
-  adrc_param_n.value = toPrecisionStr(config.adrc_N, 3)
-  adrc_param_m.value = toPrecisionStr(config.adrc_M, 3)
+  adrc_param_tau.value = toPrecisionNumber(config.adrc_response, 3)
+  adrc_param_b0.value = toPrecisionNumber(config.adrc_b0, 3)
+  adrc_param_n.value = toPrecisionNumber(config.adrc_N, 3)
+  adrc_param_m.value = toPrecisionNumber(config.adrc_M, 3)
 }
 
 watch(
@@ -68,7 +69,7 @@ onBeforeRouteLeave(async () => {
 
 // Update the temperature on the fly (only while testing is active)
 watchDebounced(test_temperature, async () => {
-  if (is_testing.value) await device.run_adrc_test(toNumber(test_temperature.value))
+  if (is_testing.value) await device.run_adrc_test(test_temperature.value)
 }, { debounce: 500 })
 
 // Reload ADRC settings when any task finishes
@@ -78,154 +79,179 @@ watch(activity, async (newState) => {
   }
 })
 
-function isNumberLike(val: string | number): boolean {
-  if (typeof val === 'number') return true
-  return  !isNaN(Number(val.replace(',', '.'))) && val.trim() !== ''
-}
-
-function toNumber(val: string | number) {
-  if (typeof val === 'number') return val
-  return parseFloat(val.replace(',', '.')) || 0
-}
-
 async function save_adrc_params() {
-  if (!isNumberLike(adrc_param_tau.value)) { adrc_error_tau.value = true; saveBtn.value?.showFailure(); return }
-  if (!isNumberLike(adrc_param_b0.value)) { adrc_error_b0.value = true; saveBtn.value?.showFailure(); return }
-  if (!isNumberLike(adrc_param_n.value)) { adrc_error_n.value = true; saveBtn.value?.showFailure(); return }
-  if (!isNumberLike(adrc_param_m.value)) { adrc_error_m.value = true; saveBtn.value?.showFailure(); return }
+  if (adrc_param_tau.value == null) { adrc_error_tau.value = true; return }
+  if (adrc_param_b0.value == null) { adrc_error_b0.value = true; return }
+  if (adrc_param_n.value == null) { adrc_error_n.value = true; return }
+  if (adrc_param_m.value == null) { adrc_error_m.value = true; return }
 
   adrc_error_tau.value = false
   adrc_error_b0.value = false
   adrc_error_n.value = false
   adrc_error_m.value = false
 
-  const head_params = await device.get_head_params()
-  head_params.adrc_response = toNumber(adrc_param_tau.value)
-  head_params.adrc_b0 = toNumber(adrc_param_b0.value)
-  head_params.adrc_N = toNumber(adrc_param_n.value)
-  head_params.adrc_M = toNumber(adrc_param_m.value)
-  await device.set_head_params(head_params)
+  try {
+    const head_params = await device.get_head_params()
+    head_params.adrc_response = adrc_param_tau.value
+    head_params.adrc_b0 = adrc_param_b0.value
+    head_params.adrc_N = adrc_param_n.value
+    head_params.adrc_M = adrc_param_m.value
+    await device.set_head_params(head_params)
 
-  saveBtn.value?.showSuccess();
-  configToRefs(await device.get_head_params())
+    configToRefs(await device.get_head_params())
+    notify({ message: 'Settings saved', color: 'success' })
+  } catch {
+    notify({ message: 'Failed to save', color: 'error' })
+  }
 }
 
 async function default_adrc_params() {
   configToRefs(HeadParams.decode(DEFAULT_HEAD_PARAMS_PB))
-  resetBtn.value?.showSuccess()
+}
+
+async function runStepResponse() {
+  try {
+    await device.run_step_response(step_response_power.value)
+  } catch {
+    notify({ message: 'Failed to run', color: 'error' })
+  }
+}
+
+async function runAdrcTest() {
+  try {
+    await device.run_adrc_test(test_temperature.value)
+  } catch {
+    notify({ message: 'Failed to run', color: 'error' })
+  }
+}
+
+async function stopTask(force: boolean = false) {
+  try {
+    await device.stop(force)
+  } catch {
+    notify({ message: 'Failed to stop', color: 'error' })
+  }
 }
 </script>
 
 <template>
-  <PageLayout>
-    <template #toolbar>
-      <RouterLink :to="{ name: 'settings' }" class="mr-2 -ml-0.5">
-        <BackIcon class="w-8 h-8" />
-      </RouterLink>
-      <div class="mr-2 grow text-ellipsis overflow-hidden whitespace-nowrap">
-        Calibrate temperature controller
-      </div>
-      <ToolbarIndicator :status="status" />
-    </template>
-
-    <div v-if="status.head !== HeadStatus.HeadConnected" class="text-red-500 mb-4">
+  <v-container class="py-4 d-flex flex-column ga-4">
+    <v-alert v-if="status.head !== HeadStatus.HeadConnected" type="error">
       Hotplate not connected
-    </div>
+    </v-alert>
     <template v-else>
-      <h2 class="text-2xl mb-4 mt-4 text-slate-800">Manual ADRC settings</h2>
+      <v-card>
+        <v-card-item title="Manual ADRC settings" />
+        <v-divider />
+        <v-card-text>
+          <div class="mb-3 text-medium-emphasis">
+            Response time for a step input. Run the step response test to detect it.
+          </div>
+          <v-number-input
+            v-model="adrc_param_tau"
+            label="τ (sec)"
+            inset
+            :min="1"
+            :max="1000"
+            :step="0.001"
+            :precision="3"
+            :error-messages="adrc_error_tau ? ['Required'] : []"
+            @update:model-value="adrc_error_tau = false"
+          />
 
-      <div class="mb-2">
-        <p class="text-base text-slate-800 mb-0.5">τ, sec</p>
-        <div class="flex gap-2 flex-nowrap w-full">
-          <input v-model="adrc_param_tau" type="number" inputmode="numeric" min="1" max="1000" class="w-full" />
+          <div class="mb-3 text-medium-emphasis">
+            Controller scale factor. Run the step response test to detect it.
+          </div>
+          <v-number-input
+            v-model="adrc_param_b0"
+            label="b0 (scale)"
+            inset
+            :min="0"
+            :max="100"
+            :step="0.00001"
+            :precision="5"
+            :error-messages="adrc_error_b0 ? ['Required'] : []"
+            @update:model-value="adrc_error_b0 = false"
+          />
+
+          <div class="mb-3 text-medium-emphasis">
+            Increase until power jitter starts, then reduce 10-20%. ωc = N/τ.
+          </div>
+          <v-number-input
+            v-model="adrc_param_n"
+            label="N (controller multiplier)"
+            :min="3"
+            :max="50"
+            :step="0.5"
+            :precision="1"
+            :error-messages="adrc_error_n ? ['Required'] : []"
+            @update:model-value="adrc_error_n = false"
+          />
+
+          <div class="mb-3 text-medium-emphasis">
+            Usually 1.5..3, start with 2. ωo = M * ωc.
+          </div>
+          <v-number-input
+            v-model="adrc_param_m"
+            label="M (observer ratio)"
+            inset
+            :min="2"
+            :max="10"
+            :step="0.5"
+            :precision="1"
+            :error-messages="adrc_error_m ? ['Required'] : []"
+            @update:model-value="adrc_error_m = false"
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="primary" variant="text" size="large" @click="save_adrc_params">Save</v-btn>
+          <v-btn variant="text" size="large" @click="default_adrc_params">Load default parameters</v-btn>
+        </v-card-actions>
+      </v-card>
+
+      <v-card>
+        <v-card-item title="Measure step response" />
+        <v-divider />
+        <v-card-text>
+          <div class="mb-3 text-medium-emphasis">
+            Used to calculate τ and b0. Use the same power you would use for baking.
+          </div>
+          <v-number-input v-model="step_response_power" label="Power (W)" inset :min="0" :max="100" :step="1" />
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="primary" variant="text" size="large" @click="runStepResponse" :disabled="!is_idle">Run</v-btn>
+          <v-btn variant="text" size="large" @click="stopTask()" :disabled="!is_step_response">Stop</v-btn>
+        </v-card-actions>
+      </v-card>
+
+      <v-card>
+        <v-card-item title="Test controller" />
+        <v-divider />
+        <v-card-text>
+          <v-number-input v-model="test_temperature" label="Temperature (°C)" inset :min="25" :max="300" :step="1" />
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="primary" variant="text" size="large" @click="runAdrcTest" :disabled="!is_idle">Run</v-btn>
+          <v-btn variant="text" size="large" @click="stopTask(true)" :disabled="!is_testing">Stop</v-btn>
+        </v-card-actions>
+      </v-card>
+
+      <v-sheet class="chart-host chart-host--fixed-h flex-fill pa-4 rounded border">
+        <div class="chart-host-wrap1">
+          <div class="chart-host-wrap2">
+            <ReflowChart id="calibrate-adrc-test"
+              :profile="null"
+              :history="device.history.points"
+              :show_history="[Constants.HISTORY_ID_ADRC_TEST_MODE, Constants.HISTORY_ID_STEP_RESPONSE].includes(device.history.id)" />
+
+            <DebugInfo
+              v-if="localSettingsStore.showDebugInfo"
+              class="chart-host-debug--bottom"
+              :status="status"
+            />
+          </div>
         </div>
-        <div v-if="adrc_error_tau" class="text-xs text-red-500 mt-0.5">Not a number</div>
-        <div class="text-sm text-slate-400 mt-0.5">
-          Response time for a step input. Run the step response test to detect it.
-        </div>
-      </div>
-
-      <div class="mb-2">
-        <p class="text-base text-slate-800 mb-0.5">b0 (scale)</p>
-        <div class="flex gap-2 flex-nowrap w-full">
-          <input v-model="adrc_param_b0" type="number" inputmode="numeric" min="0" max="100" step="0.00001" class="w-full" />
-        </div>
-        <div v-if="adrc_error_b0" class="text-xs text-red-500 mt-0.5">Not a number</div>
-        <div class="text-sm text-slate-400 mt-0.5">
-          Controller scale factor. Run the step response test to detect it.
-        </div>
-      </div>
-
-      <div class="mb-2">
-        <p class="text-base text-slate-800 mb-0.5">N (ω<sub>controller</sub> multiplier)</p>
-        <div class="flex gap-2 flex-nowrap w-full">
-          <input v-model="adrc_param_n" type="number" inputmode="numeric" min="3" max="50" step="0.5" class="w-full" />
-        </div>
-        <div v-if="adrc_error_n" class="text-xs text-red-500 mt-0.5">Not a number</div>
-        <div class="text-sm text-slate-400 mt-0.5">
-          ω<sub>c</sub> = N/τ. Increase until power jitter starts, then reduce 10-20%.
-        </div>
-      </div>
-
-      <div class="mb-4">
-        <p class="text-base text-slate-800 mb-0.5">M (ω<sub>observer</sub> ratio)</p>
-        <div class="flex gap-2 flex-nowrap w-full">
-          <input v-model="adrc_param_m" type="number" inputmode="numeric" min="2" max="10" step="0.5" class="w-full" />
-        </div>
-        <div v-if="adrc_error_m" class="text-xs text-red-500 mt-0.5">Not a number</div>
-        <div class="text-sm text-slate-400 mt-0.5">
-          ω<sub>o</sub> = M * ω<sub>c</sub>. Usually 1.5..3. Start with 2.
-        </div>
-      </div>
-
-      <div class="mb-8">
-        <ButtonNormal ref="saveBtn" @click="save_adrc_params" class="mr-2">Save</ButtonNormal>
-        <ButtonNormal ref="resetBtn" @click="default_adrc_params">Load default parameters</ButtonNormal>
-      </div>
-
-
-      <h2 class="text-2xl mb-4 mt-4 text-slate-800">Auto tuning</h2>
-
-
-      <h3 class="text-base mb-4 text-slate-800">Measure step response</h3>
-      <p class="text-sm text-slate-400 mb-4">
-          Used to calculate the <b>τ</b> and <b>b0</b> parameters. Use the same
-          power you would use for baking.
-      </p>
-      <div class="mb-8">
-        <div class="flex gap-2 flex-nowrap w-full">
-          <input v-model="step_response_power" type="number" min="0" max="100" class="w-full" />
-          <ButtonNormal @click="device.run_step_response(toNumber(step_response_power))" :disabled="!is_idle">Run</ButtonNormal>
-          <ButtonNormal @click="device.stop()" :disabled="!is_step_response">Stop</ButtonNormal>
-        </div>
-        <div class="text-xs text-slate-400 mt-0.5">Power {{ step_response_power }} W</div>
-      </div>
-
-
-      <h2 class="text-2xl mb-4 text-slate-800">Test controller</h2>
-      <div class="mb-2">
-        <div class="flex gap-2 flex-nowrap w-full">
-          <!-- <input v-model="test_temperature" type="range" min="25" max="300" class="w-full" /> -->
-          <input v-model="test_temperature" type="number" min="25" max="300" class="w-full" />
-          <ButtonNormal @click="device.run_adrc_test(toNumber(test_temperature))" :disabled="!is_idle">Run</ButtonNormal>
-          <ButtonNormal @click="device.stop(true)" :disabled="!is_testing">Stop</ButtonNormal>
-        </div>
-        <div class="text-xs text-slate-400 mt-0.5">Temperature {{ test_temperature }} °C</div>
-      </div>
-
-      <div class="mt-4 relative rounded-md bg-slate-100 h-[300px]">
-        <div class="absolute top-0 left-0 right-0 bottom-0">
-          <ReflowChart id="calibrate-adrc-test"
-            :profile="null"
-            :history="device.history.points"
-            :show_history="[Constants.HISTORY_ID_ADRC_TEST_MODE, Constants.HISTORY_ID_STEP_RESPONSE].includes(device.history.id)" />
-        </div>
-        <DebugInfo
-          v-if="localSettingsStore.showDebugInfo"
-          class="absolute bottom-10 right-3 text-right text-xs opacity-50"
-          :status="status"
-        />
-      </div>
+      </v-sheet>
     </template>
-  </PageLayout>
+  </v-container>
 </template>

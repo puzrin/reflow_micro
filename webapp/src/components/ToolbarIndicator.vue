@@ -7,22 +7,16 @@ defineProps<{
 </script>
 
 <template>
-  <div v-if="status.temperature_x10 < 1000*10">
-    <span
-      class="mr-1"
-      :class="(status.temperature_x10/10) > 50 ? 'text-red-500' : 'text-green-500'"
-    >
-      •
+  <v-chip
+    :color="status.temperature_x10 < 1000 * 10 ? ((status.temperature_x10 / 10) > 50 ? 'error' : 'success') : 'secondary'"
+  >
+    <span>
+      <template v-if="status.temperature_x10 < 1000 * 10">
+        {{ Math.trunc(status.temperature_x10 / 10) }}.{{ Math.abs(status.temperature_x10 % 10) }} °C
+      </template>
+      <template v-else>
+        ?? °C
+      </template>
     </span>
-    <span class="font-mono">
-      {{ Math.trunc(status.temperature_x10 / 10) }}
-    </span>
-    <span class="text-[0.7em] opacity-80">.</span>
-    <span class="font-mono text-[0.7em] opacity-80">
-      {{ Math.abs(status.temperature_x10 % 10) }}
-    </span>°C
-  </div>
-  <div v-else>
-    <span class="font-mono">??</span> °C
-  </div>
+  </v-chip>
 </template>

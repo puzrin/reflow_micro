@@ -1,20 +1,12 @@
 <script setup lang="ts">
-import PageLayout from '@/components/PageLayout.vue'
-import { RouterLink, onBeforeRouteLeave } from 'vue-router'
+import { onBeforeRouteLeave } from 'vue-router'
 import { useProfilesStore } from '@/stores/profiles'
 import { useLocalSettingsStore } from '@/stores/localSettings'
-import { reactive, ref, toRaw, watch } from 'vue'
+import { computed, reactive, ref, toRaw, watch } from 'vue'
 import { Profile, Constants } from '@/proto/generated/types'
-
-import ButtonNormal from '@/components/buttons/ButtonNormal.vue'
-import ButtonDanger from '@/components/buttons/ButtonDanger.vue'
-import ButtonNormalSquareSmall from '@/components/buttons/ButtonNormalSquareSmall.vue'
-
-import BackIcon from '@heroicons/vue/24/outline/ArrowLeftIcon'
-import AddIcon from '@heroicons/vue/24/outline/PlusIcon'
-import DeleteIcon from '@heroicons/vue/24/outline/XMarkIcon'
-
-import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import { confirm } from '@/composables/confirm'
+import { notify } from '@/composables/notify'
+import { usePageShell } from '@/composables/appShell'
 import ReflowChart from '@/components/ReflowChart.vue'
 
 // GUI field limits
@@ -31,8 +23,6 @@ const props = defineProps<{ id: number }>()
 const profilesStore = useProfilesStore()
 const localSettingsStore = useLocalSettingsStore()
 
-const saveBtn = ref()
-
 // Load the profile from the store or create a new one
 const srcProfile: Profile = profilesStore.exists(props.id) ?
   toRaw(profilesStore.find(props.id))! : {
@@ -47,39 +37,92 @@ const srcProfile: Profile = profilesStore.exists(props.id) ?
 const profile = reactive(structuredClone(srcProfile)!)
 const isProfileEdited = ref(false)
 
+usePageShell(() => ({
+  title: profile.id ? 'Edit profile' : 'New profile',
+  nav: { kind: 'back', to: { name: 'settings' } },
+  pageMode: 'default',
+}))
+
 watch(profile, () => isProfileEdited.value = true, { deep: true })
 
-const formRef = ref<HTMLFormElement>()
+const formRef = ref()
+const previewPanels = computed({
+  get: () => localSettingsStore.profileEditorShowPreview ? ['preview'] : [],
+  set: (value: string[]) => {
+    localSettingsStore.profileEditorShowPreview = value.includes('preview')
+  },
+})
 
-function saveForm() {
+const nameRules = [
+  (value: string) => !!value || 'Name is required',
+  (value: string) => value.length >= limits.nameMin || `Minimum ${limits.nameMin} characters`,
+  (value: string) => value.length <= limits.nameMax || `Maximum ${limits.nameMax} characters`,
+]
+
+const targetRules = [
+  (value: unknown) => Number(value) >= limits.targetMin || `Minimum ${limits.targetMin}°C`,
+  (value: unknown) => Number(value) <= limits.targetMax || `Maximum ${limits.targetMax}°C`,
+]
+
+const durationRules = [
+  (value: unknown) => Number(value) >= limits.durationMin || `Minimum ${limits.durationMin} sec`,
+  (value: unknown) => Number(value) <= limits.durationMax || `Maximum ${limits.durationMax} sec`,
+]
+
+async function saveForm() {
+  const validation = await formRef.value?.validate()
+  if (!validation?.valid) return
+
   // Save the profile to the store and auto-update the ID to avoid duplicates
   // on the next save.
   profile.id = profilesStore.add(toRaw(profile))
   isProfileEdited.value = false
-  saveBtn.value?.showSuccess()
+  notify({ message: 'Profile saved', color: 'success' })
 }
-
-const exitDlgRef = ref<InstanceType<typeof ConfirmDialog>>()
 
 onBeforeRouteLeave(async () => {
   if (!isProfileEdited.value) return true
 
-  const result = await exitDlgRef.value?.run()
-  if (result === 'cancel') return false
-  if (result === 'dismiss') return true
+  const result = await confirm({
+    title: 'Save changes before leaving?',
+    actions: [
+      { key: 'save', label: 'Save', color: 'primary' },
+      { key: 'discard', label: 'Discard', color: 'error' },
+      { key: 'cancel', label: 'Cancel' },
+    ],
+  })
 
-  if (formRef.value?.checkValidity()) {
-    saveForm()
+  if (result === 'cancel') return false
+  if (result === 'discard') return true
+
+  const validation = await formRef.value?.validate()
+  if (validation?.valid) {
+    await saveForm()
     return true
   }
 
-  formRef.value?.reportValidity()
   return false
 })
 
 function duplicateSegment(segmentIdx: number) {
   const newSegment = structuredClone(toRaw(profile).segments[segmentIdx])
   profile.segments.splice(segmentIdx, 0, newSegment)
+}
+
+async function deleteSegment(segmentIdx: number) {
+  if (profile.segments.length < 2) return
+
+  const result = await confirm({
+    title: 'Remove stage?',
+    actions: [
+      { key: 'remove', label: 'Remove', color: 'error' },
+      { key: 'cancel', label: 'Cancel' },
+    ],
+  })
+
+  if (result === 'remove') {
+    profile.segments.splice(segmentIdx, 1)
+  }
 }
 
 function heatingSpeed(segmentIdx: number) {
@@ -92,128 +135,92 @@ function heatingSpeed(segmentIdx: number) {
   return `${(speed * 60).toFixed(1)}°C/min`
 }
 
-// Clean up and recast numeric input
-const str2int = (str: string) => parseInt(str.replace(/[^0-9]/g, '')) || 0
 </script>
 
 <template>
-  <PageLayout>
-    <template #toolbar>
-      <RouterLink :to="{ name: 'settings' }" class="mr-2 -ml-0.5">
-        <BackIcon class="w-8 h-8" />
-      </RouterLink>
-      <span v-if="profile.id">Edit profile</span>
-      <span v-else>New profile</span>
-    </template>
+  <v-container class="py-4">
+    <v-form ref="formRef" class="d-flex flex-column ga-4" @submit.prevent="saveForm">
+      <v-card>
+        <v-card-text>
+          <v-text-field
+            v-model.trim="profile.name"
+            label="Profile name"
+            :rules="nameRules"
+          />
+        </v-card-text>
+        <v-expansion-panels
+          v-model="previewPanels"
+          multiple
+          variant="accordion"
+        >
+          <v-expansion-panel value="preview" static>
+            <v-expansion-panel-title>Preview</v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <v-sheet class="chart-host chart-host--fixed-h flex-fill pa-4 rounded">
+                <div class="chart-host-wrap1">
+                  <div class="chart-host-wrap2">
+                    <ReflowChart id="profile-edit-chart" :profile="profile" />
+                  </div>
+                </div>
+              </v-sheet>
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
+      </v-card>
 
-    <form ref="formRef" @submit.prevent="saveForm">
-      <div class="mb-4">
-        <input
-          type="text"
-          required
-          v-model.trim="profile.name"
-          placeholder="Name"
-          class="w-full"
-          :min="limits.nameMin"
-          :max="limits.nameMax"
-        />
-      </div>
-
-      <div class="mb-4">
-        <div>
-          <ButtonNormal @click="localSettingsStore.profileEditorShowPreview = !localSettingsStore.profileEditorShowPreview" class="w-full">
-            Preview
-          </ButtonNormal>
-        </div>
-        <Transition name="bounce">
-          <div v-if="localSettingsStore.profileEditorShowPreview" class="mt-4 relative rounded-md bg-slate-100 h-[300px]">
-            <div class="absolute top-0 left-0 right-0 bottom-0">
-              <ReflowChart id="profile-edit-chart" :profile="profile" />
+      <v-card>
+        <v-card-item title="Stages" />
+        <v-divider />
+        <v-card-text class="d-flex flex-column ga-4">
+          <div v-for="(segment, index) in profile.segments" :key="index">
+            <div class="text-medium-emphasis mb-3">
+              {{ heatingSpeed(index) }}, {{ segment.duration < 600 ? `${segment.duration} sec` : `${(segment.duration / 60).toFixed()} min` }}
+            </div>
+            <div class="d-flex flex-column flex-sm-row align-start ga-0 ga-sm-4">
+              <div class="flex-1-1-0 w-100 w-sm-auto">
+                <v-number-input
+                  v-model="segment.target"
+                  label="Target (°C)"
+                  inset
+                  :min="limits.targetMin"
+                  :max="limits.targetMax"
+                  :step="1"
+                  :rules="targetRules"
+                />
+              </div>
+              <div class="flex-1-1-0 w-100 w-sm-auto">
+                <v-number-input
+                  v-model="segment.duration"
+                  label="Duration (sec)"
+                  inset
+                  :min="limits.durationMin"
+                  :max="limits.durationMax"
+                  :step="1"
+                  :rules="durationRules"
+                />
+              </div>
+              <div class="w-100 w-sm-auto d-flex justify-end justify-sm-start text-medium-emphasis pt-sm-3">
+                <v-btn
+                  variant="text"
+                  icon="mdi-plus"
+                  size="x-small"
+                  @click="duplicateSegment(index)"
+                />
+                <v-btn
+                  variant="text"
+                  icon="mdi-delete-outline"
+                  size="x-small"
+                  :disabled="profile.segments.length < 2"
+                  @click="deleteSegment(index)"
+                />
+              </div>
             </div>
           </div>
-        </Transition>
-      </div>
-
-      <h2 class="mb-4 mt-4 text-lg font-semibold">Stages</h2>
-
-      <div v-for="(segment, index) in profile.segments" :key="index">
-        <div class="mb-1 text-sm">
-          <span>{{ heatingSpeed(index) }}</span>,
-          <span> {{ segment.duration < 600 ? segment.duration + 'sec' : (segment.duration/60).toFixed() + 'min' }}</span>
-        </div>
-        <div class="flex gap-3 mb-4">
-          <div class="w-full">
-            <input
-              type="number"
-              required
-              inputmode="numeric"
-              :value="segment.target"
-              @input="segment.target = str2int(($event?.target as HTMLInputElement).value)"
-              class="w-full"
-              :min="limits.targetMin"
-              :max="limits.targetMax"
-            />
-            <div class="text-xs text-slate-400 mt-0.5">Target °C</div>
-          </div>
-          <div class="w-full">
-            <input
-              type="number"
-              required
-              inputmode="numeric"
-              :value="segment.duration"
-              @input="segment.duration = str2int(($event?.target as HTMLInputElement).value)"
-              class="w-full"
-              :min="limits.durationMin"
-              :max="limits.durationMax"
-            />
-            <div class="text-xs text-slate-400 mt-0.5">Duration, sec</div>
-          </div>
-          <div>
-            <ButtonNormalSquareSmall @click="duplicateSegment(index)">
-              <AddIcon class="w-6 h-6" />
-            </ButtonNormalSquareSmall>
-          </div>
-          <div>
-            <ButtonNormalSquareSmall
-              @click="profile.segments.splice(index, 1)"
-              :disabled="profile.segments.length < 2"
-            >
-              <DeleteIcon class="w-6 h-6" />
-            </ButtonNormalSquareSmall>
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-6">
-        <ButtonNormal ref="saveBtn" type="submit">Save</ButtonNormal>
-      </div>
-    </form>
-  </PageLayout>
-
-  <ConfirmDialog ref="exitDlgRef" v-slot="{ closeAs }">
-    <p class="mt-2">You have unsaved changes. They will be lost when you leave this page. Continue?</p>
-    <div class="mt-4">
-      <ButtonNormal class="me-2" @click="closeAs('ok')">Save</ButtonNormal>
-      <ButtonDanger class="me-2" @click="closeAs('dismiss')">Dismiss</ButtonDanger>
-      <ButtonNormal class="me-2" @click="closeAs('cancel')">Cancel</ButtonNormal>
-    </div>
-  </ConfirmDialog>
-
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="primary" variant="text" size="large" type="submit">Save</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-form>
+  </v-container>
 </template>
-
-<style scoped>
-.bounce-enter-active {
-  animation: bounce-in 0.2s;
-}
-.bounce-leave-active {
-  animation: bounce-in 0.2s reverse;
-}
-@keyframes bounce-in {
-  0% {
-    transform: scale(0);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-</style>

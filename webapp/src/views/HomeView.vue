@@ -4,18 +4,20 @@ import { useLocalSettingsStore } from '@/stores/localSettings'
 import { inject } from 'vue'
 import { Device } from '@/device'
 import { DeviceActivityStatus, HeadStatus, PowerStatus } from '@/proto/generated/types'
-import PageLayout from '@/components/PageLayout.vue'
-import HomeMenu from '@/components/HomeMenu.vue'
-import ButtonDanger from '@/components/buttons/ButtonDanger.vue'
-import ButtonPrimary from '@/components/buttons/ButtonPrimary.vue'
+import { usePageShell } from '@/composables/appShell'
 import ReflowChart from '@/components/ReflowChart.vue'
 import DebugInfo from '@/components/DebugInfo.vue'
-import ToolbarIndicator from '@/components/ToolbarIndicator.vue'
 
 const profilesStore = useProfilesStore()
 const localSettingsStore = useLocalSettingsStore()
 const device: Device = inject('device')!
 const status = device.status
+
+usePageShell(() => ({
+  title: profilesStore.selected?.name || '--',
+  nav: { kind: 'menu' },
+  pageMode: 'fit-viewport',
+}))
 
 async function start() {
   await device.run_reflow()
@@ -28,63 +30,49 @@ async function stop() {
 </script>
 
 <template>
-  <PageLayout>
-    <template #toolbar>
-      <HomeMenu />
+  <v-container class="d-flex flex-column flex-fill py-4 ga-4">
+    <v-alert v-if="status.head !== HeadStatus.HeadConnected" class="flex-0-0" type="error">
+      Hotplate not connected
+    </v-alert>
+    <v-alert v-else-if="status.power == PowerStatus.PwrFailure" class="flex-0-0" type="error">
+      No suitable power
+    </v-alert>
 
-      <div class="mr-2 grow text-ellipsis overflow-hidden whitespace-nowrap">
-        <template v-if="status.head !== HeadStatus.HeadConnected">
-          <span class="text-red-500 text-base leading-8">Hotplate not connected</span>
-        </template>
-        <template v-else-if="status.power == PowerStatus.PwrFailure">
-          <span class="text-red-500 text-base leading-8">No suitable power</span>
-        </template>
-        <template v-else>
-          {{ profilesStore.selected?.name || '--'}}
-        </template>
+    <v-sheet class="chart-host flex-fill pa-4 rounded border">
+      <div class="chart-host-wrap1">
+        <div class="chart-host-wrap2">
+          <ReflowChart id="home-chart"
+            :profile="profilesStore.selected"
+            :history="device.history.points"
+            :show_history="device.history.id === profilesStore.selectedId"
+          />
+
+          <DebugInfo
+            v-if="localSettingsStore.showDebugInfo"
+            class="chart-host-debug--bottom"
+            :status="status"
+          />
+        </div>
       </div>
-      <ToolbarIndicator :status="status" />
-    </template>
+    </v-sheet>
 
-    <div class="mb-4 flex-1 flex relative items-center justify-center rounded-md bg-slate-100">
-      <div class="absolute top-0 left-0 right-0 bottom-0">
-        <ReflowChart id="home-chart"
-          :profile="profilesStore.selected"
-          :history="device.history.points"
-          :show_history="device.history.id === profilesStore.selectedId" />
-      </div>
-      <DebugInfo
-        v-if="localSettingsStore.showDebugInfo"
-        class="absolute top-2 right-3 text-right text-xs opacity-50"
-        :status="status"
-      />
-    </div>
-
-    <div class="flex justify-center">
-      <ButtonPrimary
-        class="me-1 mb-0"
+    <div class="d-flex justify-center ga-3 flex-0-0">
+      <v-btn
+        color="primary"
+        variant="elevated"
         :disabled="status.activity !== DeviceActivityStatus.Idle"
         @click="start"
       >
         Start
-      </ButtonPrimary>
-      <ButtonDanger
-        class="ms-1 mb-0"
+      </v-btn>
+      <v-btn
+        color="error"
+        variant="elevated"
         :disabled="status.activity !== DeviceActivityStatus.Reflow"
         @click="stop"
       >
         Stop
-      </ButtonDanger>
+      </v-btn>
     </div>
-
-
-</PageLayout>
+  </v-container>
 </template>
-
-<style scoped>
-/* `:disabled` does not work for menu elements, use a class instead. */
-.disabled {
-  pointer-events: none;
-  opacity: 0.5;
-}
-</style>

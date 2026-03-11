@@ -7,7 +7,8 @@ import { Profile, Constants, Point, DeviceActivityStatus } from '@/proto/generat
 const device: Device = inject('device')!
 
 const svgRef = ref<SVGSVGElement | null>(null)
-const margin = { top: 30, right: 40, bottom: 30, left: 40 }
+//const margin = { top: 30, right: 40, bottom: 30, left: 40 }
+const margin = { top: 5, right: 1, bottom: 20, left: 30 }
 
 const props = withDefaults(defineProps<{
   profile: Profile | null
@@ -20,6 +21,7 @@ const s = (selector: string) => `#${props.id} .root ${selector}`.trim()
 
 const x = d3.scaleLinear()
 const y = d3.scaleLinear()
+let resizeObserver: ResizeObserver | null = null
 
 function buildChart() {
   // d3 is not ok with ts types. Disable some rules.
@@ -38,6 +40,7 @@ function buildChart() {
 
   const width = svgRef.value.parentElement.clientWidth - margin.left - margin.right
   const height = svgRef.value.parentElement.clientHeight - margin.top - margin.bottom
+  if (width <= 0 || height <= 0) return
 
   //
   // Collect profile points/segments data
@@ -132,15 +135,18 @@ onMounted(() => {
   watch(() => props.profile, buildChart, { immediate: true, deep: true })
   watch([props.history || ref([]), () => device.status.activity, () => props.show_history], buildChart)
   window.addEventListener('resize', buildChart)
+  resizeObserver = new ResizeObserver(() => buildChart())
+  resizeObserver.observe(svgRef.value.parentElement)
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', buildChart)
+  resizeObserver?.disconnect()
 })
 </script>
 
 <template>
-  <svg :id="props.id" width="100%" height="100%" ref="svgRef">
+  <svg :id="props.id" width="100%" height="100%" ref="svgRef" style="overflow: visible">
     <defs>
       <linearGradient :id="`profileGradient-${props.id}`" gradientUnits="objectBoundingBox" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" class="gradient-start" />

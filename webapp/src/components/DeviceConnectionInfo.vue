@@ -1,79 +1,95 @@
 <script setup lang="ts">
-import { inject, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { Device } from '@/device'
 import { VirtualBackend } from '@/device/virtual_backend'
-import ButtonNormal from './buttons/ButtonNormal.vue'
-import ButtonNormalSquare from './buttons/ButtonNormalSquare.vue'
-import ReloadIcon from '@heroicons/vue/24/outline/ArrowPathIcon'
 
 const device: Device = inject('device')!
 const has_bluetooth = ref(!!navigator.bluetooth)
 
 const reloadPage = () => window.location.reload()
+
+const connectButtonLabel = computed(() => {
+  if (device.is_connecting.value && !device.is_connected.value) return 'Connecting…'
+  if (device.is_connected.value && !device.is_authenticated.value) return 'Authenticating…'
+  if (device.is_connected.value && device.is_authenticated.value && !device.is_ready.value) return 'Reading config…'
+  return 'Connect to device'
+})
+
+const showConnectSpinner = computed(() => connectButtonLabel.value !== 'Connect to device')
 </script>
 
 <template>
-    <div v-if="!device.is_ready.value" class="absolute w-full h-full px-4 py-4 bg-white text-slate-700">
-        <button
-            type="button"
-            class="text-blue-900 bg-blue-200 underline font-medium text-xs w-full px-3 py-1.5 text-center mb-8"
-            @click="device.selectBackend(VirtualBackend.id)"
-        >
-            Switch to Demo Mode
-        </button>
+  <div class="connection-gate d-flex flex-column flex-fill align-center justify-center pa-4">
+    <template v-if="!has_bluetooth">
+      <v-card class="w-100" max-width="40rem">
+        <v-card-text class="pa-6 pa-sm-8">
+          <div class="d-flex flex-column ga-4">
+            <v-btn color="primary" variant="text" @click="device.selectBackend(VirtualBackend.id)">
+              Switch to Demo Mode
+            </v-btn>
 
-        <!-- Show when Web Bluetooth not exists -->
-        <div v-if="!has_bluetooth">
-            <p class="mb-8 text-red-800">
-                Web Bluetooth is disabled or not supported! See instruction below how to fix.
-            </p>
+            <v-alert type="error">
+              WebBluetooth not supported. Use Chrome / Edge, or switch to demo mode.
+            </v-alert>
 
-            <div class="bg-green-50 border-t border-b border-green-400 text-green-700 px-4 py-3 mb-8">
-                <p class="mb-2 font-bold">Chrome / Edge browsers:</p>
-                <ul class="list-disc mx-6 text-sm mb-1">
-                    <li>Type <b>chrome://flags</b> or <b>edge://flags</b> and press Enter.</li>
-                    <li>Type <b>bluetooth</b> in search field.</li>
-                    <li>Enable all found flags.</li>
-                    <li>Restart your browser.</li>
-                </ul>
+            <v-alert>
+              <div class="mb-2">
+                On Linux, Chrome / Edge browsers have disabled WebBluetooth by default.
+                To enable, follow the steps below:
+              </div>
+              <ol>
+                <li>Open <code>chrome://flags</code> or <code>edge://flags</code>.</li>
+                <li>Search for <code>bluetooth</code>.</li>
+                <li>Enable all related flags.</li>
+                <li>Restart the browser.</li>
+              </ol>
+            </v-alert>
+
+          </div>
+        </v-card-text>
+      </v-card>
+    </template>
+
+    <template v-else>
+      <v-card class="w-100" max-width="40rem">
+        <v-card-text class="pa-6 pa-sm-8">
+          <div class="d-flex flex-column ga-4">
+            <v-btn color="primary" @click="device.connect()">
+              <v-progress-circular
+                v-if="showConnectSpinner"
+                class="mr-3"
+                indeterminate
+                :size="16"
+                :width="2"
+              />
+              {{ connectButtonLabel }}
+            </v-btn>
+
+            <v-alert
+              v-if="device.need_pairing.value && device.is_connected.value && !device.is_authenticated.value"
+              type="error"
+              variant="outlined"
+            >
+              Device is connected, but not paired. Click the device button five times quickly to enter pairing mode.
+            </v-alert>
+
+            <div class="d-flex flex-column flex-sm-row ga-4">
+              <v-btn class="flex-1-1-0" variant="text" @click="device.selectBackend(VirtualBackend.id)">
+                Switch to Demo Mode
+              </v-btn>
+              <v-btn class="flex-1-1-0" variant="text" @click="reloadPage">
+                Reload Page
+              </v-btn>
             </div>
-
-            <div class="bg-amber-50 border-t border-b border-amber-400 text-amber-700 px-4 py-3" role="alert">
-                <p class="text-sm">Unforunately, Firefox and Safary do not support Web Bluetooth. Use browsers above, of try demo mode.</p>
-            </div>
-        </div>
-
-        <!-- Show when Web Bluetooth exists -->
-        <template v-else>
-            <!-- Not connected => show button or progress message -->
-            <div class="mb-4 flex gap-2">
-                <ButtonNormal class="flex-1" @click="device.connect()">Connect to device</ButtonNormal>
-                <ButtonNormalSquare @click="reloadPage" title="Reload page">
-                    <ReloadIcon class="w-5 h-5" />
-                </ButtonNormalSquare>
-            </div>
-
-            <p v-if="device.is_connecting.value">
-                <span class="align-text-top mr-1 w-5 h-5 animate-spin inline-block border-[3px] border-current border-t-transparent rounded-full text-gray-400"></span>
-                Connecting...
-            </p>
-
-            <!-- Connected => Needs authentication and then data sync -->
-            <template v-if="device.is_connected.value">
-                <div v-if="!device.is_authenticated.value">
-                    <p class="mb-4">
-                        <span class="align-text-top mr-1 w-5 h-5 animate-spin inline-block border-[3px] border-current border-t-transparent rounded-full text-gray-400"></span>
-                        Authenticating...
-                    </p>
-                    <p v-if="device.need_pairing.value" class="text-red-800">
-                        Device is connected, but not paired. <b>Click device button 5 times quickly, to activate pairing mode</b>.
-                    </p>
-                </div>
-                <p v-else>
-                    <span class="align-text-top mr-1 w-5 h-5 animate-spin inline-block border-[3px] border-current border-t-transparent rounded-full text-gray-400"></span>
-                    Read config from device...
-                </p>
-            </template>
-        </template>
-    </div>
+          </div>
+        </v-card-text>
+      </v-card>
+    </template>
+  </div>
 </template>
+
+<style scoped>
+.connection-gate {
+  background-color: rgb(0 0 0 / 0.32);
+}
+</style>
