@@ -8,9 +8,6 @@ import * as directives from 'vuetify/directives'
 const vuetify = createVuetify({
   components,
   directives,
-  theme: {
-    defaultTheme: 'light',
-  },
   defaults: {
     VAlert: {
       icon: false,

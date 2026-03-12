@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useProfilesStore } from '@/stores/profiles'
-import { useLocalSettingsStore } from '@/stores/localSettings'
-import { ref, inject, onMounted } from 'vue'
+import { THEME_MODES, normalizeThemeMode, type ThemeMode, useLocalSettingsStore } from '@/stores/localSettings'
+import { computed, ref, inject, onMounted } from 'vue'
 import { VueDraggable, type SortableEvent } from 'vue-draggable-plus'
 import { useRouter } from 'vue-router'
 import { Device } from '@/device'
@@ -14,6 +14,19 @@ const router = useRouter()
 
 const profilesStore = useProfilesStore()
 const localSettingsStore = useLocalSettingsStore()
+
+const themeModeTitles: Record<ThemeMode, string> = {
+  auto: 'Auto',
+  light: 'Light',
+  dark: 'Dark',
+}
+
+const themeModeItems = THEME_MODES.map((mode) => ({
+  title: themeModeTitles[mode],
+  value: mode,
+}))
+
+const themeModeSubtitle = computed(() => themeModeTitles[localSettingsStore.themeMode])
 
 usePageShell(() => ({
   title: 'Settings',
@@ -189,6 +202,22 @@ async function saveBleNameHandler() {
           @click="openBleNameDialog"
         />
         <v-list-item
+          title="Theme"
+          :subtitle="themeModeSubtitle"
+        >
+          <template #append>
+            <div class="settings-select">
+              <v-select
+                :model-value="localSettingsStore.themeMode"
+                :items="themeModeItems"
+                item-title="title"
+                item-value="value"
+                @update:model-value="localSettingsStore.themeMode = normalizeThemeMode($event)"
+              />
+            </div>
+          </template>
+        </v-list-item>
+        <v-list-item
           title="Show debug info"
           :subtitle="localSettingsStore.showDebugInfo ? 'On' : 'Off'"
           @click="localSettingsStore.showDebugInfo = !localSettingsStore.showDebugInfo"
@@ -248,5 +277,9 @@ async function saveBleNameHandler() {
 
 .profile-handle:active {
   cursor: grabbing;
+}
+
+.settings-select {
+  width: 8rem;
 }
 </style>
