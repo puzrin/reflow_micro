@@ -7,6 +7,7 @@ import { DeviceActivityStatus, HeadStatus, PowerStatus } from '@/proto/generated
 import { usePageShell } from '@/composables/appShell'
 import ReflowChart from '@/components/ReflowChart.vue'
 import DebugInfo from '@/components/DebugInfo.vue'
+import HoldToConfirmButton from '@/components/HoldToConfirmButton.vue'
 
 const profilesStore = useProfilesStore()
 const localSettingsStore = useLocalSettingsStore()
@@ -56,19 +57,21 @@ async function stop() {
       </div>
     </v-sheet>
 
-    <div class="d-flex justify-center ga-3 flex-0-0">
-      <v-btn
+    <div class="flex-0-0">
+      <HoldToConfirmButton
+        v-if="status.activity === DeviceActivityStatus.Idle"
+        block
         color="primary"
         variant="elevated"
-        :disabled="status.activity !== DeviceActivityStatus.Idle"
-        @click="start"
+        @confirm="start"
       >
         Start
-      </v-btn>
+      </HoldToConfirmButton>
       <v-btn
+        v-else
+        block
         color="error"
         variant="elevated"
-        :disabled="status.activity !== DeviceActivityStatus.Reflow"
         @click="stop"
       >
         Stop

@@ -24,7 +24,7 @@ const showConnectSpinner = computed(() => connectButtonLabel.value !== 'Connect 
       <v-card class="w-100" max-width="40rem">
         <v-card-text class="pa-6 pa-sm-8">
           <div class="d-flex flex-column ga-4">
-            <v-btn color="primary" variant="text" @click="device.selectBackend(VirtualBackend.id)">
+            <v-btn block color="primary" variant="text" @click="device.selectBackend(VirtualBackend.id)">
               Switch to Demo Mode
             </v-btn>
 
@@ -54,7 +54,7 @@ const showConnectSpinner = computed(() => connectButtonLabel.value !== 'Connect 
       <v-card class="w-100" max-width="40rem">
         <v-card-text class="pa-6 pa-sm-8">
           <div class="d-flex flex-column ga-4">
-            <v-btn color="primary" @click="device.connect()">
+            <v-btn block color="primary" @click="device.connect()">
               <v-progress-circular
                 v-if="showConnectSpinner"
                 class="mr-3"
@@ -74,12 +74,16 @@ const showConnectSpinner = computed(() => connectButtonLabel.value !== 'Connect 
             </v-alert>
 
             <div class="d-flex flex-column flex-sm-row ga-4">
-              <v-btn class="flex-1-1-0" variant="text" @click="device.selectBackend(VirtualBackend.id)">
-                Switch to Demo Mode
-              </v-btn>
-              <v-btn class="flex-1-1-0" variant="text" @click="reloadPage">
-                Reload Page
-              </v-btn>
+              <div class="flex-1-1-0">
+                <v-btn block variant="text" @click="device.selectBackend(VirtualBackend.id)">
+                  Switch to Demo Mode
+                </v-btn>
+              </div>
+              <div class="flex-1-1-0">
+                <v-btn block variant="text" @click="reloadPage">
+                  Reload Page
+                </v-btn>
+              </div>
             </div>
           </div>
         </v-card-text>

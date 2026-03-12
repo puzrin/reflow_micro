@@ -4,6 +4,7 @@ import { watchDebounced } from '@vueuse/core'
 import { inject, ref, computed, watch } from 'vue'
 import { Device } from '@/device'
 import ReflowChart from '@/components/ReflowChart.vue'
+import HoldToConfirmButton from '@/components/HoldToConfirmButton.vue'
 import { HeadParams, DeviceActivityStatus, HeadStatus, Constants } from '@/proto/generated/types'
 import { DEFAULT_HEAD_PARAMS_PB } from '@/proto/generated/defaults'
 import { useLocalSettingsStore } from '@/stores/localSettings'
@@ -219,7 +220,7 @@ async function stopTask(force: boolean = false) {
           <v-number-input v-model="step_response_power" label="Power (W)" inset :min="0" :max="100" :step="1" />
         </v-card-text>
         <v-card-actions>
-          <v-btn color="primary" variant="text" size="large" @click="runStepResponse" :disabled="!is_idle">Run</v-btn>
+          <HoldToConfirmButton color="primary" variant="text" size="large" @confirm="runStepResponse" :disabled="!is_idle">Run</HoldToConfirmButton>
           <v-btn variant="text" size="large" @click="stopTask()" :disabled="!is_step_response">Stop</v-btn>
         </v-card-actions>
       </v-card>
@@ -231,7 +232,7 @@ async function stopTask(force: boolean = false) {
           <v-number-input v-model="test_temperature" label="Temperature (°C)" inset :min="25" :max="300" :step="1" />
         </v-card-text>
         <v-card-actions>
-          <v-btn color="primary" variant="text" size="large" @click="runAdrcTest" :disabled="!is_idle">Run</v-btn>
+          <HoldToConfirmButton color="primary" variant="text" size="large" @confirm="runAdrcTest" :disabled="!is_idle">Run</HoldToConfirmButton>
           <v-btn variant="text" size="large" @click="stopTask(true)" :disabled="!is_testing">Stop</v-btn>
         </v-card-actions>
       </v-card>

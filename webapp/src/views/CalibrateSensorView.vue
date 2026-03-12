@@ -4,6 +4,7 @@ import { watchDebounced } from '@vueuse/core'
 import { inject, ref, computed, watch } from 'vue'
 import { Device } from '@/device'
 import ReflowChart from '@/components/ReflowChart.vue'
+import HoldToConfirmButton from '@/components/HoldToConfirmButton.vue'
 import { DeviceActivityStatus, HeadStatus, Constants } from '@/proto/generated/types'
 import { useLocalSettingsStore } from '@/stores/localSettings'
 import DebugInfo from '@/components/DebugInfo.vue'
@@ -188,7 +189,7 @@ async function stopBake() {
           />
         </v-card-text>
         <v-card-actions>
-          <v-btn color="red" variant="text" size="large" @click="startBake" :disabled="!is_idle">Bake</v-btn>
+          <HoldToConfirmButton color="red" variant="text" size="large" @confirm="startBake" :disabled="!is_idle">Bake</HoldToConfirmButton>
           <v-btn variant="text" size="large" @click="stopBake" :disabled="!is_baking">Stop</v-btn>
           <v-btn color="primary" variant="text" size="large" @click="save_p1" :disabled="!is_baking">Save</v-btn>
         </v-card-actions>
