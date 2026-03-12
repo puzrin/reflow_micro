@@ -32,19 +32,23 @@ function goBack() {
 <template>
   <v-app>
     <v-app-bar v-if="device.is_ready.value">
-      <template v-if="shell.nav.kind === 'menu'" #prepend>
-        <HomeMenu />
-      </template>
+      <v-container class="px-0 py-0">
+        <v-toolbar color="transparent" flat tag="div">
+          <template v-if="shell.nav.kind === 'menu'" #prepend>
+            <HomeMenu />
+          </template>
 
-      <template v-else-if="shell.nav.kind === 'back'" #prepend>
-        <v-app-bar-nav-icon icon="mdi-arrow-left" @click="goBack" />
-      </template>
+          <template v-else-if="shell.nav.kind === 'back'" #prepend>
+            <v-app-bar-nav-icon icon="mdi-arrow-left" @click="goBack" />
+          </template>
 
-      <v-app-bar-title>{{ shell.title }}</v-app-bar-title>
+          <v-toolbar-title>{{ shell.title }}</v-toolbar-title>
 
-      <template #append>
-        <ToolbarIndicator :status="device.status" />
-      </template>
+          <template #append>
+            <ToolbarIndicator :status="device.status" />
+          </template>
+        </v-toolbar>
+      </v-container>
     </v-app-bar>
 
     <v-main :class="{ 'd-flex flex-column': shell.pageMode === 'fit-viewport' || !device.is_ready.value }">

@@ -1,3 +1,7 @@
+:root {
+  --app-shell-max-width: 1000px;
+}
+
 .chart-host {
   display: flex;
   flex-direction: column;
@@ -38,10 +42,8 @@
 }
 
 
-@media (min-width: 1200px) {
-  .v-main > .v-container {
-    width: 100%;
-    max-width: 1000px;
-    margin-inline: auto;
+@media (min-width: 1545px) {
+  .v-container {
+    max-width: var(--app-shell-max-width);
   }
 }
