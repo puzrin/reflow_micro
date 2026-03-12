@@ -68,6 +68,7 @@ async function stop() {
         block
         color="primary"
         variant="elevated"
+        size="large"
         @confirm="start"
       >
         Start
@@ -77,6 +78,7 @@ async function stop() {
         block
         color="error"
         variant="elevated"
+        size="large"
         @click="stop"
       >
         Stop
