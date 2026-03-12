@@ -60,10 +60,11 @@ function goBack() {
       v-if="device.is_ready.value && (device.backend_id.value === VirtualBackend.id)"
       class="demo-exit"
       color="error"
+      variant="flat"
       size="x-small"
       @click="device.selectBackend(BleBackend.id)"
     >
-      Exit Demo Mode
+      Exit Demo
     </v-btn>
     <AppConfirmDialog />
     <AppSnackbar />
@@ -73,8 +74,12 @@ function goBack() {
 <style scoped>
 .demo-exit {
   position: fixed;
-  right: 16px;
-  bottom: 16px;
+  top: 50%;
+  right: 0;
   z-index: 3;
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+  transform: translate(calc((100% - var(--v-btn-height)) / 2), -50%) rotate(-90deg);
+  transform-origin: center;
 }
 </style>
