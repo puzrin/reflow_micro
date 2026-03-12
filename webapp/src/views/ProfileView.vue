@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeRouteLeave } from 'vue-router'
+import { onBeforeRouteLeave, useRoute } from 'vue-router'
 import { useProfilesStore } from '@/stores/profiles'
 import { useLocalSettingsStore } from '@/stores/localSettings'
 import { computed, reactive, ref, toRaw, watch } from 'vue'
@@ -20,22 +20,51 @@ const limits = {
 }
 
 const props = defineProps<{ id: number }>()
+const route = useRoute()
 const profilesStore = useProfilesStore()
 const localSettingsStore = useLocalSettingsStore()
 
-// Load the profile from the store or create a new one
-const srcProfile: Profile = profilesStore.exists(props.id) ?
-  toRaw(profilesStore.find(props.id))! : {
+function createEmptyProfile(): Profile {
+  return {
     id: 0,
     name: '',
     segments: [
-      { target: 150, duration: 60 }
-    ]
+      { target: 150, duration: 60 },
+    ],
   }
+}
+
+function loadSourceProfile() {
+  if (props.id !== 0) return null
+
+  const queryValue = route.query.source_profile_id
+  if (typeof queryValue !== 'string') return null
+
+  const sourceProfileId = Number(queryValue)
+  if (!Number.isInteger(sourceProfileId) || sourceProfileId <= 0) return null
+  if (!sourceProfileId || !profilesStore.exists(sourceProfileId)) return null
+
+  return toRaw(profilesStore.find(sourceProfileId))!
+}
+
+function createInitialProfile(sourceProfile: Profile | null): Profile {
+  if (profilesStore.exists(props.id)) return structuredClone(toRaw(profilesStore.find(props.id))!)
+
+  if (!sourceProfile) return createEmptyProfile()
+
+  const clonedProfile = structuredClone(sourceProfile)
+  clonedProfile.id = 0
+  clonedProfile.name = `${clonedProfile.name.trim()} copy`
+    .slice(0, limits.nameMax)
+    .trim()
+  return clonedProfile
+}
+
+const sourceProfile = loadSourceProfile()
 
 // Create a reactive clone to accumulate and track changes
-const profile = reactive(structuredClone(srcProfile)!)
-const isProfileEdited = ref(false)
+const profile = reactive(createInitialProfile(sourceProfile))
+const isProfileEdited = ref(!!sourceProfile)
 
 usePageShell(() => ({
   title: profile.id ? 'Edit profile' : 'New profile',

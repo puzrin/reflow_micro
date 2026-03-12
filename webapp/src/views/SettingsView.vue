@@ -44,6 +44,14 @@ function openProfile(profileId: number) {
   router.push({ name: 'profile', params: { id: profileId } })
 }
 
+function duplicateProfile(profileId: number) {
+  router.push({
+    name: 'profile',
+    params: { id: 0 },
+    query: { source_profile_id: String(profileId) },
+  })
+}
+
 async function deleteProfile(profileId: number) {
   const result = await confirm({
     title: 'Remove profile?',
@@ -162,6 +170,10 @@ async function saveBleNameHandler() {
                     <v-list-item
                       title="Edit"
                       :to="{ name: 'profile', params: { id: profile.id } }"
+                    />
+                    <v-list-item
+                      title="Duplicate"
+                      @click="duplicateProfile(profile.id)"
                     />
                     <v-list-item
                       title="Remove"
