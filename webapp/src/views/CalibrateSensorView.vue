@@ -189,7 +189,7 @@ async function stopBake() {
           />
         </v-card-text>
         <v-card-actions>
-          <HoldToConfirmButton color="red" variant="text" size="large" @confirm="startBake" :disabled="!is_idle">Bake</HoldToConfirmButton>
+          <HoldToConfirmButton color="error" variant="text" size="large" @confirm="startBake" :disabled="!is_idle">Bake</HoldToConfirmButton>
           <v-btn variant="text" size="large" @click="stopBake" :disabled="!is_baking">Stop</v-btn>
           <v-btn color="primary" variant="text" size="large" @click="save_p1" :disabled="!is_baking">Save</v-btn>
         </v-card-actions>

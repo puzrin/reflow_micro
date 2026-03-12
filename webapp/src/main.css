@@ -1,7 +1,11 @@
 .chart-host {
   display: flex;
   flex-direction: column;
-  background-color: color-mix(in srgb, steelblue 10%, white);
+  background-color: color-mix(
+    in srgb,
+    rgb(var(--v-theme-background)) 95%,
+    rgb(var(--v-theme-primary))
+  );
 }
 
 .chart-host-wrap1 {

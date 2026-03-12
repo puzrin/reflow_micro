@@ -156,7 +156,7 @@ function heatingSpeed(segmentIdx: number) {
           <v-expansion-panel value="preview" static>
             <v-expansion-panel-title>Preview</v-expansion-panel-title>
             <v-expansion-panel-text>
-              <v-sheet class="chart-host chart-host--fixed-h flex-fill pa-4 rounded">
+              <v-sheet class="chart-host chart-host--fixed-h flex-fill pa-4 rounded border">
                 <div class="chart-host-wrap1">
                   <div class="chart-host-wrap2">
                     <ReflowChart id="profile-edit-chart" :profile="profile" />

@@ -168,7 +168,7 @@ onUnmounted(() => {
 <style scoped>
   .pchart-profile-line {
     fill: none;
-    stroke: steelblue;
+    stroke: rgb(var(--v-theme-primary));
     stroke-width: 4px;
     stroke-linejoin: round;
     stroke-linecap: round;
@@ -176,7 +176,7 @@ onUnmounted(() => {
 
   .pchart-probe-line {
     fill: none;
-    stroke: red;
+    stroke: rgb(var(--v-theme-error));
     stroke-width: 2px;
     stroke-linejoin: round;
     stroke-linecap: round;
@@ -185,19 +185,33 @@ onUnmounted(() => {
   .guide-vertical,
   .guide-horizontal {
     fill: none;
-    stroke: red;
+    stroke: rgb(var(--v-theme-error));
     stroke-width: 1px;
     stroke-dasharray: 3, 3;
-    opacity: 0.3;
+    opacity: 0.28;
   }
 
   .gradient-start {
-    stop-color: steelblue;
-    stop-opacity: 0.3;
+    stop-color: rgb(var(--v-theme-primary));
+    stop-opacity: 0.22;
   }
 
   .gradient-end {
-    stop-color: steelblue;
+    stop-color: rgb(var(--v-theme-primary));
     stop-opacity: 0;
+  }
+
+  :deep(.x-axis path),
+  :deep(.x-axis line),
+  :deep(.y-axis path),
+  :deep(.y-axis line) {
+    stroke: rgb(var(--v-theme-on-surface));
+    opacity: 0.38;
+  }
+
+  :deep(.x-axis text),
+  :deep(.y-axis text) {
+    fill: rgb(var(--v-theme-on-surface));
+    opacity: 0.6;
   }
 </style>
