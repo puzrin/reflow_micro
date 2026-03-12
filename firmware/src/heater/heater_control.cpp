@@ -42,6 +42,7 @@ void HeaterControl::set_power(float power_w) {
 }
 
 auto HeaterControl::task_start(int32_t task_id, HeaterTaskIteratorFn task_iterator) -> bool {
+    if (get_health_status() != DeviceHealthStatus_DevOK) { return false; }
     if (!HeaterControlBase::task_start(task_id, task_iterator)) { return false; }
     power.minimize_idle_heating(false);
     return true;

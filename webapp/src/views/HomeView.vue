@@ -5,6 +5,7 @@ import { inject } from 'vue'
 import { Device } from '@/device'
 import { DeviceActivityStatus, HeadStatus, PowerStatus } from '@/proto/generated/types'
 import { usePageShell } from '@/composables/appShell'
+import { notify } from '@/composables/notify'
 import ReflowChart from '@/components/ReflowChart.vue'
 import DebugInfo from '@/components/DebugInfo.vue'
 import HoldToConfirmButton from '@/components/HoldToConfirmButton.vue'
@@ -21,7 +22,11 @@ usePageShell(() => ({
 }))
 
 async function start() {
-  await device.run_reflow()
+  try {
+    await device.run_reflow()
+  } catch {
+    notify({ message: 'Failed to start reflow', color: 'error' })
+  }
 }
 
 async function stop() {

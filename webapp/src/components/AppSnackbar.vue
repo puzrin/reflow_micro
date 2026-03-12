@@ -10,12 +10,11 @@ function handleModelValue(next: boolean) {
 
 <template>
   <v-snackbar
-    v-if="state"
-    :key="state.id"
-    :model-value="true"
-    :color="state.color"
+    :model-value="Boolean(state)"
+    :color="state?.color"
+    :timeout="-1"
     @update:model-value="handleModelValue"
   >
-    {{ state.message }}
+    {{ state?.message ?? '' }}
   </v-snackbar>
 </template>
