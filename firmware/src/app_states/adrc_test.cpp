@@ -10,7 +10,7 @@ auto AdrcTest_State::on_enter_state() -> etl::fsm_state_id_t {
     heater.set_temperature(app.last_cmd_data);
     if (!heater.task_start(HISTORY_ID_ADRC_TEST_MODE)) {
         app.beepTaskTerminated();
-        return DeviceActivityStatus_Idle;
+        return DeviceActivityStatus_IDLE;
     }
 
     heater.temperature_control_on();
@@ -22,14 +22,14 @@ auto AdrcTest_State::on_event(const AppCmd::Stop&) -> etl::fsm_state_id_t {
     auto& app = get_fsm_context();
 
     app.beepTaskSucceeded();
-    return DeviceActivityStatus_Idle;
+    return DeviceActivityStatus_IDLE;
 }
 auto AdrcTest_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
     auto& app = get_fsm_context();
 
     if (event.type == ButtonEventId::BUTTON_PRESSED_1X) {
         app.beepTaskSucceeded();
-        return DeviceActivityStatus_Idle;
+        return DeviceActivityStatus_IDLE;
     }
     return No_State_Change;
 }

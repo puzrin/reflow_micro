@@ -4,7 +4,7 @@ import { DeviceActivityStatus, Constants } from '@/proto/generated/types'
 
 export class TaskSensorBake extends HeaterTask {
   historyId = Constants.HISTORY_ID_SENSOR_BAKE_MODE
-  readonly activityId = DeviceActivityStatus.SensorBake
+  readonly activityId = DeviceActivityStatus.SENSOR_BAKE
 
   constructor(
     private heater: HeaterControl,

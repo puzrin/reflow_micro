@@ -37,10 +37,10 @@ async function stop() {
 
 <template>
   <v-container class="d-flex flex-column flex-fill py-4 ga-4">
-    <v-alert v-if="status.head !== HeadStatus.HeadConnected" class="flex-0-0" type="error">
+    <v-alert v-if="status.head !== HeadStatus.HEAD_CONNECTED" class="flex-0-0" type="error">
       Hotplate not connected
     </v-alert>
-    <v-alert v-else-if="status.power == PowerStatus.PwrFailure" class="flex-0-0" type="error">
+    <v-alert v-else-if="status.power == PowerStatus.PWR_FAILURE" class="flex-0-0" type="error">
       No suitable power supply detected
     </v-alert>
 
@@ -50,7 +50,7 @@ async function stop() {
           <ReflowChart id="home-chart"
             :profile="profilesStore.selected"
             :history="device.history.points"
-            :show_history="device.history.id === profilesStore.selectedId"
+            :show_history="device.history.id === profilesStore.selected_id"
           />
 
           <DebugInfo
@@ -64,7 +64,7 @@ async function stop() {
 
     <div class="flex-0-0">
       <HoldToConfirmButton
-        v-if="status.activity === DeviceActivityStatus.Idle"
+        v-if="status.activity === DeviceActivityStatus.IDLE"
         block
         color="primary"
         variant="elevated"

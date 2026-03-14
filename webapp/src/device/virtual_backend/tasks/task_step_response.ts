@@ -16,7 +16,7 @@ interface LogEntry {
 
 export class TaskStepResponse extends HeaterTask {
   historyId = Constants.HISTORY_ID_STEP_RESPONSE
-  readonly activityId = DeviceActivityStatus.StepResponse
+  readonly activityId = DeviceActivityStatus.STEP_RESPONSE
 
   constructor(
     private heater: HeaterControl,

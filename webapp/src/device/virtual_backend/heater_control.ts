@@ -161,7 +161,7 @@ export class HeaterControl {
   }
 
   get_activity_status(): DeviceActivityStatus {
-    return this.current_task?.activityId ?? DeviceActivityStatus.Idle
+    return this.current_task?.activityId ?? DeviceActivityStatus.IDLE
   }
 
   set_power(watts: number): void {
@@ -205,8 +205,8 @@ export class HeaterControl {
     this.adrc.set_params(
       head_params.adrc_b0,
       head_params.adrc_response,
-      head_params.adrc_N,
-      head_params.adrc_M
+      head_params.adrc_n_coeff,
+      head_params.adrc_m_coeff
     )
     this.adrc.reset_to(this.head.temperature)
     this.temperature_control_enabled = true

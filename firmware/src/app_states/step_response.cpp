@@ -21,7 +21,7 @@ auto StepResponse_State::on_enter_state() -> etl::fsm_state_id_t {
     });
     if (!status) {
         log_entries_.reset();
-        return DeviceActivityStatus_Idle;
+        return DeviceActivityStatus_IDLE;
     }
 
     heater.set_power(app.last_cmd_data);
@@ -34,11 +34,11 @@ auto StepResponse_State::on_event(const AppCmd::Stop& event) -> etl::fsm_state_i
     auto& app = get_fsm_context();
 
     event.succeeded ? app.beepTaskSucceeded() : app.beepTaskTerminated();
-    return DeviceActivityStatus_Idle;
+    return DeviceActivityStatus_IDLE;
 }
 
 auto StepResponse_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
-    if (event.type == ButtonEventId::BUTTON_PRESSED_1X) { return DeviceActivityStatus_Idle; }
+    if (event.type == ButtonEventId::BUTTON_PRESSED_1X) { return DeviceActivityStatus_IDLE; }
     return No_State_Change;
 }
 

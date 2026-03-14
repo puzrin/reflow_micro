@@ -21,13 +21,13 @@ auto Bonding_State::on_enter_state() -> etl::fsm_state_id_t {
 }
 
 auto Bonding_State::on_event(const AppCmd::BondOff&) -> etl::fsm_state_id_t {
-    return DeviceActivityStatus_Idle;
+    return DeviceActivityStatus_IDLE;
 }
 
 auto Bonding_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
     if (event.type == ButtonEventId::BUTTON_PRESSED_1X) {
         // Exit bonding on single press
-        return DeviceActivityStatus_Idle;
+        return DeviceActivityStatus_IDLE;
     }
     return No_State_Change;
 }

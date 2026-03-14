@@ -16,8 +16,8 @@ const localSettingsStore = useLocalSettingsStore()
 const device: Device = inject('device')!
 
 const status = device.status
-const is_idle = computed(() => status.activity === DeviceActivityStatus.Idle)
-const is_baking = computed(() => status.activity === DeviceActivityStatus.SensorBake)
+const is_idle = computed(() => status.activity === DeviceActivityStatus.IDLE)
+const is_baking = computed(() => status.activity === DeviceActivityStatus.SENSOR_BAKE)
 
 usePageShell(() => ({
   title: 'Calibrate temperature sensor',
@@ -43,7 +43,7 @@ async function loadCalibrationStatus() {
 }
 
 watch(
-  () => status.head === HeadStatus.HeadConnected,
+  () => status.head === HeadStatus.HEAD_CONNECTED,
   async (connected) => {
     if (!connected) return
     await loadCalibrationStatus()
@@ -113,7 +113,7 @@ async function stopBake() {
 
 <template>
   <v-container class="py-4 d-flex flex-column ga-4">
-    <v-alert v-if="status.head !== HeadStatus.HeadConnected" type="error">
+    <v-alert v-if="status.head !== HeadStatus.HEAD_CONNECTED" type="error">
       Hotplate not connected
     </v-alert>
     <template v-else>

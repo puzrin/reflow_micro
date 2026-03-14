@@ -14,7 +14,7 @@ auto ProfilesConfig::get_profiles(std::vector<uint8_t>& pb_data) -> bool {
 
 auto ProfilesConfig::get_profiles(ProfilesData& profiles_config) -> bool {
     bool status = pb2struct(unselected_profiles_store.get(), profiles_config, ProfilesData_fields);
-    profiles_config.selectedId = selection_store.get();
+    profiles_config.selected_id = selection_store.get();
 
     adjustSelection(profiles_config);
     return status;
@@ -30,8 +30,8 @@ auto ProfilesConfig::set_profiles(const std::vector<uint8_t>& pb_data) -> bool {
 auto ProfilesConfig::set_profiles(const ProfilesData& profiles_config) -> bool {
     auto profiles_unselected = std::make_unique<ProfilesData>(profiles_config);
 
-    auto selection = profiles_config.selectedId;
-    profiles_unselected->selectedId = -1;
+    auto selection = profiles_config.selected_id;
+    profiles_unselected->selected_id = -1;
 
     std::vector<uint8_t> buffer_pb(ProfilesData_size);
     if (!struct2pb(*profiles_unselected, buffer_pb, ProfilesData_fields, ProfilesData_size)) { return false; }
@@ -43,15 +43,15 @@ auto ProfilesConfig::set_profiles(const ProfilesData& profiles_config) -> bool {
 
 void ProfilesConfig::adjustSelection(ProfilesData& profiles_config) {
     if (profiles_config.items_count == 0) {
-        profiles_config.selectedId = -1;
+        profiles_config.selected_id = -1;
         return;
     }
 
     for (size_t i = 0; i < profiles_config.items_count; i++) {
-        if (profiles_config.items[i].id == profiles_config.selectedId) { return; }
+        if (profiles_config.items[i].id == profiles_config.selected_id) { return; }
     }
 
-    profiles_config.selectedId = profiles_config.items[0].id;
+    profiles_config.selected_id = profiles_config.items[0].id;
 }
 
 auto ProfilesConfig::get_selected_profile(Profile& profile) -> bool {
@@ -59,7 +59,7 @@ auto ProfilesConfig::get_selected_profile(Profile& profile) -> bool {
     get_profiles(*profiles_data);
 
     for (size_t i = 0; i < profiles_data->items_count; i++) {
-        if (profiles_data->items[i].id == profiles_data->selectedId) {
+        if (profiles_data->items[i].id == profiles_data->selected_id) {
             profile = profiles_data->items[i];
             return true;
         }

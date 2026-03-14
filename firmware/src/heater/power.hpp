@@ -99,7 +99,7 @@ public:
     void unlock() { xSemaphoreGive(_lock); }
 
 private:
-    etl::atomic<PowerStatus> power_status{PowerStatus_PwrOff};
+    etl::atomic<PowerStatus> power_status{PowerStatus_PWR_OFF};
     SemaphoreHandle_t _lock{xSemaphoreCreateMutex()};
 };
 

@@ -18,9 +18,9 @@ const device: Device = inject('device')!
 
 const status = device.status
 const activity = computed(() => device.status.activity)
-const is_idle = computed(() => activity.value === DeviceActivityStatus.Idle)
-const is_testing = computed(() => activity.value === DeviceActivityStatus.AdrcTest)
-const is_step_response = computed(() => activity.value === DeviceActivityStatus.StepResponse)
+const is_idle = computed(() => activity.value === DeviceActivityStatus.IDLE)
+const is_testing = computed(() => activity.value === DeviceActivityStatus.ADRC_TEST)
+const is_step_response = computed(() => activity.value === DeviceActivityStatus.STEP_RESPONSE)
 
 usePageShell(() => ({
   title: 'Calibrate temperature controller',
@@ -48,12 +48,12 @@ function toPrecisionNumber(num: number, valuableDigits: number = 2): number {
 function configToRefs(config: HeadParams) {
   adrc_param_tau.value = toPrecisionNumber(config.adrc_response, 3)
   adrc_param_b0.value = toPrecisionNumber(config.adrc_b0, 3)
-  adrc_param_n.value = toPrecisionNumber(config.adrc_N, 3)
-  adrc_param_m.value = toPrecisionNumber(config.adrc_M, 3)
+  adrc_param_n.value = toPrecisionNumber(config.adrc_n_coeff, 3)
+  adrc_param_m.value = toPrecisionNumber(config.adrc_m_coeff, 3)
 }
 
 watch(
-  () => status.head === HeadStatus.HeadConnected,
+  () => status.head === HeadStatus.HEAD_CONNECTED,
   async (connected) => {
     if (!connected) return
     configToRefs(await device.get_head_params())
@@ -75,7 +75,7 @@ watchDebounced(test_temperature, async () => {
 
 // Reload ADRC settings when any task finishes
 watch(activity, async (newState) => {
-  if (newState === DeviceActivityStatus.Idle && device.is_ready.value) {
+  if (newState === DeviceActivityStatus.IDLE && device.is_ready.value) {
     configToRefs(await device.get_head_params())
   }
 })
@@ -95,8 +95,8 @@ async function save_adrc_params() {
     const head_params = await device.get_head_params()
     head_params.adrc_response = adrc_param_tau.value
     head_params.adrc_b0 = adrc_param_b0.value
-    head_params.adrc_N = adrc_param_n.value
-    head_params.adrc_M = adrc_param_m.value
+    head_params.adrc_n_coeff = adrc_param_n.value
+    head_params.adrc_m_coeff = adrc_param_m.value
     await device.set_head_params(head_params)
 
     configToRefs(await device.get_head_params())
@@ -137,7 +137,7 @@ async function stopTask(force: boolean = false) {
 
 <template>
   <v-container class="py-4 d-flex flex-column ga-4">
-    <v-alert v-if="status.head !== HeadStatus.HeadConnected" type="error">
+    <v-alert v-if="status.head !== HeadStatus.HEAD_CONNECTED" type="error">
       Hotplate not connected
     </v-alert>
     <template v-else>

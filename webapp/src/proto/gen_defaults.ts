@@ -43,13 +43,13 @@ write_relative('./generated/defaults.ts', [
   to_ts('DEFAULT_HEAD_PARAMS_PB', HeadParams.encode(head_default).finish())
 ].join('\n\n') + `\n`)
 
-const profiles_default_unselected = { ...profiles_default, selectedId: -1 }
+const profiles_default_unselected = { ...profiles_default, selected_id: -1 }
 
 write_relative('../../../firmware/src/proto/generated/defaults.hpp', [
   hpp_header,
   //to_hpp('DEFAULT_PROFILES_DATA_PB', ProfilesData.encode(profiles_default).finish()),
   // Split into selection & unselected data tp simplify initialization & updates
-  `inline const int32_t DEFAULT_PROFILES_SELECTION = ${profiles_default.selectedId};`,
+  `inline const int32_t DEFAULT_PROFILES_SELECTION = ${profiles_default.selected_id};`,
   to_hpp('DEFAULT_PROFILES_DATA_UNSELECTED_PB', ProfilesData.encode(profiles_default_unselected).finish()),
   to_hpp('DEFAULT_HEAD_PARAMS_PB', HeadParams.encode(head_default).finish())
 ].join('\n\n') + `\n`)
@@ -59,4 +59,3 @@ const state_values = Object.values(DeviceActivityStatus).filter(v => typeof v ==
 if (!state_values.every((v, i) => v === i)) {
   throw new Error('DeviceActivityStatus values must be sequential starting from 0');
 }
-

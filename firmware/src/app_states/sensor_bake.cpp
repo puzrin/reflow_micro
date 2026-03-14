@@ -13,7 +13,7 @@ auto SensorBake_State::on_enter_state() -> etl::fsm_state_id_t {
     });
     if (!status) {
         app.beepTaskTerminated();
-        return DeviceActivityStatus_Idle;
+        return DeviceActivityStatus_IDLE;
     }
 
     heater.set_power(app.last_cmd_data);
@@ -25,7 +25,7 @@ auto SensorBake_State::on_event(const AppCmd::Stop& event) -> etl::fsm_state_id_
     auto& app = get_fsm_context();
 
     event.succeeded ? app.beepTaskSucceeded() : app.beepTaskTerminated();
-    return DeviceActivityStatus_Idle;
+    return DeviceActivityStatus_IDLE;
 }
 
 auto SensorBake_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
@@ -33,7 +33,7 @@ auto SensorBake_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_i
 
     if (event.type == ButtonEventId::BUTTON_PRESSED_1X) {
         app.beepTaskTerminated();
-        return DeviceActivityStatus_Idle;
+        return DeviceActivityStatus_IDLE;
     }
     return No_State_Change;
 }

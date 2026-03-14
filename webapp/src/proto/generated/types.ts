@@ -33,37 +33,37 @@ export enum SensorType {
 }
 
 export enum HeadStatus {
-  HeadDisconnected = 0,
-  HeadInitializing = 1,
-  HeadConnected = 2,
-  HeadError = 3,
+  HEAD_DISCONNECTED = 0,
+  HEAD_INITIALIZING = 1,
+  HEAD_CONNECTED = 2,
+  HEAD_ERROR = 3,
   UNRECOGNIZED = -1,
 }
 
 export enum PowerStatus {
-  PwrOff = 0,
-  PwrInitializing = 1,
-  /** PwrTransition - PD contract change */
-  PwrTransition = 2,
-  PwrOK = 3,
-  PwrFailure = 4,
+  PWR_OFF = 0,
+  PWR_INITIALIZING = 1,
+  /** PWR_TRANSITION - PD contract change */
+  PWR_TRANSITION = 2,
+  PWR_OK = 3,
+  PWR_FAILURE = 4,
   UNRECOGNIZED = -1,
 }
 
 export enum DeviceHealthStatus {
-  DevNotReady = 0,
-  DevOK = 1,
-  DevFailure = 2,
+  DEV_NOT_READY = 0,
+  DEV_OK = 1,
+  DEV_FAILURE = 2,
   UNRECOGNIZED = -1,
 }
 
 export enum DeviceActivityStatus {
-  Idle = 0,
-  Reflow = 1,
-  SensorBake = 2,
-  AdrcTest = 3,
-  StepResponse = 4,
-  Bonding = 5,
+  IDLE = 0,
+  REFLOW = 1,
+  SENSOR_BAKE = 2,
+  ADRC_TEST = 3,
+  STEP_RESPONSE = 4,
+  BONDING = 5,
   UNRECOGNIZED = -1,
 }
 
@@ -87,7 +87,7 @@ export interface ProfilesData {
   /** Available profiles */
   items: Profile[];
   /** Currently selected profile id */
-  selectedId: number;
+  selected_id: number;
 }
 
 export interface Point {
@@ -115,12 +115,12 @@ export interface HeadParams {
    * ω_observer = N / τ. Usually 3..10
    * 5 is a good starting point. Increase it until it oscillates, then back off by 10-20%.
    */
-  adrc_N: number;
+  adrc_n_coeff: number;
   /**
    * ω_controller = ω_observer / M. Usually 2..5
    * 3 is a good starting point. Changes are probably not required.
    */
-  adrc_M: number;
+  adrc_m_coeff: number;
 }
 
 export interface DeviceInfo {
@@ -272,7 +272,7 @@ export const Profile: MessageFns<Profile> = {
 };
 
 function createBaseProfilesData(): ProfilesData {
-  return { items: [], selectedId: 0 };
+  return { items: [], selected_id: 0 };
 }
 
 export const ProfilesData: MessageFns<ProfilesData> = {
@@ -280,8 +280,8 @@ export const ProfilesData: MessageFns<ProfilesData> = {
     for (const v of message.items) {
       Profile.encode(v!, writer.uint32(10).fork()).join();
     }
-    if (message.selectedId !== 0) {
-      writer.uint32(16).int32(message.selectedId);
+    if (message.selected_id !== 0) {
+      writer.uint32(16).int32(message.selected_id);
     }
     return writer;
   },
@@ -306,7 +306,7 @@ export const ProfilesData: MessageFns<ProfilesData> = {
             break;
           }
 
-          message.selectedId = reader.int32();
+          message.selected_id = reader.int32();
           continue;
         }
       }
@@ -324,7 +324,7 @@ export const ProfilesData: MessageFns<ProfilesData> = {
   fromPartial<I extends Exact<DeepPartial<ProfilesData>, I>>(object: I): ProfilesData {
     const message = createBaseProfilesData();
     message.items = object.items?.map((e) => Profile.fromPartial(e)) || [];
-    message.selectedId = object.selectedId ?? 0;
+    message.selected_id = object.selected_id ?? 0;
     return message;
   },
 };
@@ -465,8 +465,8 @@ function createBaseHeadParams(): HeadParams {
     sensor_p1_value: 0,
     adrc_response: 0,
     adrc_b0: 0,
-    adrc_N: 0,
-    adrc_M: 0,
+    adrc_n_coeff: 0,
+    adrc_m_coeff: 0,
   };
 }
 
@@ -490,11 +490,11 @@ export const HeadParams: MessageFns<HeadParams> = {
     if (message.adrc_b0 !== 0) {
       writer.uint32(53).float(message.adrc_b0);
     }
-    if (message.adrc_N !== 0) {
-      writer.uint32(61).float(message.adrc_N);
+    if (message.adrc_n_coeff !== 0) {
+      writer.uint32(61).float(message.adrc_n_coeff);
     }
-    if (message.adrc_M !== 0) {
-      writer.uint32(69).float(message.adrc_M);
+    if (message.adrc_m_coeff !== 0) {
+      writer.uint32(69).float(message.adrc_m_coeff);
     }
     return writer;
   },
@@ -559,7 +559,7 @@ export const HeadParams: MessageFns<HeadParams> = {
             break;
           }
 
-          message.adrc_N = reader.float();
+          message.adrc_n_coeff = reader.float();
           continue;
         }
         case 8: {
@@ -567,7 +567,7 @@ export const HeadParams: MessageFns<HeadParams> = {
             break;
           }
 
-          message.adrc_M = reader.float();
+          message.adrc_m_coeff = reader.float();
           continue;
         }
       }
@@ -590,8 +590,8 @@ export const HeadParams: MessageFns<HeadParams> = {
     message.sensor_p1_value = object.sensor_p1_value ?? 0;
     message.adrc_response = object.adrc_response ?? 0;
     message.adrc_b0 = object.adrc_b0 ?? 0;
-    message.adrc_N = object.adrc_N ?? 0;
-    message.adrc_M = object.adrc_M ?? 0;
+    message.adrc_n_coeff = object.adrc_n_coeff ?? 0;
+    message.adrc_m_coeff = object.adrc_m_coeff ?? 0;
     return message;
   },
 };

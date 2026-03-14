@@ -9,7 +9,7 @@ const device: Device = inject('device')!
 const status = device.status
 
 const repoUrl = __REPO_URL__
-const locked = () => status.activity === DeviceActivityStatus.Reflow
+const locked = () => status.activity === DeviceActivityStatus.REFLOW
 
 </script>
 

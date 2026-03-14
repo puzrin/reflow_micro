@@ -5,7 +5,7 @@ import { ProfilesData, HeadParams } from './generated/types'
 // https://www.compuphase.com/electronics/reflowsolderprofiles.htm
 
 export const profiles_default: ProfilesData = {
-  selectedId: 1,
+  selected_id: 1,
   items: [
     {
       id: 1,
@@ -47,6 +47,6 @@ export const head_default: HeadParams = {
   sensor_p1_value: 0,
   adrc_response: 113,
   adrc_b0: 0.0536,
-  adrc_N: 55,
-  adrc_M: 5
+  adrc_n_coeff: 55,
+  adrc_m_coeff: 5
 }

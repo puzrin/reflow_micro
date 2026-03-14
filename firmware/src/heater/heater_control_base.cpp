@@ -59,7 +59,7 @@ void HeaterControlBase::get_history(int32_t client_history_version, float from, 
 auto HeaterControlBase::load_all_params() -> bool {
     HeadParams p;
     if (!get_head_params(p)) { return false; }
-    adrc.set_params(p.adrc_b0, p.adrc_response, p.adrc_N, p.adrc_M);
+    adrc.set_params(p.adrc_b0, p.adrc_response, p.adrc_n_coeff, p.adrc_m_coeff);
     return true;
 }
 
@@ -113,7 +113,7 @@ void HeaterControlBase::tick() {
 
 auto HeaterControlBase::task_start(int32_t task_id, HeaterTaskIteratorFn ticker) -> bool {
     if (is_task_active.load()) { return false; }
-    if (get_head_status() != HeadStatus_HeadConnected) { return false; }
+    if (get_head_status() != HeadStatus_HEAD_CONNECTED) { return false; }
     if (!load_all_params()) { return false; }
 
     history.data.clear();

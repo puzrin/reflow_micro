@@ -55,32 +55,32 @@ auto save_profiles_data(std::vector<uint8_t> pb_data) -> bool {
 
 auto stop(bool succeeded) -> bool {
     application.receive(AppCmd::Stop{succeeded});
-    return application.get_state_id() == DeviceActivityStatus_Idle;
+    return application.get_state_id() == DeviceActivityStatus_IDLE;
 }
 
 auto run_reflow() -> bool {
     application.receive(AppCmd::Reflow{});
-    return application.get_state_id() == DeviceActivityStatus_Reflow;
+    return application.get_state_id() == DeviceActivityStatus_REFLOW;
 }
 
 auto run_sensor_bake(float watts) -> bool {
     application.receive(AppCmd::SensorBake{watts});
-    return application.get_state_id() == DeviceActivityStatus_SensorBake;
+    return application.get_state_id() == DeviceActivityStatus_SENSOR_BAKE;
 }
 
 auto run_adrc_test(float temperature) -> bool {
     application.receive(AppCmd::AdrcTest{temperature});
-    return application.get_state_id() == DeviceActivityStatus_AdrcTest;
+    return application.get_state_id() == DeviceActivityStatus_ADRC_TEST;
 }
 
 auto run_step_response(float watts) -> bool {
     application.receive(AppCmd::StepResponse{watts});
-    return application.get_state_id() == DeviceActivityStatus_StepResponse;
+    return application.get_state_id() == DeviceActivityStatus_STEP_RESPONSE;
 }
 
 std::vector<uint8_t> get_head_params() {
     std::vector<uint8_t> pb_data(HeadParams_size);
-    if (heater.get_head_status() != HeadStatus_HeadConnected ||
+    if (heater.get_head_status() != HeadStatus_HEAD_CONNECTED ||
         !heater.get_head_params_pb(pb_data))
     {
         throw std::runtime_error("Hotplate is not connected");
@@ -90,7 +90,7 @@ std::vector<uint8_t> get_head_params() {
 }
 
 auto set_head_params(std::vector<uint8_t> pb_data) -> bool {
-    if (heater.get_head_status() != HeadStatus_HeadConnected ||
+    if (heater.get_head_status() != HeadStatus_HEAD_CONNECTED ||
         !heater.set_head_params_pb(pb_data))
     {
         throw std::runtime_error("Hotplate is not connected");
@@ -99,7 +99,7 @@ auto set_head_params(std::vector<uint8_t> pb_data) -> bool {
 }
 
 auto set_cpoint0(float temperature) -> bool {
-    if (heater.get_head_status() != HeadStatus_HeadConnected) {
+    if (heater.get_head_status() != HeadStatus_HEAD_CONNECTED) {
         throw std::runtime_error("Hotplate is not connected");
     }
     if (!heater.set_calibration_point_0(temperature)) {
@@ -109,7 +109,7 @@ auto set_cpoint0(float temperature) -> bool {
 }
 
 auto set_cpoint1(float temperature) -> bool {
-    if (heater.get_head_status() != HeadStatus_HeadConnected) {
+    if (heater.get_head_status() != HeadStatus_HEAD_CONNECTED) {
         throw std::runtime_error("Hotplate is not connected");
     }
     if (!heater.set_calibration_point_1(temperature)) {

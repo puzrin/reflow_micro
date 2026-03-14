@@ -93,7 +93,7 @@ auto Reflow_State::on_enter_state() -> etl::fsm_state_id_t {
     auto profile = std::make_unique<Profile>();
     if (!profiles_config.get_selected_profile(*profile)) {
         app.beepTaskTerminated();
-        return DeviceActivityStatus_Idle;
+        return DeviceActivityStatus_IDLE;
     }
 
     // Load the timeline and try to execute the task.
@@ -103,7 +103,7 @@ auto Reflow_State::on_enter_state() -> etl::fsm_state_id_t {
     });
     if (!status) {
         app.beepTaskTerminated();
-        return DeviceActivityStatus_Idle;
+        return DeviceActivityStatus_IDLE;
     }
 
     // Enable ADRC and signal success with the LED.
@@ -118,7 +118,7 @@ auto Reflow_State::on_event(const AppCmd::Stop& event) -> etl::fsm_state_id_t {
     auto& app = get_fsm_context();
 
     event.succeeded ? app.beepTaskSucceeded() : app.beepTaskTerminated();
-    return DeviceActivityStatus_Idle;
+    return DeviceActivityStatus_IDLE;
 }
 
 auto Reflow_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
@@ -126,7 +126,7 @@ auto Reflow_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t 
 
     if (event.type == ButtonEventId::BUTTON_PRESSED_1X) {
         app.beepTaskTerminated();
-        return DeviceActivityStatus_Idle;
+        return DeviceActivityStatus_IDLE;
     }
     return No_State_Change;
 }

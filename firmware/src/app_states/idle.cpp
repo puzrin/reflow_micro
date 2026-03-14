@@ -7,22 +7,22 @@ auto Idle_State::on_enter_state() -> etl::fsm_state_id_t {
 }
 
 auto Idle_State::on_event(const AppCmd::Reflow&) -> etl::fsm_state_id_t {
-    return DeviceActivityStatus_Reflow;
+    return DeviceActivityStatus_REFLOW;
 }
 
 auto Idle_State::on_event(const AppCmd::SensorBake& event) -> etl::fsm_state_id_t {
     get_fsm_context().last_cmd_data = event.watts;
-    return DeviceActivityStatus_SensorBake;
+    return DeviceActivityStatus_SENSOR_BAKE;
 }
 
 auto Idle_State::on_event(const AppCmd::AdrcTest& event) -> etl::fsm_state_id_t {
     get_fsm_context().last_cmd_data = event.temperature;
-    return DeviceActivityStatus_AdrcTest;
+    return DeviceActivityStatus_ADRC_TEST;
 }
 
 auto Idle_State::on_event(const AppCmd::StepResponse& event) -> etl::fsm_state_id_t {
     get_fsm_context().last_cmd_data = event.watts;
-    return DeviceActivityStatus_StepResponse;
+    return DeviceActivityStatus_STEP_RESPONSE;
 }
 
 auto Idle_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
@@ -30,7 +30,7 @@ auto Idle_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
 
     switch (event.type) {
         case ButtonEventId::BUTTON_PRESSED_5X:
-            return DeviceActivityStatus_Bonding;
+            return DeviceActivityStatus_BONDING;
 
         // Animate long press start
         case ButtonEventId::BUTTON_LONG_PRESS_START:
@@ -47,7 +47,7 @@ auto Idle_State::on_event(const AppCmd::Button& event) -> etl::fsm_state_id_t {
         case ButtonEventId::BUTTON_LONG_PRESS:
             APP_LOGI("Long press succeeded");
             app.showOff();
-            return DeviceActivityStatus_Reflow;
+            return DeviceActivityStatus_REFLOW;
 
         default:
             break;

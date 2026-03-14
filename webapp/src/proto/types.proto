@@ -36,7 +36,7 @@ message ProfilesData {
   // Available profiles
   repeated Profile items = 1;
   // Currently selected profile id
-  int32 selectedId = 2;
+  int32 selected_id = 2;
 }
 
 message Point {
@@ -70,10 +70,10 @@ message HeadParams {
   float adrc_b0 = 6;
   // ω_observer = N / τ. Usually 3..10
   // 5 is a good starting point. Increase it until it oscillates, then back off by 10-20%.
-  float adrc_N = 7;
+  float adrc_n_coeff = 7;
   // ω_controller = ω_observer / M. Usually 2..5
   // 3 is a good starting point. Changes are probably not required.
-  float adrc_M = 8;
+  float adrc_m_coeff = 8;
 }
 
 enum SensorType {
@@ -82,33 +82,33 @@ enum SensorType {
 }
 
 enum HeadStatus {
-  HeadDisconnected = 0;
-  HeadInitializing = 1;
-  HeadConnected = 2;
-  HeadError = 3;
+  HEAD_DISCONNECTED = 0;
+  HEAD_INITIALIZING = 1;
+  HEAD_CONNECTED = 2;
+  HEAD_ERROR = 3;
 }
 
 enum PowerStatus {
-  PwrOff = 0;
-  PwrInitializing = 1;
-  PwrTransition = 2; // PD contract change
-  PwrOK = 3;
-  PwrFailure = 4;
+  PWR_OFF = 0;
+  PWR_INITIALIZING = 1;
+  PWR_TRANSITION = 2; // PD contract change
+  PWR_OK = 3;
+  PWR_FAILURE = 4;
 }
 
 enum DeviceHealthStatus {
-  DevNotReady = 0;
-  DevOK = 1;
-  DevFailure = 2;
+  DEV_NOT_READY = 0;
+  DEV_OK = 1;
+  DEV_FAILURE = 2;
 }
 
 enum DeviceActivityStatus {
-  Idle = 0;
-  Reflow = 1;
-  SensorBake = 2;
-  AdrcTest = 3;
-  StepResponse = 4;
-  Bonding = 5;
+  IDLE = 0;
+  REFLOW = 1;
+  SENSOR_BAKE = 2;
+  ADRC_TEST = 3;
+  STEP_RESPONSE = 4;
+  BONDING = 5;
 }
 
 message DeviceInfo {

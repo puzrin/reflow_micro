@@ -6,7 +6,7 @@
 #include "app.hpp"
 #include "proto/generated/types.pb.h"
 
-class StepResponse_State : public etl::fsm_state<App, StepResponse_State, DeviceActivityStatus_StepResponse,
+class StepResponse_State : public etl::fsm_state<App, StepResponse_State, DeviceActivityStatus_STEP_RESPONSE,
     AppCmd::Stop, AppCmd::Button> {
 public:
     struct LogEntry {

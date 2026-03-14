@@ -75,7 +75,7 @@ class Timeline {
 
 export class TaskReflow extends HeaterTask {
   historyId = 0
-  readonly activityId = DeviceActivityStatus.Reflow
+  readonly activityId = DeviceActivityStatus.REFLOW
 
   private timeline = new Timeline()
 

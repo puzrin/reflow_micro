@@ -31,7 +31,7 @@ public:
     static auto on_enter_state(Head& head) -> state_id_t {
         APP_LOGI("Head: Detached");
 
-        head.head_status.store(HeadStatus_HeadDisconnected);
+        head.head_status.store(HeadStatus_HEAD_DISCONNECTED);
         return No_State_Change;
     }
 
@@ -50,7 +50,7 @@ public:
     static auto on_enter_state(Head& head) -> state_id_t {
         APP_LOGI("Head: Initializing");
 
-        head.head_status.store(HeadStatus_HeadInitializing);
+        head.head_status.store(HeadStatus_HEAD_INITIALIZING);
         return No_State_Change;
     }
 
@@ -83,7 +83,7 @@ public:
     static auto on_enter_state(Head& head) -> state_id_t {
         APP_LOGI("Head: Attached");
 
-        head.head_status.store(HeadStatus_HeadConnected);
+        head.head_status.store(HeadStatus_HEAD_CONNECTED);
         return No_State_Change;
     }
 

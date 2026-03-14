@@ -4,7 +4,7 @@ import { DeviceActivityStatus, Constants } from '@/proto/generated/types'
 
 export class TaskAdrcTest extends HeaterTask {
   historyId = Constants.HISTORY_ID_ADRC_TEST_MODE
-  readonly activityId = DeviceActivityStatus.AdrcTest
+  readonly activityId = DeviceActivityStatus.ADRC_TEST
 
   constructor(
     private heater: HeaterControl,

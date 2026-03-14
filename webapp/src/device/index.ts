@@ -48,7 +48,7 @@ export class Device {
   need_pairing: Ref<boolean> = ref(false)
   is_ready: Ref<boolean> = ref(false) // connected + authenticated + configs fetched
 
-  status = reactive<DeviceInfo>(DeviceInfo.create({ head: HeadStatus.HeadDisconnected }))
+  status = reactive<DeviceInfo>(DeviceInfo.create({ head: HeadStatus.HEAD_DISCONNECTED }))
 
   history = reactive<DeviceHistory>({
     points: [] as Point[],

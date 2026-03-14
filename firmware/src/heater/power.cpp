@@ -62,7 +62,7 @@ public:
         pwr.pwm.enable(false);
         drain_tracker.reset();
         pwr.target_power_mw = 0;
-        pwr.set_power_status(PowerStatus::PowerStatus_PwrOff);
+        pwr.set_power_status(PowerStatus::PowerStatus_PWR_OFF);
         application.enqueue_message(AppCmd::Stop{});
         return No_State_Change;
     }
@@ -83,7 +83,7 @@ public:
         pwr.pwm.enable(false);
         drain_tracker.reset();
         pwr.target_power_mw = 0;
-        pwr.set_power_status(PowerStatus::PowerStatus_PwrInitializing);
+        pwr.set_power_status(PowerStatus::PowerStatus_PWR_INITIALIZING);
         application.enqueue_message(AppCmd::Stop{});
         return No_State_Change;
     }
@@ -135,7 +135,7 @@ public:
         auto& pwr = get_fsm_context();
         pwr.log_state();
 
-        pwr.set_power_status(PowerStatus::PowerStatus_PwrOK);
+        pwr.set_power_status(PowerStatus::PowerStatus_PWR_OK);
         // Reset lock for sure
         pwr.is_apdo_updating = false;
         pwr.prev_apdo_mv = 0;
@@ -270,7 +270,7 @@ public:
         auto& pwr = get_fsm_context();
         pwr.log_state();
 
-        pwr.set_power_status(PowerStatus::PowerStatus_PwrTransition);
+        pwr.set_power_status(PowerStatus::PowerStatus_PWR_TRANSITION);
         // Turn load off
         pwr.pwm.enable(false);
 
@@ -332,7 +332,7 @@ public:
         pwr.log_state();
 
         pwr.pwm.enable(false);
-        pwr.set_power_status(PowerStatus::PowerStatus_PwrFailure);
+        pwr.set_power_status(PowerStatus::PowerStatus_PWR_FAILURE);
         return No_State_Change;
     }
 };

@@ -49,10 +49,10 @@ export class VirtualBackend implements IBackend {
     if (!this.device.is_ready.value) return
 
     Object.assign(this.device.status, {
-      health: DeviceHealthStatus.DevOK,
+      health: DeviceHealthStatus.DEV_OK,
       activity: this.heater_control.get_activity_status(),
-      power: PowerStatus.PwrOK,
-      head: HeadStatus.HeadConnected,
+      power: PowerStatus.PWR_OK,
+      head: HeadStatus.HEAD_CONNECTED,
       temperature_x10: Math.round(this.heater_control.get_temperature() * 10),
       peak_mv: Math.round(this.heater_control.get_peak_mv()),
       peak_ma: Math.round(this.heater_control.get_peak_ma()),
@@ -94,7 +94,7 @@ export class VirtualBackend implements IBackend {
     this.device.is_authenticated.value = true
     this.client_history_version = -1
 
-    this.device.status.head = HeadStatus.HeadConnected
+    this.device.status.head = HeadStatus.HEAD_CONNECTED
 
     await this.device.loadProfilesData()
 
@@ -108,7 +108,7 @@ export class VirtualBackend implements IBackend {
     this.device.is_authenticated.value = false
     this.device.is_ready.value = false
 
-    this.device.status.head = HeadStatus.HeadDisconnected
+    this.device.status.head = HeadStatus.HEAD_DISCONNECTED
   }
 
   async connect() {}
@@ -146,7 +146,7 @@ export class VirtualBackend implements IBackend {
   async run_sensor_bake(watts: number) {
     const activity = this.heater_control.get_activity_status()
 
-    if (activity === DeviceActivityStatus.SensorBake) {
+    if (activity === DeviceActivityStatus.SENSOR_BAKE) {
       // Task already running, just update power
       this.heater_control.set_power(watts)
       return
@@ -165,7 +165,7 @@ export class VirtualBackend implements IBackend {
   async run_adrc_test(temperature: number) {
     const activity = this.heater_control.get_activity_status()
 
-    if (activity === DeviceActivityStatus.AdrcTest) {
+    if (activity === DeviceActivityStatus.ADRC_TEST) {
       // Task already running, just update temperature
       this.heater_control.set_temperature(temperature)
       return

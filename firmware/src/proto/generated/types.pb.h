@@ -30,33 +30,33 @@ typedef enum _SensorType {
 } SensorType;
 
 typedef enum _HeadStatus {
-    HeadStatus_HeadDisconnected = 0,
-    HeadStatus_HeadInitializing = 1,
-    HeadStatus_HeadConnected = 2,
-    HeadStatus_HeadError = 3
+    HeadStatus_HEAD_DISCONNECTED = 0,
+    HeadStatus_HEAD_INITIALIZING = 1,
+    HeadStatus_HEAD_CONNECTED = 2,
+    HeadStatus_HEAD_ERROR = 3
 } HeadStatus;
 
 typedef enum _PowerStatus {
-    PowerStatus_PwrOff = 0,
-    PowerStatus_PwrInitializing = 1,
-    PowerStatus_PwrTransition = 2, /* PD contract change */
-    PowerStatus_PwrOK = 3,
-    PowerStatus_PwrFailure = 4
+    PowerStatus_PWR_OFF = 0,
+    PowerStatus_PWR_INITIALIZING = 1,
+    PowerStatus_PWR_TRANSITION = 2, /* PD contract change */
+    PowerStatus_PWR_OK = 3,
+    PowerStatus_PWR_FAILURE = 4
 } PowerStatus;
 
 typedef enum _DeviceHealthStatus {
-    DeviceHealthStatus_DevNotReady = 0,
-    DeviceHealthStatus_DevOK = 1,
-    DeviceHealthStatus_DevFailure = 2
+    DeviceHealthStatus_DEV_NOT_READY = 0,
+    DeviceHealthStatus_DEV_OK = 1,
+    DeviceHealthStatus_DEV_FAILURE = 2
 } DeviceHealthStatus;
 
 typedef enum _DeviceActivityStatus {
-    DeviceActivityStatus_Idle = 0,
-    DeviceActivityStatus_Reflow = 1,
-    DeviceActivityStatus_SensorBake = 2,
-    DeviceActivityStatus_AdrcTest = 3,
-    DeviceActivityStatus_StepResponse = 4,
-    DeviceActivityStatus_Bonding = 5
+    DeviceActivityStatus_IDLE = 0,
+    DeviceActivityStatus_REFLOW = 1,
+    DeviceActivityStatus_SENSOR_BAKE = 2,
+    DeviceActivityStatus_ADRC_TEST = 3,
+    DeviceActivityStatus_STEP_RESPONSE = 4,
+    DeviceActivityStatus_BONDING = 5
 } DeviceActivityStatus;
 
 /* Struct definitions */
@@ -82,7 +82,7 @@ typedef struct _ProfilesData {
     pb_size_t items_count;
     Profile items[10];
     /* Currently selected profile id */
-    int32_t selectedId;
+    int32_t selected_id;
 } ProfilesData;
 
 typedef struct _Point {
@@ -109,10 +109,10 @@ typedef struct _HeadParams {
     float adrc_b0;
     /* ω_observer = N / τ. Usually 3..10
  5 is a good starting point. Increase it until it oscillates, then back off by 10-20%. */
-    float adrc_N;
+    float adrc_n_coeff;
     /* ω_controller = ω_observer / M. Usually 2..5
  3 is a good starting point. Changes are probably not required. */
-    float adrc_M;
+    float adrc_m_coeff;
 } HeadParams;
 
 typedef struct _DeviceInfo {
@@ -154,21 +154,21 @@ extern "C" {
 #define _SensorType_MAX SensorType_TCR
 #define _SensorType_ARRAYSIZE ((SensorType)(SensorType_TCR+1))
 
-#define _HeadStatus_MIN HeadStatus_HeadDisconnected
-#define _HeadStatus_MAX HeadStatus_HeadError
-#define _HeadStatus_ARRAYSIZE ((HeadStatus)(HeadStatus_HeadError+1))
+#define _HeadStatus_MIN HeadStatus_HEAD_DISCONNECTED
+#define _HeadStatus_MAX HeadStatus_HEAD_ERROR
+#define _HeadStatus_ARRAYSIZE ((HeadStatus)(HeadStatus_HEAD_ERROR+1))
 
-#define _PowerStatus_MIN PowerStatus_PwrOff
-#define _PowerStatus_MAX PowerStatus_PwrFailure
-#define _PowerStatus_ARRAYSIZE ((PowerStatus)(PowerStatus_PwrFailure+1))
+#define _PowerStatus_MIN PowerStatus_PWR_OFF
+#define _PowerStatus_MAX PowerStatus_PWR_FAILURE
+#define _PowerStatus_ARRAYSIZE ((PowerStatus)(PowerStatus_PWR_FAILURE+1))
 
-#define _DeviceHealthStatus_MIN DeviceHealthStatus_DevNotReady
-#define _DeviceHealthStatus_MAX DeviceHealthStatus_DevFailure
-#define _DeviceHealthStatus_ARRAYSIZE ((DeviceHealthStatus)(DeviceHealthStatus_DevFailure+1))
+#define _DeviceHealthStatus_MIN DeviceHealthStatus_DEV_NOT_READY
+#define _DeviceHealthStatus_MAX DeviceHealthStatus_DEV_FAILURE
+#define _DeviceHealthStatus_ARRAYSIZE ((DeviceHealthStatus)(DeviceHealthStatus_DEV_FAILURE+1))
 
-#define _DeviceActivityStatus_MIN DeviceActivityStatus_Idle
-#define _DeviceActivityStatus_MAX DeviceActivityStatus_Bonding
-#define _DeviceActivityStatus_ARRAYSIZE ((DeviceActivityStatus)(DeviceActivityStatus_Bonding+1))
+#define _DeviceActivityStatus_MIN DeviceActivityStatus_IDLE
+#define _DeviceActivityStatus_MAX DeviceActivityStatus_BONDING
+#define _DeviceActivityStatus_ARRAYSIZE ((DeviceActivityStatus)(DeviceActivityStatus_BONDING+1))
 
 
 
@@ -205,7 +205,7 @@ extern "C" {
 #define Profile_name_tag                         2
 #define Profile_segments_tag                     3
 #define ProfilesData_items_tag                   1
-#define ProfilesData_selectedId_tag              2
+#define ProfilesData_selected_id_tag             2
 #define Point_x_tag                              1
 #define Point_y_tag                              2
 #define HistoryChunk_type_tag                    1
@@ -217,8 +217,8 @@ extern "C" {
 #define HeadParams_sensor_p1_value_tag           4
 #define HeadParams_adrc_response_tag             5
 #define HeadParams_adrc_b0_tag                   6
-#define HeadParams_adrc_N_tag                    7
-#define HeadParams_adrc_M_tag                    8
+#define HeadParams_adrc_n_coeff_tag              7
+#define HeadParams_adrc_m_coeff_tag              8
 #define DeviceInfo_health_tag                    1
 #define DeviceInfo_activity_tag                  2
 #define DeviceInfo_power_tag                     3
@@ -247,7 +247,7 @@ X(a, STATIC,   REPEATED, MESSAGE,  segments,          3)
 
 #define ProfilesData_FIELDLIST(X, a) \
 X(a, STATIC,   REPEATED, MESSAGE,  items,             1) \
-X(a, STATIC,   SINGULAR, INT32,    selectedId,        2)
+X(a, STATIC,   SINGULAR, INT32,    selected_id,       2)
 #define ProfilesData_CALLBACK NULL
 #define ProfilesData_DEFAULT NULL
 #define ProfilesData_items_MSGTYPE Profile
@@ -273,8 +273,8 @@ X(a, STATIC,   SINGULAR, FLOAT,    sensor_p1_at,      3) \
 X(a, STATIC,   SINGULAR, FLOAT,    sensor_p1_value,   4) \
 X(a, STATIC,   SINGULAR, FLOAT,    adrc_response,     5) \
 X(a, STATIC,   SINGULAR, FLOAT,    adrc_b0,           6) \
-X(a, STATIC,   SINGULAR, FLOAT,    adrc_N,            7) \
-X(a, STATIC,   SINGULAR, FLOAT,    adrc_M,            8)
+X(a, STATIC,   SINGULAR, FLOAT,    adrc_n_coeff,      7) \
+X(a, STATIC,   SINGULAR, FLOAT,    adrc_m_coeff,      8)
 #define HeadParams_CALLBACK NULL
 #define HeadParams_DEFAULT NULL
 

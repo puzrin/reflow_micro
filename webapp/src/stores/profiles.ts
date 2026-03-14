@@ -5,10 +5,10 @@ import { Profile, ProfilesData } from '@/proto/generated/types'
 export const useProfilesStore = defineStore('profiles', () => {
   const state = reactive<ProfilesData>({
     items: [],
-    selectedId: -1
+    selected_id: -1
   })
 
-  const selected = computed(() => find(state.selectedId) || null)
+  const selected = computed(() => find(state.selected_id) || null)
 
   function exists(id: number) { return !!state.items.find(p => p.id === id) }
 
@@ -26,7 +26,7 @@ export const useProfilesStore = defineStore('profiles', () => {
       state.items[idx] = p
     } else {
       state.items.push(p)
-      if (state.selectedId < 0) state.selectedId = p.id
+      if (state.selected_id < 0) state.selected_id = p.id
     }
 
     return p.id
@@ -40,11 +40,11 @@ export const useProfilesStore = defineStore('profiles', () => {
     state.items.splice(idx, 1)
 
     // Reselect profile if needed
-    if (state.selectedId === id) state.selectedId = state.items.length ? state.items[0].id : -1
+    if (state.selected_id === id) state.selected_id = state.items.length ? state.items[0].id : -1
   }
 
   function select(id: number) {
-    if (exists(id)) state.selectedId = id
+    if (exists(id)) state.selected_id = id
   }
 
   function move(oldIndex: number, newIndex: number) {

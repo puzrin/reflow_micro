@@ -57,7 +57,7 @@ public:
     void update_sensor_uv();
     void configure_temperature_processor();
 
-    etl::atomic<HeadStatus> head_status{HeadStatus_HeadDisconnected};
+    etl::atomic<HeadStatus> head_status{HeadStatus_HEAD_DISCONNECTED};
     etl::atomic<uint32_t> last_sensor_value_uv{SENSOR_FLOATING_LEVEL_MV * 1000};
 
     EepromStore eeprom_store{};
@@ -69,7 +69,7 @@ private:
     void task_loop();
 
     bool is_attached() const {
-        return get_head_status() == HeadStatus_HeadConnected;
+        return get_head_status() == HeadStatus_HEAD_CONNECTED;
     };
 
     void adc_init();

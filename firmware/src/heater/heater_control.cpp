@@ -28,7 +28,7 @@ void HeaterControl::tick() {
     update_fan_speed();
     update_temperature_indicator();
 
-    if (get_health_status() != DeviceHealthStatus_DevOK) {
+    if (get_health_status() != DeviceHealthStatus_DEV_OK) {
         if (is_task_active.load()) {
             application.enqueue_message(AppCmd::Stop{});
         }
@@ -42,7 +42,7 @@ void HeaterControl::set_power(float power_w) {
 }
 
 auto HeaterControl::task_start(int32_t task_id, HeaterTaskIteratorFn task_iterator) -> bool {
-    if (get_health_status() != DeviceHealthStatus_DevOK) { return false; }
+    if (get_health_status() != DeviceHealthStatus_DEV_OK) { return false; }
     if (!HeaterControlBase::task_start(task_id, task_iterator)) { return false; }
     power.minimize_idle_heating(false);
     return true;
@@ -111,16 +111,16 @@ auto HeaterControl::get_health_status() -> DeviceHealthStatus {
     auto power_status = power.get_power_status();
     auto head_status = get_head_status();
 
-    if ((power_status == PowerStatus_PwrOK || power_status == PowerStatus_PwrTransition) &&
-        (head_status == HeadStatus_HeadConnected))
+    if ((power_status == PowerStatus_PWR_OK || power_status == PowerStatus_PWR_TRANSITION) &&
+        (head_status == HeadStatus_HEAD_CONNECTED))
     {
-        return DeviceHealthStatus_DevOK;
+        return DeviceHealthStatus_DEV_OK;
     }
 
-    if (power_status >= PowerStatus_PwrFailure || head_status >= HeadStatus_HeadError) {
-        return DeviceHealthStatus_DevFailure;
+    if (power_status >= PowerStatus_PWR_FAILURE || head_status >= HeadStatus_HEAD_ERROR) {
+        return DeviceHealthStatus_DEV_FAILURE;
     }
-    return DeviceHealthStatus_DevNotReady;
+    return DeviceHealthStatus_DEV_NOT_READY;
 }
 
 auto HeaterControl::get_activity_status() -> DeviceActivityStatus {
@@ -209,7 +209,7 @@ void HeaterControl::update_fan_speed() {
         }
     } else {
         // No task: always cool down to a low temperature if the head is attached.
-        if (head.get_head_status() == HeadStatus_HeadConnected &&
+        if (head.get_head_status() == HeadStatus_HEAD_CONNECTED &&
             temperature_x10 != head.UNKNOWN_TEMPERATURE_X10)
         {
             if (temperature_x10 > C_EDGE_ON_X10) { fan.max(); }
