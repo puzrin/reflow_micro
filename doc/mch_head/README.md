@@ -99,7 +99,9 @@ Use 8 mm screws for the heaters and 18 mm screws for the corners.
 
 <img src="./images/head_hotplate_mch_bottom.jpg" width="30%">
 
-*Note: Do not overtighten the screws; the MCH can crack after heating!*
+> [!CAUTION]
+>
+> Do not overtighten the screws; the MCH can crack after heating!
 
 Once everything is mounted, cut the MCH wires to the required length and tin
 the ends.

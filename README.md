@@ -39,6 +39,7 @@ Use cases:
 - Other tinkering, like drying parts or baking paint.
 
 > [!NOTE]
+>
 > This project is not unique on the market, but its feature balance is tuned
 > for enjoyable hobby use and learning. The goal is to be practical and to show
 > that building modern electronics at home is entirely doable, even for

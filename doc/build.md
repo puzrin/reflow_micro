@@ -27,6 +27,7 @@ the USB connector shell tabs.
 <img src="./images/pcb_main_bottom.jpg" width="30%"> <img src="./images/pcb_main_top.jpg" width="30%">
 
 > [!TIP]
+>
 > You can use low-temperature (138°C) paste to keep the process easy and
 > minimize mistakes.
 

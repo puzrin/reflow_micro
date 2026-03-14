@@ -6,7 +6,9 @@ only in Chrome, Edge, and other Chromium-based browsers, so iPhone and iPad
 owners should open the app in a desktop browser to access every feature. The
 UI is intentionally simple; the short notes below highlight a few useful tricks.
 
-NOTE: Remember to [calibrate](./calibration.md) each new head before use.
+> [!NOTE]
+>
+> Remember to [calibrate](./calibration.md) each new head before use.
 
 ## Install the web app as a "program"
 

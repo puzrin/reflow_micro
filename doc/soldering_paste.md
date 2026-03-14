@@ -61,5 +61,6 @@ and unlikely to overcook the board.
 ---
 
 > [!NOTE]
+>
 > This is practical, hobby-focused advice rather than a professional
 > process guide.

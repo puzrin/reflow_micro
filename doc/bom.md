@@ -2,6 +2,7 @@ Bill of Materials
 =================
 
 > [!NOTE]
+>
 > This BOM does not include MCH heater components. See the
 [separate document](./mch_head/README.md) for details. It adds about $30 to
 the cost.
