@@ -118,12 +118,12 @@ export class VirtualBackend implements IBackend {
 
     if (reset) await this.save_profiles_data(ProfilesData.decode(DEFAULT_PROFILES_DATA_PB))
 
-    return structuredClone(ProfilesData.fromJSON(virtualBackendStore.rawProfilesData))
+    return structuredClone(ProfilesData.fromPartial(virtualBackendStore.rawProfilesData))
   }
 
   async save_profiles_data(data: ProfilesData): Promise<void> {
     const virtualBackendStore = useVirtualBackendStore()
-    virtualBackendStore.rawProfilesData = ProfilesData.toJSON(data)
+    virtualBackendStore.rawProfilesData = ProfilesData.fromPartial(data)
   }
 
   async stop() {
@@ -193,7 +193,7 @@ export class VirtualBackend implements IBackend {
   // Sync, for local use from tasks
   pick_head_params(): HeadParams {
     const virtualBackendStore = useVirtualBackendStore()
-    return structuredClone(HeadParams.fromJSON(virtualBackendStore.rawHeadParams))
+    return structuredClone(HeadParams.fromPartial(virtualBackendStore.rawHeadParams))
   }
 
   async get_head_params(): Promise<HeadParams> {
@@ -202,7 +202,7 @@ export class VirtualBackend implements IBackend {
 
   async set_head_params(config: HeadParams): Promise<void> {
     const virtualBackendStore = useVirtualBackendStore()
-    virtualBackendStore.rawHeadParams = HeadParams.toJSON(config)
+    virtualBackendStore.rawHeadParams = HeadParams.fromPartial(config)
   }
 
   async set_cpoint0(temperature: number): Promise<void> {

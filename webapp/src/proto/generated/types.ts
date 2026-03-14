@@ -24,63 +24,6 @@ export enum Constants {
   UNRECOGNIZED = -1,
 }
 
-export function constantsFromJSON(object: any): Constants {
-  switch (object) {
-    case 0:
-    case "CONSTANT_UNSPECIFIED":
-      return Constants.CONSTANT_UNSPECIFIED;
-    case 30:
-    case "START_TEMPERATURE":
-      return Constants.START_TEMPERATURE;
-    case 10:
-    case "MAX_REFLOW_PROFILES":
-      return Constants.MAX_REFLOW_PROFILES;
-    case 10:
-    case "MAX_REFLOW_SEGMENTS":
-      return Constants.MAX_REFLOW_SEGMENTS;
-    case 100:
-    case "MAX_HISTORY_CHUNK":
-      return Constants.MAX_HISTORY_CHUNK;
-    case 4000:
-    case "HISTORY_ID_SENSOR_BAKE_MODE":
-      return Constants.HISTORY_ID_SENSOR_BAKE_MODE;
-    case 4001:
-    case "HISTORY_ID_ADRC_TEST_MODE":
-      return Constants.HISTORY_ID_ADRC_TEST_MODE;
-    case 4002:
-    case "HISTORY_ID_STEP_RESPONSE":
-      return Constants.HISTORY_ID_STEP_RESPONSE;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return Constants.UNRECOGNIZED;
-  }
-}
-
-export function constantsToJSON(object: Constants): string {
-  switch (object) {
-    case Constants.CONSTANT_UNSPECIFIED:
-      return "CONSTANT_UNSPECIFIED";
-    case Constants.START_TEMPERATURE:
-      return "START_TEMPERATURE";
-    case Constants.MAX_REFLOW_PROFILES:
-      return "MAX_REFLOW_PROFILES";
-    case Constants.MAX_REFLOW_SEGMENTS:
-      return "MAX_REFLOW_SEGMENTS";
-    case Constants.MAX_HISTORY_CHUNK:
-      return "MAX_HISTORY_CHUNK";
-    case Constants.HISTORY_ID_SENSOR_BAKE_MODE:
-      return "HISTORY_ID_SENSOR_BAKE_MODE";
-    case Constants.HISTORY_ID_ADRC_TEST_MODE:
-      return "HISTORY_ID_ADRC_TEST_MODE";
-    case Constants.HISTORY_ID_STEP_RESPONSE:
-      return "HISTORY_ID_STEP_RESPONSE";
-    case Constants.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
-}
-
 export enum SensorType {
   /** RTD - Standalone PT100 */
   RTD = 0,
@@ -89,76 +32,12 @@ export enum SensorType {
   UNRECOGNIZED = -1,
 }
 
-export function sensorTypeFromJSON(object: any): SensorType {
-  switch (object) {
-    case 0:
-    case "RTD":
-      return SensorType.RTD;
-    case 1:
-    case "TCR":
-      return SensorType.TCR;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return SensorType.UNRECOGNIZED;
-  }
-}
-
-export function sensorTypeToJSON(object: SensorType): string {
-  switch (object) {
-    case SensorType.RTD:
-      return "RTD";
-    case SensorType.TCR:
-      return "TCR";
-    case SensorType.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
-}
-
 export enum HeadStatus {
   HeadDisconnected = 0,
   HeadInitializing = 1,
   HeadConnected = 2,
   HeadError = 3,
   UNRECOGNIZED = -1,
-}
-
-export function headStatusFromJSON(object: any): HeadStatus {
-  switch (object) {
-    case 0:
-    case "HeadDisconnected":
-      return HeadStatus.HeadDisconnected;
-    case 1:
-    case "HeadInitializing":
-      return HeadStatus.HeadInitializing;
-    case 2:
-    case "HeadConnected":
-      return HeadStatus.HeadConnected;
-    case 3:
-    case "HeadError":
-      return HeadStatus.HeadError;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return HeadStatus.UNRECOGNIZED;
-  }
-}
-
-export function headStatusToJSON(object: HeadStatus): string {
-  switch (object) {
-    case HeadStatus.HeadDisconnected:
-      return "HeadDisconnected";
-    case HeadStatus.HeadInitializing:
-      return "HeadInitializing";
-    case HeadStatus.HeadConnected:
-      return "HeadConnected";
-    case HeadStatus.HeadError:
-      return "HeadError";
-    case HeadStatus.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
 }
 
 export enum PowerStatus {
@@ -171,85 +50,11 @@ export enum PowerStatus {
   UNRECOGNIZED = -1,
 }
 
-export function powerStatusFromJSON(object: any): PowerStatus {
-  switch (object) {
-    case 0:
-    case "PwrOff":
-      return PowerStatus.PwrOff;
-    case 1:
-    case "PwrInitializing":
-      return PowerStatus.PwrInitializing;
-    case 2:
-    case "PwrTransition":
-      return PowerStatus.PwrTransition;
-    case 3:
-    case "PwrOK":
-      return PowerStatus.PwrOK;
-    case 4:
-    case "PwrFailure":
-      return PowerStatus.PwrFailure;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return PowerStatus.UNRECOGNIZED;
-  }
-}
-
-export function powerStatusToJSON(object: PowerStatus): string {
-  switch (object) {
-    case PowerStatus.PwrOff:
-      return "PwrOff";
-    case PowerStatus.PwrInitializing:
-      return "PwrInitializing";
-    case PowerStatus.PwrTransition:
-      return "PwrTransition";
-    case PowerStatus.PwrOK:
-      return "PwrOK";
-    case PowerStatus.PwrFailure:
-      return "PwrFailure";
-    case PowerStatus.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
-}
-
 export enum DeviceHealthStatus {
   DevNotReady = 0,
   DevOK = 1,
   DevFailure = 2,
   UNRECOGNIZED = -1,
-}
-
-export function deviceHealthStatusFromJSON(object: any): DeviceHealthStatus {
-  switch (object) {
-    case 0:
-    case "DevNotReady":
-      return DeviceHealthStatus.DevNotReady;
-    case 1:
-    case "DevOK":
-      return DeviceHealthStatus.DevOK;
-    case 2:
-    case "DevFailure":
-      return DeviceHealthStatus.DevFailure;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return DeviceHealthStatus.UNRECOGNIZED;
-  }
-}
-
-export function deviceHealthStatusToJSON(object: DeviceHealthStatus): string {
-  switch (object) {
-    case DeviceHealthStatus.DevNotReady:
-      return "DevNotReady";
-    case DeviceHealthStatus.DevOK:
-      return "DevOK";
-    case DeviceHealthStatus.DevFailure:
-      return "DevFailure";
-    case DeviceHealthStatus.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
 }
 
 export enum DeviceActivityStatus {
@@ -260,53 +65,6 @@ export enum DeviceActivityStatus {
   StepResponse = 4,
   Bonding = 5,
   UNRECOGNIZED = -1,
-}
-
-export function deviceActivityStatusFromJSON(object: any): DeviceActivityStatus {
-  switch (object) {
-    case 0:
-    case "Idle":
-      return DeviceActivityStatus.Idle;
-    case 1:
-    case "Reflow":
-      return DeviceActivityStatus.Reflow;
-    case 2:
-    case "SensorBake":
-      return DeviceActivityStatus.SensorBake;
-    case 3:
-    case "AdrcTest":
-      return DeviceActivityStatus.AdrcTest;
-    case 4:
-    case "StepResponse":
-      return DeviceActivityStatus.StepResponse;
-    case 5:
-    case "Bonding":
-      return DeviceActivityStatus.Bonding;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return DeviceActivityStatus.UNRECOGNIZED;
-  }
-}
-
-export function deviceActivityStatusToJSON(object: DeviceActivityStatus): string {
-  switch (object) {
-    case DeviceActivityStatus.Idle:
-      return "Idle";
-    case DeviceActivityStatus.Reflow:
-      return "Reflow";
-    case DeviceActivityStatus.SensorBake:
-      return "SensorBake";
-    case DeviceActivityStatus.AdrcTest:
-      return "AdrcTest";
-    case DeviceActivityStatus.StepResponse:
-      return "StepResponse";
-    case DeviceActivityStatus.Bonding:
-      return "Bonding";
-    case DeviceActivityStatus.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
 }
 
 export interface Segment {
@@ -432,24 +190,6 @@ export const Segment: MessageFns<Segment> = {
     return message;
   },
 
-  fromJSON(object: any): Segment {
-    return {
-      target: isSet(object.target) ? globalThis.Number(object.target) : 0,
-      duration: isSet(object.duration) ? globalThis.Number(object.duration) : 0,
-    };
-  },
-
-  toJSON(message: Segment): unknown {
-    const obj: any = {};
-    if (message.target !== 0) {
-      obj.target = Math.round(message.target);
-    }
-    if (message.duration !== 0) {
-      obj.duration = Math.round(message.duration);
-    }
-    return obj;
-  },
-
   create<I extends Exact<DeepPartial<Segment>, I>>(base?: I): Segment {
     return Segment.fromPartial(base ?? ({} as any));
   },
@@ -519,28 +259,6 @@ export const Profile: MessageFns<Profile> = {
     return message;
   },
 
-  fromJSON(object: any): Profile {
-    return {
-      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-      segments: globalThis.Array.isArray(object?.segments) ? object.segments.map((e: any) => Segment.fromJSON(e)) : [],
-    };
-  },
-
-  toJSON(message: Profile): unknown {
-    const obj: any = {};
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
-    }
-    if (message.name !== "") {
-      obj.name = message.name;
-    }
-    if (message.segments?.length) {
-      obj.segments = message.segments.map((e) => Segment.toJSON(e));
-    }
-    return obj;
-  },
-
   create<I extends Exact<DeepPartial<Profile>, I>>(base?: I): Profile {
     return Profile.fromPartial(base ?? ({} as any));
   },
@@ -600,24 +318,6 @@ export const ProfilesData: MessageFns<ProfilesData> = {
     return message;
   },
 
-  fromJSON(object: any): ProfilesData {
-    return {
-      items: globalThis.Array.isArray(object?.items) ? object.items.map((e: any) => Profile.fromJSON(e)) : [],
-      selectedId: isSet(object.selectedId) ? globalThis.Number(object.selectedId) : 0,
-    };
-  },
-
-  toJSON(message: ProfilesData): unknown {
-    const obj: any = {};
-    if (message.items?.length) {
-      obj.items = message.items.map((e) => Profile.toJSON(e));
-    }
-    if (message.selectedId !== 0) {
-      obj.selectedId = Math.round(message.selectedId);
-    }
-    return obj;
-  },
-
   create<I extends Exact<DeepPartial<ProfilesData>, I>>(base?: I): ProfilesData {
     return ProfilesData.fromPartial(base ?? ({} as any));
   },
@@ -674,24 +374,6 @@ export const Point: MessageFns<Point> = {
       reader.skip(tag & 7);
     }
     return message;
-  },
-
-  fromJSON(object: any): Point {
-    return {
-      x: isSet(object.x) ? globalThis.Number(object.x) : 0,
-      y: isSet(object.y) ? globalThis.Number(object.y) : 0,
-    };
-  },
-
-  toJSON(message: Point): unknown {
-    const obj: any = {};
-    if (message.x !== 0) {
-      obj.x = message.x;
-    }
-    if (message.y !== 0) {
-      obj.y = message.y;
-    }
-    return obj;
   },
 
   create<I extends Exact<DeepPartial<Point>, I>>(base?: I): Point {
@@ -761,28 +443,6 @@ export const HistoryChunk: MessageFns<HistoryChunk> = {
       reader.skip(tag & 7);
     }
     return message;
-  },
-
-  fromJSON(object: any): HistoryChunk {
-    return {
-      type: isSet(object.type) ? globalThis.Number(object.type) : 0,
-      version: isSet(object.version) ? globalThis.Number(object.version) : 0,
-      data: globalThis.Array.isArray(object?.data) ? object.data.map((e: any) => Point.fromJSON(e)) : [],
-    };
-  },
-
-  toJSON(message: HistoryChunk): unknown {
-    const obj: any = {};
-    if (message.type !== 0) {
-      obj.type = Math.round(message.type);
-    }
-    if (message.version !== 0) {
-      obj.version = Math.round(message.version);
-    }
-    if (message.data?.length) {
-      obj.data = message.data.map((e) => Point.toJSON(e));
-    }
-    return obj;
   },
 
   create<I extends Exact<DeepPartial<HistoryChunk>, I>>(base?: I): HistoryChunk {
@@ -917,48 +577,6 @@ export const HeadParams: MessageFns<HeadParams> = {
       reader.skip(tag & 7);
     }
     return message;
-  },
-
-  fromJSON(object: any): HeadParams {
-    return {
-      sensor_p0_at: isSet(object.sensor_p0_at) ? globalThis.Number(object.sensor_p0_at) : 0,
-      sensor_p0_value: isSet(object.sensor_p0_value) ? globalThis.Number(object.sensor_p0_value) : 0,
-      sensor_p1_at: isSet(object.sensor_p1_at) ? globalThis.Number(object.sensor_p1_at) : 0,
-      sensor_p1_value: isSet(object.sensor_p1_value) ? globalThis.Number(object.sensor_p1_value) : 0,
-      adrc_response: isSet(object.adrc_response) ? globalThis.Number(object.adrc_response) : 0,
-      adrc_b0: isSet(object.adrc_b0) ? globalThis.Number(object.adrc_b0) : 0,
-      adrc_N: isSet(object.adrc_N) ? globalThis.Number(object.adrc_N) : 0,
-      adrc_M: isSet(object.adrc_M) ? globalThis.Number(object.adrc_M) : 0,
-    };
-  },
-
-  toJSON(message: HeadParams): unknown {
-    const obj: any = {};
-    if (message.sensor_p0_at !== 0) {
-      obj.sensor_p0_at = message.sensor_p0_at;
-    }
-    if (message.sensor_p0_value !== 0) {
-      obj.sensor_p0_value = message.sensor_p0_value;
-    }
-    if (message.sensor_p1_at !== 0) {
-      obj.sensor_p1_at = message.sensor_p1_at;
-    }
-    if (message.sensor_p1_value !== 0) {
-      obj.sensor_p1_value = message.sensor_p1_value;
-    }
-    if (message.adrc_response !== 0) {
-      obj.adrc_response = message.adrc_response;
-    }
-    if (message.adrc_b0 !== 0) {
-      obj.adrc_b0 = message.adrc_b0;
-    }
-    if (message.adrc_N !== 0) {
-      obj.adrc_N = message.adrc_N;
-    }
-    if (message.adrc_M !== 0) {
-      obj.adrc_M = message.adrc_M;
-    }
-    return obj;
   },
 
   create<I extends Exact<DeepPartial<HeadParams>, I>>(base?: I): HeadParams {
@@ -1124,56 +742,6 @@ export const DeviceInfo: MessageFns<DeviceInfo> = {
     return message;
   },
 
-  fromJSON(object: any): DeviceInfo {
-    return {
-      health: isSet(object.health) ? deviceHealthStatusFromJSON(object.health) : 0,
-      activity: isSet(object.activity) ? deviceActivityStatusFromJSON(object.activity) : 0,
-      power: isSet(object.power) ? powerStatusFromJSON(object.power) : 0,
-      head: isSet(object.head) ? headStatusFromJSON(object.head) : 0,
-      temperature_x10: isSet(object.temperature_x10) ? globalThis.Number(object.temperature_x10) : 0,
-      peak_mv: isSet(object.peak_mv) ? globalThis.Number(object.peak_mv) : 0,
-      peak_ma: isSet(object.peak_ma) ? globalThis.Number(object.peak_ma) : 0,
-      duty_x1000: isSet(object.duty_x1000) ? globalThis.Number(object.duty_x1000) : 0,
-      resistance_mohms: isSet(object.resistance_mohms) ? globalThis.Number(object.resistance_mohms) : 0,
-      max_mw: isSet(object.max_mw) ? globalThis.Number(object.max_mw) : 0,
-    };
-  },
-
-  toJSON(message: DeviceInfo): unknown {
-    const obj: any = {};
-    if (message.health !== 0) {
-      obj.health = deviceHealthStatusToJSON(message.health);
-    }
-    if (message.activity !== 0) {
-      obj.activity = deviceActivityStatusToJSON(message.activity);
-    }
-    if (message.power !== 0) {
-      obj.power = powerStatusToJSON(message.power);
-    }
-    if (message.head !== 0) {
-      obj.head = headStatusToJSON(message.head);
-    }
-    if (message.temperature_x10 !== 0) {
-      obj.temperature_x10 = Math.round(message.temperature_x10);
-    }
-    if (message.peak_mv !== 0) {
-      obj.peak_mv = Math.round(message.peak_mv);
-    }
-    if (message.peak_ma !== 0) {
-      obj.peak_ma = Math.round(message.peak_ma);
-    }
-    if (message.duty_x1000 !== 0) {
-      obj.duty_x1000 = Math.round(message.duty_x1000);
-    }
-    if (message.resistance_mohms !== 0) {
-      obj.resistance_mohms = Math.round(message.resistance_mohms);
-    }
-    if (message.max_mw !== 0) {
-      obj.max_mw = Math.round(message.max_mw);
-    }
-    return obj;
-  },
-
   create<I extends Exact<DeepPartial<DeviceInfo>, I>>(base?: I): DeviceInfo {
     return DeviceInfo.fromPartial(base ?? ({} as any));
   },
@@ -1205,15 +773,9 @@ type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
-function isSet(value: any): boolean {
-  return value !== null && value !== undefined;
-}
-
 export interface MessageFns<T> {
   encode(message: T, writer?: BinaryWriter): BinaryWriter;
   decode(input: BinaryReader | Uint8Array, length?: number): T;
-  fromJSON(object: any): T;
-  toJSON(message: T): unknown;
   create<I extends Exact<DeepPartial<T>, I>>(base?: I): T;
   fromPartial<I extends Exact<DeepPartial<T>, I>>(object: I): T;
 }
