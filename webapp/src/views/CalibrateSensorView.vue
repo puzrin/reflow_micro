@@ -118,14 +118,14 @@ async function stopBake() {
     </v-alert>
     <template v-else>
       <v-alert>
-        Set the temperature at two points for proper sensor calibration.
+        Set the temperature at two points to calibrate the sensor properly.
       </v-alert>
 
       <v-card>
-        <v-card-item title="Heat point 1 (room)">
+        <v-card-item title="Point 1 (low)">
           <template #append>
             <v-chip :color="is_p0_calibrated ? 'success' : 'warning'" variant="outlined" size="x-small">
-              {{ is_p0_calibrated ? `at ${Math.round(p0_orig)}°C` : 'missing' }}
+              {{ is_p0_calibrated ? `at ${Math.round(p0_orig)}°C` : 'not set' }}
             </v-chip>
           </template>
         </v-card-item>
@@ -152,10 +152,10 @@ async function stopBake() {
       </v-card>
 
       <v-card>
-        <v-card-item title="Heat point 2 (max)">
+        <v-card-item title="Point 2 (high)">
           <template #append>
             <v-chip :color="is_p1_calibrated ? 'success' : 'warning'" variant="outlined" size="x-small">
-              {{ is_p1_calibrated ? `at ${Math.round(p1_orig)}°C` : 'missing' }}
+              {{ is_p1_calibrated ? `at ${Math.round(p1_orig)}°C` : 'not set' }}
             </v-chip>
           </template>
         </v-card-item>
@@ -173,7 +173,7 @@ async function stopBake() {
           </v-slider>
 
           <div class="mb-3 text-medium-emphasis">
-            Enter actual value when temperature become stable.
+            Enter the actual value once the temperature becomes stable.
           </div>
           <v-number-input
             v-model="p1"

@@ -28,8 +28,8 @@ What that means in practice:
 
 ## Some tips
 
-- Store paste in a syringe. Jars dry out within months after opening, while a
-  syringe can keep the paste usable for years.
+- Store the paste in a syringe. Jars dry out within months after opening, while
+  a syringe can keep the paste usable for years.
 - If the paste separates because of rough shipping or long storage, don't
   worry. Connect two syringes with a luer-lock adapter and pump the paste back
   and forth a few times. It will mix back to normal.
@@ -60,5 +60,6 @@ and unlikely to overcook the board.
 
 ---
 
-**NOTE:** This is practical, hobby-focused advice rather than a professional
-process guide.
+> [!NOTE]
+> This is practical, hobby-focused advice rather than a professional
+> process guide.

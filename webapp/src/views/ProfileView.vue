@@ -159,7 +159,7 @@ function heatingSpeed(segmentIdx: number) {
   const segment = profile.segments[segmentIdx]
   const speed = (segment.target - start) / (segment.duration || 0)
 
-  if (Math.abs(speed) < 0.0001) return `Keep`
+  if (Math.abs(speed) < 0.0001) return `Hold`
   if (Math.abs(speed) > 0.1) return `${speed.toFixed(1)}°C/sec`
   return `${(speed * 60).toFixed(1)}°C/min`
 }

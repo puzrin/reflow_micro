@@ -6,8 +6,8 @@ industrial tools or a dedicated workshop.
 
 Keep in mind that this table uses a bottom-heating approach, which is a
 compromise between compactness and feature richness. It shines in a home hobby
-setup, but for
-professional use you may still want a larger, more advanced reflow oven.
+setup, but for professional use you may still want a larger, more advanced
+reflow oven.
 
 When a reflow profile runs, there's no cover cap and all heat comes from the
 bottom. The plate and the top of the PCB can differ by as much as 20°C. Using
@@ -21,13 +21,12 @@ mistakes, and keeps the heater requirements modest.
 
 - Very affordable.
 - Easy to build.
-- No temperature sensor is required (use the TCR-based method).
 - A 100 W charger is fine for an 80x70 mm plate.
 
 **Cons:**
 
 - Max temperature is only 180°C.
-- Runs above the PCB's MOT (130°C) and will slowly degrade, but it's fine for
+- Runs above the MCPCB's MOT (130°C) and will slowly degrade, but it's fine for
   hobby use that isn't 24/7.
 
 Conclusion:
@@ -37,29 +36,24 @@ Conclusion:
 - Overall, it's the recommended starting point.
 
 
-## MCH-based heater (experimental)
+## MCH-based heater
 
 **Pros:**
 
-- Reaches up to 300°C.
+- Safe up to 250°C.
+- Suitable for SnPb paste.
 
 **Cons:**
 
-- Noticeably more expensive and involved.
+- A bit more expensive and involved, with more components to buy.
 - Needs a 140 W supply.
-- Right now, the dynamics above 200°C are weak, roughly 1°C per second (work in
-  progress).
-- Overall, there's little headroom for leaded or RoHS reflow profiles. Each
-  profile has to be tuned to the specific PCB, usually with a foil cap. It's too
-  easy to damage a board, so beginners should steer clear.
+- Performance above 200°C is not ideal: roughly 1°C per second.
 
 Conclusion:
 
-- Use it only if you understand the risks or want to experiment with improving
-  the MCH heater.
-- Works for long-term heating at high temperatures (paint baking, etc.).
+- If you need SnPb paste, use it, but do not expect good results with RoHS
+  paste.
 
-This heater is still a proof of concept for advanced users. We're waiting on PD
-3.2 chargers, which should start appearing around 2026. Once AVS profiles are
-common, pushing more power into these heaters (and getting better dynamics)
-will be easier.
+We're waiting on PD 3.2 chargers, which should start appearing around 2026.
+Once AVS profiles are common, pushing more power into these heaters
+(and getting better dynamics) will be easier.

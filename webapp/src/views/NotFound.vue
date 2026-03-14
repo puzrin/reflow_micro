@@ -11,8 +11,8 @@ usePageShell(() => ({
 <template>
   <v-container class="py-4 d-flex flex-column ga-4">
     <v-alert type="error">
-      Bad params. Go back to
-      <RouterLink :to="{ name: 'home' }"><strong>home</strong></RouterLink>.
+      Invalid page parameters. Return to the
+      <RouterLink :to="{ name: 'home' }"><strong>home</strong></RouterLink> page.
     </v-alert>
   </v-container>
 </template>

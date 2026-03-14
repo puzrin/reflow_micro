@@ -1,8 +1,8 @@
-Test app to experiment with BLE transport and measure performance.
+Test app for experimenting with BLE transport and measuring performance.
 
-Before use:
+Before you start:
 
-- In the firmware build, set the `BLE_TEST` env var to activate the test RPC methods.
+- In the firmware build, set the `BLE_TEST` environment variable to enable the test RPC methods.
 
 Run:
 
@@ -11,4 +11,4 @@ npm i
 npm start
 ```
 
-On the first connection, quickly click the button five times to pair the BLE device.
+On the first connection, press the device button five times quickly to pair over BLE.

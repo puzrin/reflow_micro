@@ -55,7 +55,7 @@ async function copyProfileToClipboard(profileId: number) {
     if (!navigator.clipboard) throw new Error('Clipboard API is not available')
     await navigator.clipboard.writeText(profileJson)
 
-    notify({ message: 'Copied to clipboard', color: 'success' })
+    notify({ message: 'Profile copied to clipboard', color: 'success' })
   } catch {
     notify({ message: 'Failed to copy', color: 'error' })
   }
@@ -158,7 +158,7 @@ async function saveBleName() {
     bleNameDialogOpen.value = false
   } catch {
     bleNameError.value = true
-    notify({ message: 'Failed to update', color: 'error' })
+    notify({ message: 'Failed to update Bluetooth name', color: 'error' })
   }
 }
 
@@ -266,7 +266,7 @@ async function getProfileFromEvent(event: DragEvent | ClipboardEvent): Promise<P
   const items = Array.from(transfer.items)
   const fileEntries = items.filter((item) => item.kind === 'file')
 
-  if (fileEntries.length > 1) throw new Error('Import one file at a time')
+  if (fileEntries.length > 1) throw new Error('Import only one file at a time')
 
   if (fileEntries.length === 1) {
     const file = fileEntries[0].getAsFile()
@@ -361,7 +361,7 @@ async function handleGlobalPaste(event: ClipboardEvent) {
           :type="isImportDragOver ? 'warning' : 'info'"
           variant="tonal"
           closable
-          text="Drop a file or text here, paste on this page with Ctrl/Cmd+V, or use one of the actions below."
+          text="Drop a file or text here, paste here with Ctrl/Cmd+V, or use one of the actions below."
           @click:close="closeImportProfilesMode"
           @dragenter.prevent="isImportDragOver = true"
           @dragover="handleImportDragOver"
@@ -517,7 +517,7 @@ async function handleGlobalPaste(event: ClipboardEvent) {
           label="Bluetooth name"
           minlength="3"
           maxlength="30"
-          :error-messages="bleNameError ? ['Name must be 3-30 ASCII characters'] : []"
+          :error-messages="bleNameError ? ['Name must be 3-30 printable ASCII characters'] : []"
         />
       </v-card-text>
       <v-card-actions>
@@ -551,7 +551,7 @@ async function handleGlobalPaste(event: ClipboardEvent) {
           :disabled="!urlImportDraft.trim()"
           @click="importFromUrl"
         >
-          Load
+          Import
         </v-btn>
       </v-card-actions>
     </v-card>

@@ -22,12 +22,13 @@ PCB in an ultrasonic bath, leave the buzzer off until after cleaning so it
 stays safe.
 
 Then solder the heating head connectors to the top side of the PCB. Also solder
-the USB connector mounting holes.
+the USB connector shell tabs.
 
 <img src="./images/pcb_main_bottom.jpg" width="30%"> <img src="./images/pcb_main_top.jpg" width="30%">
 
-**Tip:** Use low-temperature (138°C) paste to keep the process easy and minimize
-mistakes.
+> [!TIP]
+> You can use low-temperature (138°C) paste to keep the process easy and
+> minimize mistakes.
 
 When you're done, install the fan and air duct on the PCB cover with the 10 mm
 screws.
@@ -67,7 +68,7 @@ countersink.
 
 Then install the rest of the hotplate components.
 
-- Use RoHS 217°C paste; it is important.
+- Use 217°C RoHS paste for this step.
 - Use AWG 26 (0.4 mm diameter) copper wire for the power lines. A small cross-section is
   required to keep heat transfer low.
 - Tin the wire first, then solder it to the hotplate.
@@ -130,11 +131,11 @@ Install the silicone feet on the bottom of the case.
 
 Connect the main PCB and the cover with screws.
 
-TBD Image.
+TBD image.
 
 Place the button, nuts, and magnets into the tray.
 
-TBD Image.
+TBD image.
 
 Then mount the main board and its cover with the 8 mm screws.
 

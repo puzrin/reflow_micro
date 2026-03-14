@@ -1,9 +1,9 @@
 Reflow Micro Table
 ==================
 
-> Compact reflow soldering table with Bluetooth control, an 80x70 mm working
-area. Built for hobby projects when you don't want a bulky professional machine
-taking over the desk.
+> Compact Bluetooth-controlled reflow table with an 80x70 mm working area.
+> Built for hobby projects when you do not want a bulky professional machine
+> taking over your desk.
 
 - [Documentation](doc/README.md)
 - [EasyEDA project page](https://oshwlab.com/puzrin/reflow-table-pd) -
@@ -21,7 +21,7 @@ hobby needs.
 
 Key points:
 
-- Very small and doesn't take much space when not in use.
+- Very compact and easy to store when not in use.
 - Powered from a 100-140 W USB PD charger.
 - Controlled from a web browser (desktop and mobile).
 - 80x70 mm working area.
@@ -38,6 +38,8 @@ Use cases:
 - Reflow soldering with Sn63Pb37 (183°C) paste using the MCH-based head.
 - Other tinkering, like drying parts or baking paint.
 
-This project isn't unique on the market, but the feature balance is tuned for
-fun hobby use and learning. The goal is to be useful and show that building
-modern electronics at home is totally doable, even for beginners.
+> [!NOTE]
+> This project is not unique on the market, but its feature balance is tuned
+> for enjoyable hobby use and learning. The goal is to be practical and to show
+> that building modern electronics at home is entirely doable, even for
+> beginners.

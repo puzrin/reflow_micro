@@ -176,7 +176,7 @@ async function stopTask(force: boolean = false) {
           />
 
           <div class="mb-3 text-medium-emphasis">
-            Increase until power jitter starts, then reduce 10-20%. ωc = N/τ.
+            Increase until power jitter starts, then reduce it by 10-20%. ωc = N/τ.
           </div>
           <v-number-input
             v-model="adrc_param_n"
@@ -190,7 +190,7 @@ async function stopTask(force: boolean = false) {
           />
 
           <div class="mb-3 text-medium-emphasis">
-            Usually 1.5..3, start with 2. ωo = M * ωc.
+            Usually 1.5 to 3; start with 2. ωo = M * ωc.
           </div>
           <v-number-input
             v-model="adrc_param_m"
@@ -226,7 +226,7 @@ async function stopTask(force: boolean = false) {
       </v-card>
 
       <v-card>
-        <v-card-item title="Test controller" />
+        <v-card-item title="Test the controller" />
         <v-divider />
         <v-card-text>
           <v-number-input v-model="test_temperature" label="Temperature (°C)" inset :min="25" :max="300" :step="1" />

@@ -11,7 +11,7 @@ const reloadPage = () => window.location.reload()
 const connectButtonLabel = computed(() => {
   if (device.is_connecting.value && !device.is_connected.value) return 'Connecting…'
   if (device.is_connected.value && !device.is_authenticated.value) return 'Authenticating…'
-  if (device.is_connected.value && device.is_authenticated.value && !device.is_ready.value) return 'Reading config…'
+  if (device.is_connected.value && device.is_authenticated.value && !device.is_ready.value) return 'Loading settings…'
   return 'Connect to device'
 })
 
@@ -25,17 +25,17 @@ const showConnectSpinner = computed(() => connectButtonLabel.value !== 'Connect 
         <v-card-text class="pa-6 pa-sm-8">
           <div class="d-flex flex-column ga-4">
             <v-btn block color="primary" variant="text" @click="device.selectBackend(VirtualBackend.id)">
-              Switch to Demo Mode
+              Switch to demo mode
             </v-btn>
 
             <v-alert type="error">
-              WebBluetooth not supported. Use Chrome / Edge, or switch to demo mode.
+              Web Bluetooth is not supported. Use Chrome or Edge, or switch to demo mode.
             </v-alert>
 
             <v-alert>
               <div class="mb-2">
-                On Linux, Chrome / Edge browsers have disabled WebBluetooth by default.
-                To enable, follow the steps below:
+                On Linux, Chrome and Edge have Web Bluetooth disabled by default.
+                To enable it, follow the steps below:
               </div>
               <ol>
                 <li>Open <code>chrome://flags</code> or <code>edge://flags</code>.</li>
@@ -70,18 +70,18 @@ const showConnectSpinner = computed(() => connectButtonLabel.value !== 'Connect 
               type="error"
               variant="outlined"
             >
-              Device is connected, but not paired. Click the device button five times quickly to enter pairing mode.
+              The device is connected but not paired. Press the device button five times quickly to enter pairing mode.
             </v-alert>
 
             <div class="d-flex flex-column flex-sm-row ga-4">
               <div class="flex-1-1-0">
                 <v-btn block variant="text" @click="device.selectBackend(VirtualBackend.id)">
-                  Switch to Demo Mode
+                  Switch to demo mode
                 </v-btn>
               </div>
               <div class="flex-1-1-0">
                 <v-btn block variant="text" @click="reloadPage">
-                  Reload Page
+                  Reload page
                 </v-btn>
               </div>
             </div>

@@ -41,7 +41,7 @@ async function stop() {
       Hotplate not connected
     </v-alert>
     <v-alert v-else-if="status.power == PowerStatus.PwrFailure" class="flex-0-0" type="error">
-      No suitable power
+      No suitable power supply detected
     </v-alert>
 
     <v-sheet class="chart-host flex-fill pa-4 rounded border">

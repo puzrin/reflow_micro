@@ -3,8 +3,8 @@ Reflow Table Documentation
 
 IMPORTANT: Read all documentation carefully before ordering anything!
 By default, the BOM includes components only for the simple, low-cost MCPCB
-heater for LTS pastes. The advanced MCH head and its BOM are described in a
-separate document.
+heater intended for LTS pastes. The advanced MCH head and its BOM are
+described in a separate document.
 
 ## Read first
 
