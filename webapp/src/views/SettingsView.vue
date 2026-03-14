@@ -1,13 +1,18 @@
 <script setup lang="ts">
+import filenamify from 'filenamify/browser'
+import ky from 'ky'
+import { type Profile } from '@/proto/generated/types'
 import { useProfilesStore } from '@/stores/profiles'
 import { THEME_MODES, normalizeThemeMode, type ThemeMode, useLocalSettingsStore } from '@/stores/localSettings'
-import { computed, ref, inject, onMounted } from 'vue'
+import { computed, ref, inject, onBeforeUnmount, onMounted } from 'vue'
 import { VueDraggable, type SortableEvent } from 'vue-draggable-plus'
 import { useRouter } from 'vue-router'
 import { Device } from '@/device'
 import { confirm } from '@/composables/confirm'
 import { notify } from '@/composables/notify'
 import { usePageShell } from '@/composables/appShell'
+import { decodePayload, encodeProfile } from '@/lib/exchange_format'
+import { normalizeProfileUrl } from '@/lib/normalize_profile_url'
 
 const device: Device = inject('device')!
 const router = useRouter()
@@ -27,6 +32,7 @@ const themeModeItems = THEME_MODES.map((mode) => ({
 }))
 
 const themeModeSubtitle = computed(() => themeModeTitles[localSettingsStore.themeMode])
+const reorderProfilesMode = ref(false)
 
 usePageShell(() => ({
   title: 'Settings',
@@ -34,22 +40,51 @@ usePageShell(() => ({
   pageMode: 'default',
 }))
 
-// On drag, move the profile with the store method to keep reactivity working.
-function customUpdate(evt: SortableEvent) {
-  const { oldIndex, newIndex } = evt
-  profilesStore.move(oldIndex ?? 0, newIndex ?? 0)
+function toggleReorderProfilesMode() {
+  closeImportProfilesMode()
+  reorderProfilesMode.value = !reorderProfilesMode.value
 }
 
-function openProfile(profileId: number) {
-  router.push({ name: 'profile', params: { id: profileId } })
+async function copyProfileToClipboard(profileId: number) {
+  try {
+    const profile = profilesStore.find(profileId)
+    if (!profile) throw new Error('Profile not found')
+
+    const profileJson = encodeProfile(profile)
+
+    if (!navigator.clipboard) throw new Error('Clipboard API is not available')
+    await navigator.clipboard.writeText(profileJson)
+
+    notify({ message: 'Copied to clipboard', color: 'success' })
+  } catch {
+    notify({ message: 'Failed to copy', color: 'error' })
+  }
 }
 
-function duplicateProfile(profileId: number) {
-  router.push({
-    name: 'profile',
-    params: { id: 0 },
-    query: { source_profile_id: String(profileId) },
-  })
+function downloadProfile(profileId: number) {
+  try {
+    const profile = profilesStore.find(profileId)
+    if (!profile) throw new Error('Profile not found')
+
+    const profileJson = encodeProfile(profile)
+    const downloadName = filenamify(`${profile.name}.json`)
+
+    const blob = new Blob([profileJson], { type: 'application/json;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+
+    link.href = url
+    link.download = downloadName
+    link.style.display = 'none'
+
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+
+    window.setTimeout(() => URL.revokeObjectURL(url), 0)
+  } catch {
+    notify({ message: 'Failed to download', color: 'error' })
+  }
 }
 
 async function deleteProfile(profileId: number) {
@@ -102,7 +137,7 @@ function closeBleNameDialog() {
   bleNameError.value = false
 }
 
-async function saveBleNameHandler() {
+async function saveBleName() {
   bleNameError.value = false
 
   if (bleNameDraft.value.length < 3) {
@@ -127,27 +162,234 @@ async function saveBleNameHandler() {
   }
 }
 
+// Import profiles
+
+const importProfilesMode = ref(false)
+const isImportDragOver = ref(false)
+const urlImportDialogOpen = ref(false)
+const urlImportDraft = ref('')
+const urlImportLoading = ref(false)
+const importFileInput = ref<HTMLInputElement | null>(null)
+
+onMounted(() => {
+  document.addEventListener('paste', handleGlobalPaste)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('paste', handleGlobalPaste)
+})
+
+function openImportProfilesMode() {
+  reorderProfilesMode.value = false
+  importProfilesMode.value = true
+}
+
+function closeImportProfilesMode() {
+  importProfilesMode.value = false
+  isImportDragOver.value = false
+  urlImportDialogOpen.value = false
+  urlImportLoading.value = false
+}
+
+function openUrlImportDialog() {
+  urlImportDraft.value = ''
+  urlImportDialogOpen.value = true
+}
+
+function closeUrlImportDialog() {
+  urlImportDialogOpen.value = false
+  urlImportDraft.value = ''
+}
+
+function showImportError(error: unknown) {
+  notify({
+    message: error instanceof Error && error.message ? error.message : 'Failed to import profile',
+    color: 'error',
+  })
+}
+
+function importProfile(profile: Profile) {
+  profilesStore.add(profile)
+  notify({ message: `Imported "${profile.name}"`, color: 'success' })
+}
+
+async function importFromUrl() {
+  const url = urlImportDraft.value.trim()
+  if (!url || urlImportLoading.value) return
+
+  urlImportLoading.value = true
+
+  try {
+    const payload = await ky(await normalizeProfileUrl(url), { retry: 0 }).text()
+    importProfile(decodePayload(payload).profile)
+  } catch (error) {
+    showImportError(error)
+  } finally {
+    urlImportLoading.value = false
+    urlImportDialogOpen.value = false
+    urlImportDraft.value = ''
+  }
+}
+
+async function handleImportFileSelection(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0] ?? null
+
+  input.value = ''
+  if (!file) return
+
+  try {
+    const payload = await file.text()
+    importProfile(decodePayload(payload).profile)
+  } catch (error) {
+    showImportError(error)
+  }
+}
+
+function handleImportDragOver(event: DragEvent) {
+  if (!importProfilesMode.value) return
+  event.preventDefault()
+  isImportDragOver.value = true
+}
+
+function handleImportDragLeave(event: DragEvent) {
+  const currentTarget = event.currentTarget as HTMLElement | null
+  const relatedTarget = event.relatedTarget as Node | null
+  if (currentTarget?.contains(relatedTarget)) return
+  isImportDragOver.value = false
+}
+
+async function getProfileFromEvent(event: DragEvent | ClipboardEvent): Promise<Profile> {
+  const transfer = 'clipboardData' in event ? event.clipboardData : event.dataTransfer
+  if (!transfer) throw new Error('No import data found')
+
+  const items = Array.from(transfer.items)
+  const fileEntries = items.filter((item) => item.kind === 'file')
+
+  if (fileEntries.length > 1) throw new Error('Import one file at a time')
+
+  if (fileEntries.length === 1) {
+    const file = fileEntries[0].getAsFile()
+
+    if (!file) throw new Error('Failed to read file')
+
+    return decodePayload(await file.text()).profile
+  }
+
+  // Without file entries, the transfer can only resolve as plain text or no usable import data.
+  const payload = transfer.getData('text/plain')
+  if (!payload) throw new Error('No import data found')
+
+  return decodePayload(payload).profile
+}
+
+async function handleImportDrop(event: DragEvent) {
+  if (!importProfilesMode.value || !event.dataTransfer) return
+
+  event.preventDefault()
+  isImportDragOver.value = false
+
+  try {
+    importProfile(await getProfileFromEvent(event))
+  } catch (error) {
+    showImportError(error)
+  }
+}
+
+async function handleGlobalPaste(event: ClipboardEvent) {
+  if (!importProfilesMode.value) return
+  if (urlImportDialogOpen.value) return
+  if (
+    event.target instanceof HTMLElement
+    && (event.target.isContentEditable
+      || !!event.target.closest('input, textarea, [contenteditable=""], [contenteditable="true"]'))
+  ) return
+  if (!event.clipboardData) return
+
+  event.preventDefault()
+
+  try {
+    const profile = await getProfileFromEvent(event)
+
+    const result = await confirm({
+      title: 'Import profile?',
+      description: profile.name,
+      actions: [
+        { key: 'import', label: 'Import', color: 'primary' },
+        { key: 'cancel', label: 'Cancel' },
+      ],
+    })
+
+    if (result === 'import') {
+      importProfile(profile)
+    }
+  } catch (error) {
+    showImportError(error)
+  }
+}
+
 </script>
 
 <template>
   <v-container class="py-4 d-flex flex-column ga-4">
     <v-card>
-      <v-card-item title="Heating profiles" />
+      <v-card-item title="Heating profiles">
+        <template #append>
+          <v-menu location="bottom end">
+            <template #activator="{ props }">
+              <v-btn
+                v-bind="props"
+                size="small"
+                icon="mdi-dots-vertical"
+                variant="text"
+                aria-label="Heating profile actions"
+              />
+            </template>
+
+            <v-list>
+              <v-list-item title="Import" @click="importProfilesMode ? closeImportProfilesMode() : openImportProfilesMode()" />
+              <v-list-item title="Reorder" @click="toggleReorderProfilesMode" />
+              <v-list-item title="Reset profiles" @click="resetProfiles" />
+            </v-list>
+          </v-menu>
+        </template>
+      </v-card-item>
       <v-divider />
+      <v-card-text v-if="importProfilesMode" class="pt-4">
+        <v-alert
+          class="border"
+          :type="isImportDragOver ? 'warning' : 'info'"
+          variant="tonal"
+          closable
+          text="Drop a file or text here, paste on this page with Ctrl/Cmd+V, or use one of the actions below."
+          @click:close="closeImportProfilesMode"
+          @dragenter.prevent="isImportDragOver = true"
+          @dragover="handleImportDragOver"
+          @dragleave="handleImportDragLeave"
+          @drop="handleImportDrop"
+        >
+          <div class="d-flex flex-wrap justify-center ga-3 mt-4">
+            <v-btn variant="outlined" @click="importFileInput?.click()">From file</v-btn>
+            <v-btn variant="outlined" @click="openUrlImportDialog">From URL</v-btn>
+          </div>
+        </v-alert>
+      </v-card-text>
+      <v-divider v-if="importProfilesMode" />
       <VueDraggable
         v-model="profilesStore.items"
         tag="div"
         target=".profiles-list"
         :animation="150"
+        :disabled="!reorderProfilesMode"
         handle=".profile-handle"
-        :customUpdate="customUpdate"
+        :customUpdate="(evt: SortableEvent) => profilesStore.move(evt.oldIndex ?? 0, evt.newIndex ?? 0)"
       >
         <v-list class="profiles-list" lines="one">
           <v-list-item
             v-for="profile in profilesStore.items"
             :key="profile.id"
             link
-            @click="openProfile(profile.id)"
+            @click="router.push({ name: 'profile', params: { id: profile.id } })"
           >
             <v-list-item-title class="text-truncate">{{ profile.name }}</v-list-item-title>
 
@@ -168,12 +410,16 @@ async function saveBleNameHandler() {
 
                   <v-list>
                     <v-list-item
-                      title="Edit"
-                      :to="{ name: 'profile', params: { id: profile.id } }"
+                      title="Duplicate"
+                      @click="router.push({ name: 'profile', params: { id: 0 }, query: { source_profile_id: String(profile.id) } })"
                     />
                     <v-list-item
-                      title="Duplicate"
-                      @click="duplicateProfile(profile.id)"
+                      title="Copy to clipboard"
+                      @click="copyProfileToClipboard(profile.id)"
+                    />
+                    <v-list-item
+                      title="Download"
+                      @click="downloadProfile(profile.id)"
                     />
                     <v-list-item
                       title="Remove"
@@ -183,6 +429,7 @@ async function saveBleNameHandler() {
                   </v-list>
                 </v-menu>
                 <v-btn
+                  v-if="reorderProfilesMode"
                   class="profile-handle"
                   icon="mdi-reorder-vertical"
                   size="x-small"
@@ -199,7 +446,6 @@ async function saveBleNameHandler() {
       <v-divider />
       <v-card-actions>
         <v-btn color="primary" variant="text" size="large" :to="{ name: 'profile', params: { id: 0 } }">Add</v-btn>
-        <v-btn variant="text" size="large" @click="resetProfiles">Reset</v-btn>
       </v-card-actions>
     </v-card>
 
@@ -276,10 +522,48 @@ async function saveBleNameHandler() {
       </v-card-text>
       <v-card-actions>
         <v-btn @click="closeBleNameDialog">Cancel</v-btn>
-        <v-btn color="primary" variant="elevated" @click="saveBleNameHandler">Save</v-btn>
+        <v-btn color="primary" variant="elevated" @click="saveBleName">Save</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <v-dialog
+    v-model="urlImportDialogOpen"
+    max-width="30rem"
+    :persistent="urlImportLoading"
+  >
+    <v-card>
+      <v-card-item title="Import from URL" />
+      <v-card-text>
+        <v-text-field
+          v-model="urlImportDraft"
+          label="URL"
+          type="url"
+          placeholder="https://example.com/profile.json"
+        />
+      </v-card-text>
+      <v-card-actions>
+        <v-btn :disabled="urlImportLoading" @click="closeUrlImportDialog">Cancel</v-btn>
+        <v-btn
+          color="primary"
+          variant="elevated"
+          :loading="urlImportLoading"
+          :disabled="!urlImportDraft.trim()"
+          @click="importFromUrl"
+        >
+          Load
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <input
+    ref="importFileInput"
+    class="d-none"
+    type="file"
+    accept="application/json,.json"
+    @change="handleImportFileSelection"
+  >
 </template>
 
 <style scoped>

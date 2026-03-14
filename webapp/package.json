@@ -24,6 +24,8 @@
     "@msgpack/msgpack": "^3.0.0-beta2",
     "@vueuse/core": "^11.1.0",
     "d3": "^7.9.0",
+    "filenamify": "^7.0.1",
+    "ky": "^1.14.3",
     "pinia": "^2.2.4",
     "pinia-plugin-persistedstate": "^4.1.1",
     "protobufjs": "^7.2.4",
