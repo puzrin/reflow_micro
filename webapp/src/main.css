@@ -1,5 +1,5 @@
 :root {
-  --app-shell-max-width: 1000px;
+  --app-shell-max-width: 800px;
 }
 
 .chart-host {
@@ -42,7 +42,7 @@
 }
 
 
-@media (min-width: 1545px) {
+@media (min-width: 1145px) {
   .v-container {
     max-width: var(--app-shell-max-width);
   }
