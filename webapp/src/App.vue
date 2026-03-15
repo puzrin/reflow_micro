@@ -45,7 +45,7 @@ function goBack() {
           <v-toolbar-title>{{ shell.title }}</v-toolbar-title>
 
           <template #append>
-            <ToolbarIndicator :status="device.status" />
+            <ToolbarIndicator class="mr-3" :status="device.status" />
           </template>
         </v-toolbar>
       </v-container>
