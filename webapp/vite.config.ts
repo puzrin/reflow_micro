@@ -3,6 +3,7 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
+import Vuetify from 'vite-plugin-vuetify'
 import { VitePWA } from 'vite-plugin-pwa'
 import UnoCSS from 'unocss/vite'
 
@@ -36,6 +37,7 @@ export default defineConfig(async () => {
       UnoCSS(),
       vue(),
       vueJsx(),
+      Vuetify(),
       VitePWA({
         registerType: 'autoUpdate',
         pwaAssets: {},
