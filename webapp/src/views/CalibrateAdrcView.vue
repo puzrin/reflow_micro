@@ -205,8 +205,8 @@ async function stopTask(force: boolean = false) {
           />
         </v-card-text>
         <v-card-actions>
-          <v-btn color="primary" variant="text" size="large" @click="save_adrc_params">Save</v-btn>
-          <v-btn variant="text" size="large" @click="default_adrc_params">Load default parameters</v-btn>
+          <v-btn color="primary" @click="save_adrc_params">Save</v-btn>
+          <v-btn @click="default_adrc_params">Load defaults</v-btn>
         </v-card-actions>
       </v-card>
 
@@ -220,8 +220,8 @@ async function stopTask(force: boolean = false) {
           <v-number-input v-model="step_response_power" label="Power (W)" inset :min="0" :max="100" :step="1" />
         </v-card-text>
         <v-card-actions>
-          <HoldToConfirmButton color="primary" variant="text" size="large" @confirm="runStepResponse" :disabled="!is_idle">Run</HoldToConfirmButton>
-          <v-btn variant="text" size="large" @click="stopTask()" :disabled="!is_step_response">Stop</v-btn>
+          <HoldToConfirmButton color="primary" @confirm="runStepResponse" :disabled="!is_idle">Run</HoldToConfirmButton>
+          <v-btn @click="stopTask()" :disabled="!is_step_response">Stop</v-btn>
         </v-card-actions>
       </v-card>
 
@@ -232,12 +232,12 @@ async function stopTask(force: boolean = false) {
           <v-number-input v-model="test_temperature" label="Temperature (°C)" inset :min="25" :max="300" :step="1" />
         </v-card-text>
         <v-card-actions>
-          <HoldToConfirmButton color="primary" variant="text" size="large" @confirm="runAdrcTest" :disabled="!is_idle">Run</HoldToConfirmButton>
-          <v-btn variant="text" size="large" @click="stopTask(true)" :disabled="!is_testing">Stop</v-btn>
+          <HoldToConfirmButton color="primary" @confirm="runAdrcTest" :disabled="!is_idle">Run</HoldToConfirmButton>
+          <v-btn @click="stopTask(true)" :disabled="!is_testing">Stop</v-btn>
         </v-card-actions>
       </v-card>
 
-      <v-sheet class="chart-host chart-host--fixed-h flex-fill pa-4 rounded border">
+      <v-sheet class="chart-host chart-host--fixed-h flex-fill pa-4 border">
         <div class="chart-host-wrap1">
           <div class="chart-host-wrap2">
             <ReflowChart id="calibrate-adrc-test"

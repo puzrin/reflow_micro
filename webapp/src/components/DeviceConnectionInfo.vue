@@ -24,7 +24,7 @@ const showConnectSpinner = computed(() => connectButtonLabel.value !== 'Connect 
       <v-card class="w-100" max-width="40rem">
         <v-card-text class="pa-6 pa-sm-8">
           <div class="d-flex flex-column ga-4">
-            <v-btn block color="primary" variant="text" @click="device.selectBackend(VirtualBackend.id)">
+            <v-btn block color="primary" variant="tonal" @click="device.selectBackend(VirtualBackend.id)">
               Switch to demo mode
             </v-btn>
 

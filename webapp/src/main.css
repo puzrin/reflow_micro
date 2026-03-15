@@ -1,10 +1,12 @@
 :root {
   --app-shell-max-width: 800px;
+  --chart-host-border-radius: 8px;
 }
 
 .chart-host {
   display: flex;
   flex-direction: column;
+  border-radius: var(--chart-host-border-radius);
   background-color: color-mix(
     in srgb,
     rgb(var(--v-theme-background)) 95%,
@@ -31,7 +33,7 @@
 
 .chart-host-debug--top {
   position: absolute;
-  right: 0;
+  left: 60px;
   top: 12px;
 }
 

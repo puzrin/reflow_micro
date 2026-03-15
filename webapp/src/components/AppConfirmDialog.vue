@@ -27,8 +27,8 @@ function handleModelValue(next: boolean) {
         <v-btn
           v-for="action in state.actions"
           :key="action.key"
+          v-bind="action.variant ? { variant: action.variant } : {}"
           :color="action.color"
-          :variant="action.variant ?? (action.color ? 'elevated' : 'text')"
           @click="choose(action.key)"
         >
           {{ action.label }}

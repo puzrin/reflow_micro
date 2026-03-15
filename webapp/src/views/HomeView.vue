@@ -44,7 +44,7 @@ async function stop() {
       No suitable power supply detected
     </v-alert>
 
-    <v-sheet class="chart-host flex-fill pa-4 rounded border">
+    <v-sheet class="chart-host flex-fill pa-4 border">
       <div class="chart-host-wrap1">
         <div class="chart-host-wrap2">
           <ReflowChart id="home-chart"
@@ -55,34 +55,50 @@ async function stop() {
 
           <DebugInfo
             v-if="localSettingsStore.showDebugInfo"
-            class="chart-host-debug--bottom"
+            class="chart-host-debug--top"
             :status="status"
           />
         </div>
+
+        <div class="chart-host-actions v-fab">
+          <HoldToConfirmButton
+            v-if="status.activity === DeviceActivityStatus.IDLE"
+            block
+            class="fabs-button"
+            color="primary"
+            elevation="5"
+            @confirm="start"
+          >
+            Start
+          </HoldToConfirmButton>
+          <v-btn
+            v-else
+            block
+            class="fabs-button"
+            color="error"
+            elevation="5"
+            @click="stop"
+          >
+            Stop
+          </v-btn>
+        </div>
       </div>
     </v-sheet>
-
-    <div class="flex-0-0">
-      <HoldToConfirmButton
-        v-if="status.activity === DeviceActivityStatus.IDLE"
-        block
-        color="primary"
-        variant="elevated"
-        size="large"
-        @confirm="start"
-      >
-        Start
-      </HoldToConfirmButton>
-      <v-btn
-        v-else
-        block
-        color="error"
-        variant="elevated"
-        size="large"
-        @click="stop"
-      >
-        Stop
-      </v-btn>
-    </div>
   </v-container>
 </template>
+
+<style scoped>
+.chart-host-actions {
+  position: absolute;
+  width: 150px;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.fabs-button {
+  border-radius: 12px;
+  padding-top: 24px !important;
+  padding-bottom: 24px !important;
+}
+</style>

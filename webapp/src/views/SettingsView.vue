@@ -26,13 +26,9 @@ const themeModeTitles: Record<ThemeMode, string> = {
   dark: 'Dark',
 }
 
-const themeModeItems = THEME_MODES.map((mode) => ({
-  title: themeModeTitles[mode],
-  value: mode,
-}))
-
 const themeModeSubtitle = computed(() => themeModeTitles[localSettingsStore.themeMode])
 const reorderProfilesMode = ref(false)
+const themeDialogOpen = ref(false)
 
 usePageShell(() => ({
   title: 'Settings',
@@ -43,6 +39,19 @@ usePageShell(() => ({
 function toggleReorderProfilesMode() {
   closeImportProfilesMode()
   reorderProfilesMode.value = !reorderProfilesMode.value
+}
+
+function openThemeDialog() {
+  themeDialogOpen.value = true
+}
+
+function closeThemeDialog() {
+  themeDialogOpen.value = false
+}
+
+function selectThemeMode(mode: ThemeMode) {
+  localSettingsStore.themeMode = normalizeThemeMode(mode)
+  closeThemeDialog()
 }
 
 async function copyProfileToClipboard(profileId: number) {
@@ -90,26 +99,28 @@ function downloadProfile(profileId: number) {
 async function deleteProfile(profileId: number) {
   const result = await confirm({
     title: 'Remove profile?',
+    cancelKey: 'dismiss',
     actions: [
-      { key: 'remove', label: 'Remove', color: 'error' },
-      { key: 'cancel', label: 'Cancel' },
+      { key: 'dismiss', label: 'Dismiss' },
+      { key: 'confirm', label: 'Confirm', color: 'primary' },
     ],
   })
 
-  if (result === 'remove') profilesStore.remove(profileId)
+  if (result === 'confirm') profilesStore.remove(profileId)
 }
 
 async function resetProfiles() {
   const result = await confirm({
     title: 'Reset profiles?',
     description: 'All custom changes to your heating profiles will be lost.',
+    cancelKey: 'dismiss',
     actions: [
-      { key: 'reset', label: 'Reset', color: 'error' },
-      { key: 'cancel', label: 'Cancel' },
+      { key: 'dismiss', label: 'Dismiss' },
+      { key: 'confirm', label: 'Confirm', color: 'primary' },
     ],
   })
 
-  if (result === 'reset') {
+  if (result === 'confirm') {
     device.loadProfilesData(true)
   }
 }
@@ -314,13 +325,14 @@ async function handleGlobalPaste(event: ClipboardEvent) {
     const result = await confirm({
       title: 'Import profile?',
       description: profile.name,
+      cancelKey: 'dismiss',
       actions: [
-        { key: 'import', label: 'Import', color: 'primary' },
-        { key: 'cancel', label: 'Cancel' },
+        { key: 'dismiss', label: 'Dismiss' },
+        { key: 'confirm', label: 'Confirm', color: 'primary' },
       ],
     })
 
-    if (result === 'import') {
+    if (result === 'confirm') {
       importProfile(profile)
     }
   } catch (error) {
@@ -333,14 +345,13 @@ async function handleGlobalPaste(event: ClipboardEvent) {
 <template>
   <v-container class="py-4 d-flex flex-column ga-4">
     <v-card>
-      <v-card-item title="Heating profiles">
+      <v-card-item class="pr-1" title="Heating profiles">
         <template #append>
           <v-menu location="bottom end">
             <template #activator="{ props }">
               <v-btn
                 v-bind="props"
-                size="small"
-                icon="mdi-dots-vertical"
+                icon="i-material-symbols:more-vert"
                 variant="text"
                 aria-label="Heating profile actions"
               />
@@ -358,7 +369,7 @@ async function handleGlobalPaste(event: ClipboardEvent) {
       <v-card-text v-if="importProfilesMode" class="pt-4">
         <v-alert
           class="border"
-          :type="isImportDragOver ? 'warning' : 'info'"
+          :color="isImportDragOver ? 'warning' : 'primary'"
           variant="tonal"
           closable
           text="Drop a file or text here, paste here with Ctrl/Cmd+V, or use one of the actions below."
@@ -399,8 +410,8 @@ async function handleGlobalPaste(event: ClipboardEvent) {
                   <template #activator="{ props }">
                     <v-btn
                       v-bind="props"
-                      size="x-small"
-                      icon="mdi-dots-vertical"
+                      size="small"
+                      icon="i-material-symbols:more-vert"
                       variant="text"
                       aria-label="Profile actions"
                       @click.stop
@@ -431,8 +442,8 @@ async function handleGlobalPaste(event: ClipboardEvent) {
                 <v-btn
                   v-if="reorderProfilesMode"
                   class="profile-handle"
-                  icon="mdi-reorder-vertical"
-                  size="x-small"
+                  icon="i-material-symbols:drag-indicator"
+                  size="small"
                   variant="text"
                   aria-label="Drag profile"
                   @click.stop
@@ -445,7 +456,7 @@ async function handleGlobalPaste(event: ClipboardEvent) {
       </VueDraggable>
       <v-divider />
       <v-card-actions>
-        <v-btn color="primary" variant="text" size="large" :to="{ name: 'profile', params: { id: 0 } }">Add</v-btn>
+        <v-btn color="primary" :to="{ name: 'profile', params: { id: 0 } }">Add</v-btn>
       </v-card-actions>
     </v-card>
 
@@ -462,19 +473,9 @@ async function handleGlobalPaste(event: ClipboardEvent) {
         <v-list-item
           title="Theme"
           :subtitle="themeModeSubtitle"
-        >
-          <template #append>
-            <div class="settings-select">
-              <v-select
-                :model-value="localSettingsStore.themeMode"
-                :items="themeModeItems"
-                item-title="title"
-                item-value="value"
-                @update:model-value="localSettingsStore.themeMode = normalizeThemeMode($event)"
-              />
-            </div>
-          </template>
-        </v-list-item>
+          link
+          @click="openThemeDialog"
+        />
         <v-list-item
           title="Show debug info"
           :subtitle="localSettingsStore.showDebugInfo ? 'On' : 'Off'"
@@ -482,6 +483,8 @@ async function handleGlobalPaste(event: ClipboardEvent) {
         >
           <template #append>
             <v-switch
+              color="primary"
+              true-icon="i-material-symbols:check"
               :model-value="localSettingsStore.showDebugInfo"
               hide-details
               @click.stop
@@ -508,6 +511,31 @@ async function handleGlobalPaste(event: ClipboardEvent) {
       </v-card>
   </v-container>
 
+  <v-dialog v-model="themeDialogOpen" max-width="30rem">
+    <v-card>
+      <v-card-item title="Theme" />
+      <v-list lines="one">
+        <v-list-item
+          v-for="mode in THEME_MODES"
+          :key="mode"
+          :title="themeModeTitles[mode]"
+          @click="selectThemeMode(mode)"
+        >
+          <template #prepend>
+            <v-radio
+              :model-value="localSettingsStore.themeMode"
+              :value="mode"
+              color="primary"
+            />
+          </template>
+        </v-list-item>
+      </v-list>
+      <v-card-actions>
+        <v-btn @click="closeThemeDialog">Dismiss</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
   <v-dialog v-model="bleNameDialogOpen" max-width="30rem">
     <v-card>
       <v-card-item title="Bluetooth name" />
@@ -521,8 +549,8 @@ async function handleGlobalPaste(event: ClipboardEvent) {
         />
       </v-card-text>
       <v-card-actions>
-        <v-btn @click="closeBleNameDialog">Cancel</v-btn>
-        <v-btn color="primary" variant="elevated" @click="saveBleName">Save</v-btn>
+        <v-btn @click="closeBleNameDialog">Dismiss</v-btn>
+        <v-btn color="primary" @click="saveBleName">Save</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -543,10 +571,9 @@ async function handleGlobalPaste(event: ClipboardEvent) {
         />
       </v-card-text>
       <v-card-actions>
-        <v-btn :disabled="urlImportLoading" @click="closeUrlImportDialog">Cancel</v-btn>
+        <v-btn :disabled="urlImportLoading" @click="closeUrlImportDialog">Dismiss</v-btn>
         <v-btn
           color="primary"
-          variant="elevated"
           :loading="urlImportLoading"
           :disabled="!urlImportDraft.trim()"
           @click="importFromUrl"
@@ -573,9 +600,5 @@ async function handleGlobalPaste(event: ClipboardEvent) {
 
 .profile-handle:active {
   cursor: grabbing;
-}
-
-.settings-select {
-  width: 8rem;
 }
 </style>

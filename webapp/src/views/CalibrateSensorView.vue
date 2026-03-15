@@ -147,7 +147,7 @@ async function stopBake() {
           />
         </v-card-text>
         <v-card-actions>
-          <v-btn color="primary" variant="text" size="large" @click="save_p0" :disabled="!is_idle">Save</v-btn>
+          <v-btn color="primary" @click="save_p0" :disabled="!is_idle">Save</v-btn>
         </v-card-actions>
       </v-card>
 
@@ -189,13 +189,13 @@ async function stopBake() {
           />
         </v-card-text>
         <v-card-actions>
-          <HoldToConfirmButton color="error" variant="text" size="large" @confirm="startBake" :disabled="!is_idle">Bake</HoldToConfirmButton>
-          <v-btn variant="text" size="large" @click="stopBake" :disabled="!is_baking">Stop</v-btn>
-          <v-btn color="primary" variant="text" size="large" @click="save_p1" :disabled="!is_baking">Save</v-btn>
+          <HoldToConfirmButton color="error" @confirm="startBake" :disabled="!is_idle">Bake</HoldToConfirmButton>
+          <v-btn @click="stopBake" :disabled="!is_baking">Stop</v-btn>
+          <v-btn color="primary" @click="save_p1" :disabled="!is_baking">Save</v-btn>
         </v-card-actions>
       </v-card>
 
-      <v-sheet class="chart-host chart-host--fixed-h flex-fill pa-4 rounded border">
+      <v-sheet class="chart-host chart-host--fixed-h flex-fill pa-4 border">
         <div class="chart-host-wrap1">
           <div class="chart-host-wrap2">
             <ReflowChart id="calibrate-sensor-bake"

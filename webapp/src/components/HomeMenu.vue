@@ -20,7 +20,6 @@ const locked = () => status.activity === DeviceActivityStatus.REFLOW
     </template>
 
     <v-list min-width="280">
-      <v-list-subheader inset>PROFILES</v-list-subheader>
       <v-list-item
         v-for="profile in profilesStore.items"
         :key="profile.id"
@@ -30,7 +29,7 @@ const locked = () => status.activity === DeviceActivityStatus.REFLOW
       >
         <template #prepend>
           <v-icon
-            icon="mdi-check"
+            icon="i-material-symbols:check"
             :class="{ 'opacity-0': profile.id !== profilesStore.selected?.id }"
           />
         </template>
@@ -44,7 +43,7 @@ const locked = () => status.activity === DeviceActivityStatus.REFLOW
         :to="{ name: 'settings' }"
       >
         <template #prepend>
-          <v-icon class="opacity-0" icon="mdi-check" />
+          <v-icon class="opacity-0" icon="i-material-symbols:check" />
         </template>
       </v-list-item>
       <v-list-item
@@ -54,7 +53,7 @@ const locked = () => status.activity === DeviceActivityStatus.REFLOW
         target="_blank"
       >
         <template #prepend>
-          <v-icon class="opacity-0" icon="mdi-check" />
+          <v-icon class="opacity-0" icon="i-material-symbols:check" />
         </template>
       </v-list-item>
     </v-list>

@@ -39,7 +39,7 @@ function goBack() {
           </template>
 
           <template v-else-if="shell.nav.kind === 'back'" #prepend>
-            <v-app-bar-nav-icon icon="mdi-arrow-left" @click="goBack" />
+            <v-app-bar-nav-icon icon="i-material-symbols:arrow-back" @click="goBack" />
           </template>
 
           <v-toolbar-title>{{ shell.title }}</v-toolbar-title>
@@ -59,6 +59,7 @@ function goBack() {
     <v-btn
       v-if="device.is_ready.value && (device.backend_id.value === VirtualBackend.id)"
       class="demo-exit"
+      rounded="lg"
       color="error"
       variant="flat"
       size="x-small"

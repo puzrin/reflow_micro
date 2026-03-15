@@ -114,15 +114,15 @@ onBeforeRouteLeave(async () => {
 
   const result = await confirm({
     title: 'Save changes before leaving?',
+    cancelKey: 'stay',
     actions: [
+      { key: 'leave', label: 'Leave' },
       { key: 'save', label: 'Save', color: 'primary' },
-      { key: 'discard', label: 'Discard', color: 'error' },
-      { key: 'cancel', label: 'Cancel' },
     ],
   })
 
-  if (result === 'cancel') return false
-  if (result === 'discard') return true
+  if (result === 'stay') return false
+  if (result === 'leave') return true
 
   const validation = await formRef.value?.validate()
   if (validation?.valid) {
@@ -142,14 +142,15 @@ async function deleteSegment(segmentIdx: number) {
   if (profile.segments.length < 2) return
 
   const result = await confirm({
-    title: 'Remove stage?',
+    title: 'Remove this stage?',
+    cancelKey: 'dismiss',
     actions: [
-      { key: 'remove', label: 'Remove', color: 'error' },
-      { key: 'cancel', label: 'Cancel' },
+      { key: 'dismiss', label: 'Dismiss' },
+      { key: 'confirm', label: 'Confirm', color: 'primary' },
     ],
   })
 
-  if (result === 'remove') {
+  if (result === 'confirm') {
     profile.segments.splice(segmentIdx, 1)
   }
 }
@@ -185,7 +186,7 @@ function heatingSpeed(segmentIdx: number) {
           <v-expansion-panel value="preview" static>
             <v-expansion-panel-title>Preview</v-expansion-panel-title>
             <v-expansion-panel-text>
-              <v-sheet class="chart-host chart-host--fixed-h flex-fill pa-4 rounded border">
+              <v-sheet class="chart-host chart-host--fixed-h flex-fill pa-4 border">
                 <div class="chart-host-wrap1">
                   <div class="chart-host-wrap2">
                     <ReflowChart id="profile-edit-chart" :profile="profile" />
@@ -231,13 +232,13 @@ function heatingSpeed(segmentIdx: number) {
               <div class="w-100 w-sm-auto d-flex justify-end justify-sm-start text-medium-emphasis pt-sm-3">
                 <v-btn
                   variant="text"
-                  icon="mdi-plus"
+                  icon="i-material-symbols:add"
                   size="x-small"
                   @click="duplicateSegment(index)"
                 />
                 <v-btn
                   variant="text"
-                  icon="mdi-delete-outline"
+                  icon="i-material-symbols:delete-outline"
                   size="x-small"
                   :disabled="profile.segments.length < 2"
                   @click="deleteSegment(index)"
@@ -247,7 +248,7 @@ function heatingSpeed(segmentIdx: number) {
           </div>
         </v-card-text>
         <v-card-actions>
-          <v-btn color="primary" variant="text" size="large" type="submit">Save</v-btn>
+          <v-btn color="primary" type="submit">Save</v-btn>
         </v-card-actions>
       </v-card>
     </v-form>
