@@ -5,8 +5,8 @@ function hex2bytes(hex: string): Uint8Array {
     return new Uint8Array(hex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
 }
 
-function bytes2hex(buffer: ArrayBuffer): string {
-    return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+function bytes2hex(bytes: Uint8Array): string {
+    return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 
@@ -61,8 +61,8 @@ export class AuthStorage {
     }
 
     public async calculateHMAC(message: Uint8Array, key: Uint8Array): Promise<Uint8Array> {
-        const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-        const signature = await crypto.subtle.sign('HMAC', cryptoKey, message);
+        const cryptoKey = await crypto.subtle.importKey('raw', new Uint8Array(key), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+        const signature = await crypto.subtle.sign('HMAC', cryptoKey, new Uint8Array(message));
         return new Uint8Array(signature);
     }
 }

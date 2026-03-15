@@ -251,10 +251,10 @@ class BleCharacteristicIO implements IO {
         }
         if (isLastChunk(data)) {
             // Last chunk delivery is guaranteed.
-            await this.characteristic.writeValueWithResponse(data);
+            await this.characteristic.writeValueWithResponse(new Uint8Array(data));
         } else {
             // Intermediate chunk delivery is best-effort.
-            await this.characteristic.writeValueWithoutResponse(data);
+            await this.characteristic.writeValueWithoutResponse(new Uint8Array(data));
         }
     }
 
