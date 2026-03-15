@@ -1,5 +1,5 @@
 import './main.css'
-import 'uno.css'
+import 'virtual:uno.css'
 import '@fontsource/roboto/300.css'
 import '@fontsource/roboto/400.css'
 import '@fontsource/roboto/500.css'
