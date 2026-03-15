@@ -82,5 +82,8 @@ function goBack() {
   border-end-end-radius: 0;
   transform: translate(calc((100% - var(--v-btn-height)) / 2), -50%) rotate(-90deg);
   transform-origin: center;
+
+  font-size: 0.625rem;
+  letter-spacing: 0.05em;
 }
 </style>
