@@ -18,15 +18,18 @@ const vuetify = createVuetify({
     },
   },
   defaults: {
+    VAppBar: {
+      flat: false, // Not MD3 but looks better
+    },
     VAlert: {
-      icon: false,
-      rounded: 'lg',
+      icon: false,    // Custom, reduce the noise
+      rounded: 'lg',  // MD3 fix
     },
     VChip: {
-      rounded: 'lg',
+      rounded: 'lg',  // MD3 fix
     },
     VSwitch: {
-      inset: true,
+      inset: true,    // MD3 fix
     },
   },
 })
