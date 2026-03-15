@@ -32,6 +32,27 @@ const vuetify = createVuetify({
       inset: true,    // MD3 fix
     },
   },
+  theme: {
+    themes: {
+      // MD3 dark theme fix
+      dark: {
+        colors: {
+          background: '#121212',
+          surface: '#1E1E1E',
+          'surface-bright': '#3B3B3B',
+          'surface-variant': '#49454F',
+          'on-surface': '#E6E0E9',
+          'on-surface-variant': '#CAC4D0',
+          primary: '#D0BCFF',
+          'on-primary': '#381E72',
+          secondary: '#CCC2DC',
+          'on-secondary': '#332D41',
+          error: '#F2B8B5',
+          'on-error': '#601410',
+        },
+      },
+    },
+  }
 })
 
 export default vuetify
