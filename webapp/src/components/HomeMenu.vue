@@ -16,7 +16,7 @@ const locked = () => status.activity === DeviceActivityStatus.REFLOW
 <template>
   <v-menu location="bottom start" offset="10">
     <template #activator="{ props }">
-      <v-app-bar-nav-icon v-bind="props" />
+      <v-app-bar-nav-icon v-bind="props" icon="i-material-symbols:menu" />
     </template>
 
     <v-list min-width="280">
