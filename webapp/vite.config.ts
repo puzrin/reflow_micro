@@ -33,6 +33,11 @@ export default defineConfig(async () => {
     define: {
       __REPO_URL__: JSON.stringify(repoUrl),
     },
+    optimizeDeps: {
+      // MS icons are done via UnoCSS. This workaround makes it work properly
+      // on dev server. Production build is ok.
+      exclude: ['vuetify/iconsets/ms'],
+    },
     plugins: [
       UnoCSS(),
       vue(),
