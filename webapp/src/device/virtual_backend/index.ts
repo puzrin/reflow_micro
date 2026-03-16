@@ -16,7 +16,7 @@ import {
   HeadStatus,
   PowerStatus
 } from '@/proto/generated/types'
-import { SharedConstants as Constants } from '@/proto/generated/shared_constants'
+import { SharedConstants as Constants } from '@/lib/shared_constants'
 import { DEFAULT_PROFILES_DATA_PB } from '@/proto/generated/defaults'
 
 // Tick step in ms, 10Hz.

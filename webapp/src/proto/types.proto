@@ -14,6 +14,7 @@ enum ConstantsBase {
   option (nanopb_enumopt).long_names = false;
 
   CONSTANT_UNSPECIFIED = 0;
+  MAX_BLE_NAME_LENGTH = 29;
   // Initial temperature for all profiles
   START_TEMPERATURE = 30;
   // History IDs for tasks (selected to not conflict with profile IDs)

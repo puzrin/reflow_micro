@@ -1,6 +1,6 @@
 import { Device, type IBackend } from '@/device'
 import { ProfilesData, HeadParams, HistoryChunk, DeviceInfo } from '@/proto/generated/types'
-import { SharedConstants as Constants } from '@/proto/generated/shared_constants'
+import { SharedConstants as Constants } from '@/lib/shared_constants'
 import { BleRpcClient } from '../../../src/lib/ble/BleRpcClient';
 
 export class BleBackend implements IBackend {

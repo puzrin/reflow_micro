@@ -1,5 +1,5 @@
 import { type Profile, type Segment } from '@/proto/generated/types'
-import { SharedConstants as Constants } from '@/proto/generated/shared_constants'
+import { SharedConstants as Constants } from '@/lib/shared_constants'
 
 export type ExchangeMark = 'heating_profile'
 

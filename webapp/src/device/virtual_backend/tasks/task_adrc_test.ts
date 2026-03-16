@@ -1,7 +1,7 @@
 import type { HeaterControl } from '../heater_control'
 import { HeaterTask } from './heater_task'
 import { DeviceActivityStatus } from '@/proto/generated/types'
-import { SharedConstants as Constants } from '@/proto/generated/shared_constants'
+import { SharedConstants as Constants } from '@/lib/shared_constants'
 
 export class TaskAdrcTest extends HeaterTask {
   historyId = Constants.HISTORY_ID_ADRC_TEST_MODE

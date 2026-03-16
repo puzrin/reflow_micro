@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 
 const sourcePath = new URL('./types.proto', import.meta.url)
-const tsOutputPath = new URL('./generated/shared_constants.ts', import.meta.url)
+const tsOutputPath = new URL('../lib/shared_constants.ts', import.meta.url)
 const hppOutputPath = new URL('../../../firmware/src/proto/generated/shared_constants.hpp', import.meta.url)
 
 const proto = readFileSync(sourcePath, 'utf8')
