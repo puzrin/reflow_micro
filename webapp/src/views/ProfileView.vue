@@ -5,22 +5,14 @@ import { useLocalSettingsStore } from '@/stores/localSettings'
 import { computed, reactive, ref, toRaw, watch } from 'vue'
 import { Profile } from '@/proto/generated/types'
 import { SharedConstants as Constants } from '@/lib/shared_constants'
+import { PROFILE_LIMITS } from '@/lib/web_limits'
 import { confirm } from '@/composables/confirm'
 import { notify } from '@/composables/notify'
 import { usePageShell } from '@/composables/appShell'
 import ReflowChart from '@/components/ReflowChart.vue'
 
 const textEncoder = new TextEncoder()
-
-// GUI field limits
-const limits = {
-  targetMin: 30,
-  targetMax: 300,
-  durationMin: 5,
-  durationMax: 60*60*24,
-  nameMin: 3,
-  nameMaxBytes: Constants.MAX_PROFILE_NAME_LENGTH,
-}
+const nameMaxBytes = Constants.MAX_PROFILE_NAME_LENGTH
 
 function trimUtf8ToByteLimit(value: string, maxBytes: number): string {
   let trimmed = value
@@ -67,7 +59,7 @@ function createInitialProfile(sourceProfile: Profile | null): Profile {
 
   const clonedProfile = structuredClone(sourceProfile)
   clonedProfile.id = 0
-  clonedProfile.name = trimUtf8ToByteLimit(`${clonedProfile.name.trim()} copy`, limits.nameMaxBytes).trim()
+  clonedProfile.name = trimUtf8ToByteLimit(`${clonedProfile.name.trim()} copy`, nameMaxBytes).trim()
   return clonedProfile
 }
 
@@ -85,7 +77,7 @@ usePageShell(() => ({
 
 watch(profile, () => isProfileEdited.value = true, { deep: true })
 watch(() => profile.name, (value) => {
-  const trimmed = trimUtf8ToByteLimit(value, limits.nameMaxBytes)
+  const trimmed = trimUtf8ToByteLimit(value, nameMaxBytes)
   if (trimmed !== value) {
     profile.name = trimmed
   }
@@ -101,18 +93,18 @@ const previewPanels = computed({
 
 const nameRules = [
   (value: string) => !!value || 'Name is required',
-  (value: string) => value.length >= limits.nameMin || `Minimum ${limits.nameMin} characters`,
-  (value: string) => textEncoder.encode(value).length <= limits.nameMaxBytes || `Maximum ${limits.nameMaxBytes} bytes`,
+  (value: string) => value.length >= PROFILE_LIMITS.nameMinChars || `Minimum ${PROFILE_LIMITS.nameMinChars} characters`,
+  (value: string) => textEncoder.encode(value).length <= nameMaxBytes || `Maximum ${nameMaxBytes} bytes`,
 ]
 
 const targetRules = [
-  (value: unknown) => Number(value) >= limits.targetMin || `Minimum ${limits.targetMin}°C`,
-  (value: unknown) => Number(value) <= limits.targetMax || `Maximum ${limits.targetMax}°C`,
+  (value: unknown) => Number(value) >= PROFILE_LIMITS.targetMin || `Minimum ${PROFILE_LIMITS.targetMin}°C`,
+  (value: unknown) => Number(value) <= PROFILE_LIMITS.targetMax || `Maximum ${PROFILE_LIMITS.targetMax}°C`,
 ]
 
 const durationRules = [
-  (value: unknown) => Number(value) >= limits.durationMin || `Minimum ${limits.durationMin} sec`,
-  (value: unknown) => Number(value) <= limits.durationMax || `Maximum ${limits.durationMax} sec`,
+  (value: unknown) => Number(value) >= PROFILE_LIMITS.durationMin || `Minimum ${PROFILE_LIMITS.durationMin} sec`,
+  (value: unknown) => Number(value) <= PROFILE_LIMITS.durationMax || `Maximum ${PROFILE_LIMITS.durationMax} sec`,
 ]
 
 async function saveForm() {
@@ -229,9 +221,8 @@ function heatingSpeed(segmentIdx: number) {
                   v-model="segment.target"
                   label="Target (°C)"
                   inset
-                  :min="limits.targetMin"
-                  :max="limits.targetMax"
-                  :step="1"
+                  :min="PROFILE_LIMITS.targetMin"
+                  :max="PROFILE_LIMITS.targetMax"
                   :rules="targetRules"
                 />
               </div>
@@ -240,9 +231,8 @@ function heatingSpeed(segmentIdx: number) {
                   v-model="segment.duration"
                   label="Duration (sec)"
                   inset
-                  :min="limits.durationMin"
-                  :max="limits.durationMax"
-                  :step="1"
+                  :min="PROFILE_LIMITS.durationMin"
+                  :max="PROFILE_LIMITS.durationMax"
                   :rules="durationRules"
                 />
               </div>

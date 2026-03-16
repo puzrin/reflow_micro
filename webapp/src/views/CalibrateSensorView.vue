@@ -7,6 +7,7 @@ import ReflowChart from '@/components/ReflowChart.vue'
 import HoldToConfirmButton from '@/components/HoldToConfirmButton.vue'
 import { DeviceActivityStatus, HeadStatus } from '@/proto/generated/types'
 import { SharedConstants as Constants } from '@/lib/shared_constants'
+import { SENSOR_CALIBRATION_LIMITS } from '@/lib/web_limits'
 import { useLocalSettingsStore } from '@/stores/localSettings'
 import DebugInfo from '@/components/DebugInfo.vue'
 import { notify } from '@/composables/notify'
@@ -139,9 +140,9 @@ async function stopBake() {
             v-model="p0"
             label="Temperature (°C)"
             inset
-            :min="10"
-            :max="100"
-            :step="0.1"
+            :min="SENSOR_CALIBRATION_LIMITS.point0Min"
+            :max="SENSOR_CALIBRATION_LIMITS.point0Max"
+            :step="SENSOR_CALIBRATION_LIMITS.point0Step"
             :precision="1"
             :error-messages="show_p0_error ? ['Required'] : []"
             @update:model-value="show_p0_error = false"
@@ -167,7 +168,12 @@ async function stopBake() {
             (~25 W / 170°C for the MCPCB heater, ~50 W / 250°C for the MCH-based heater).
             Wait until the temperature stabilizes, then enter the actual value.
           </div>
-          <v-slider v-model="power" min="1" max="100" thumb-label="always">
+          <v-slider
+            v-model="power"
+            :min="SENSOR_CALIBRATION_LIMITS.bakePowerMin"
+            :max="SENSOR_CALIBRATION_LIMITS.bakePowerMax"
+            thumb-label="always"
+          >
             <template v-slot:thumb-label="{ modelValue }">
               {{ Math.round(modelValue * 10)/10 }}&nbsp;W
             </template>
@@ -180,9 +186,9 @@ async function stopBake() {
             v-model="p1"
             label="Temperature (°C)"
             inset
-            :min="150"
-            :max="300"
-            :step="0.1"
+            :min="SENSOR_CALIBRATION_LIMITS.point1Min"
+            :max="SENSOR_CALIBRATION_LIMITS.point1Max"
+            :step="SENSOR_CALIBRATION_LIMITS.point1Step"
             :precision="1"
             :disabled="!is_baking"
             :error-messages="show_p1_error ? ['Required'] : []"

@@ -7,6 +7,7 @@ import ReflowChart from '@/components/ReflowChart.vue'
 import HoldToConfirmButton from '@/components/HoldToConfirmButton.vue'
 import { HeadParams, DeviceActivityStatus, HeadStatus } from '@/proto/generated/types'
 import { SharedConstants as Constants } from '@/lib/shared_constants'
+import { ADRC_LIMITS } from '@/lib/web_limits'
 import { DEFAULT_HEAD_PARAMS_PB } from '@/proto/generated/defaults'
 import { useLocalSettingsStore } from '@/stores/localSettings'
 import DebugInfo from '@/components/DebugInfo.vue'
@@ -153,9 +154,8 @@ async function stopTask(force: boolean = false) {
             v-model="adrc_param_tau"
             label="τ (sec)"
             inset
-            :min="1"
-            :max="1000"
-            :step="0.001"
+            :min="ADRC_LIMITS.tauMin"
+            :max="ADRC_LIMITS.tauMax"
             :precision="3"
             :error-messages="adrc_error_tau ? ['Required'] : []"
             @update:model-value="adrc_error_tau = false"
@@ -168,9 +168,9 @@ async function stopTask(force: boolean = false) {
             v-model="adrc_param_b0"
             label="b0 (scale)"
             inset
-            :min="0"
-            :max="100"
-            :step="0.00001"
+            :min="ADRC_LIMITS.b0Min"
+            :max="ADRC_LIMITS.b0Max"
+            :step="ADRC_LIMITS.b0Step"
             :precision="5"
             :error-messages="adrc_error_b0 ? ['Required'] : []"
             @update:model-value="adrc_error_b0 = false"
@@ -182,9 +182,9 @@ async function stopTask(force: boolean = false) {
           <v-number-input
             v-model="adrc_param_n"
             label="N (controller multiplier)"
-            :min="3"
-            :max="1000"
-            :step="0.5"
+            :min="ADRC_LIMITS.nMin"
+            :max="ADRC_LIMITS.nMax"
+            :step="ADRC_LIMITS.nStep"
             :precision="1"
             :error-messages="adrc_error_n ? ['Required'] : []"
             @update:model-value="adrc_error_n = false"
@@ -197,9 +197,9 @@ async function stopTask(force: boolean = false) {
             v-model="adrc_param_m"
             label="M (observer ratio)"
             inset
-            :min="2"
-            :max="10"
-            :step="0.5"
+            :min="ADRC_LIMITS.mMin"
+            :max="ADRC_LIMITS.mMax"
+            :step="ADRC_LIMITS.mStep"
             :precision="1"
             :error-messages="adrc_error_m ? ['Required'] : []"
             @update:model-value="adrc_error_m = false"
@@ -218,7 +218,13 @@ async function stopTask(force: boolean = false) {
           <div class="mb-3 text-medium-emphasis">
             Used to calculate τ and b0. Use the same power you would use for baking.
           </div>
-          <v-number-input v-model="step_response_power" label="Power (W)" inset :min="0" :max="100" :step="1" />
+          <v-number-input
+            v-model="step_response_power"
+            label="Power (W)"
+            inset
+            :min="ADRC_LIMITS.stepResponsePowerMin"
+            :max="ADRC_LIMITS.stepResponsePowerMax"
+          />
         </v-card-text>
         <v-card-actions>
           <HoldToConfirmButton color="primary" @confirm="runStepResponse" :disabled="!is_idle">Run</HoldToConfirmButton>
@@ -230,7 +236,13 @@ async function stopTask(force: boolean = false) {
         <v-card-item title="Test the controller" />
         <v-divider />
         <v-card-text>
-          <v-number-input v-model="test_temperature" label="Temperature (°C)" inset :min="25" :max="300" :step="1" />
+          <v-number-input
+            v-model="test_temperature"
+            label="Temperature (°C)"
+            inset
+            :min="ADRC_LIMITS.testTemperatureMin"
+            :max="ADRC_LIMITS.testTemperatureMax"
+          />
         </v-card-text>
         <v-card-actions>
           <HoldToConfirmButton color="primary" @confirm="runAdrcTest" :disabled="!is_idle">Run</HoldToConfirmButton>
