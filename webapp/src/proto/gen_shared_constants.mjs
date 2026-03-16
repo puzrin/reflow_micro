@@ -43,7 +43,7 @@ const tsMembers = [...enumEntries, ...limitEntries]
 const tsFile = `// Auto-generated file. DO NOT EDIT.
 export const SharedConstants = {
 ${tsMembers.map(({ name, value }) => `  ${name}: ${value},`).join('\n')}
-} as const
+}
 `
 
 const hppFile = `// Auto-generated file. DO NOT EDIT.

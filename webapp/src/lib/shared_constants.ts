@@ -10,4 +10,4 @@ export const SharedConstants = {
   MAX_REFLOW_SEGMENTS: 10,
   MAX_REFLOW_PROFILES: 10,
   MAX_HISTORY_CHUNK: 100,
-} as const
+}
