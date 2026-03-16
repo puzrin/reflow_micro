@@ -13,9 +13,11 @@ import { notify } from '@/composables/notify'
 import { usePageShell } from '@/composables/appShell'
 import { decodePayload, encodeProfile } from '@/lib/exchange_format'
 import { normalizeProfileUrl } from '@/lib/normalize_profile_url'
+import { SharedConstants as Constants } from '@/lib/shared_constants'
 
 const device: Device = inject('device')!
 const router = useRouter()
+const textEncoder = new TextEncoder()
 
 const profilesStore = useProfilesStore()
 const localSettingsStore = useLocalSettingsStore()
@@ -27,6 +29,7 @@ const themeModeTitles: Record<ThemeMode, string> = {
 }
 
 const themeModeSubtitle = computed(() => themeModeTitles[localSettingsStore.themeMode])
+const canAddProfiles = computed(() => profilesStore.items.length < Constants.MAX_REFLOW_PROFILES)
 const reorderProfilesMode = ref(false)
 const themeDialogOpen = ref(false)
 
@@ -151,7 +154,12 @@ function closeBleNameDialog() {
 async function saveBleName() {
   bleNameError.value = false
 
-  if (bleNameDraft.value.length < 3) {
+  if (!bleNameDraft.value.length) {
+    bleNameError.value = true
+    return
+  }
+
+  if (textEncoder.encode(bleNameDraft.value).length > Constants.MAX_BLE_NAME_LENGTH) {
     bleNameError.value = true
     return
   }
@@ -191,6 +199,7 @@ onBeforeUnmount(() => {
 })
 
 function openImportProfilesMode() {
+  if (!canAddProfiles.value) return
   reorderProfilesMode.value = false
   importProfilesMode.value = true
 }
@@ -220,6 +229,11 @@ function showImportError(error: unknown) {
 }
 
 function importProfile(profile: Profile) {
+  if (!canAddProfiles.value) {
+    notify({ message: `Only ${Constants.MAX_REFLOW_PROFILES} profiles are allowed`, color: 'error' })
+    return
+  }
+
   profilesStore.add(profile)
   notify({ message: `Imported "${profile.name}"`, color: 'success' })
 }
@@ -358,7 +372,7 @@ async function handleGlobalPaste(event: ClipboardEvent) {
             </template>
 
             <v-list>
-              <v-list-item title="Import" @click="importProfilesMode ? closeImportProfilesMode() : openImportProfilesMode()" />
+              <v-list-item title="Import" :disabled="!canAddProfiles" @click="importProfilesMode ? closeImportProfilesMode() : openImportProfilesMode()" />
               <v-list-item title="Reorder" @click="toggleReorderProfilesMode" />
               <v-list-item title="Reset profiles" @click="resetProfiles" />
             </v-list>
@@ -422,6 +436,7 @@ async function handleGlobalPaste(event: ClipboardEvent) {
                   <v-list>
                     <v-list-item
                       title="Duplicate"
+                      :disabled="!canAddProfiles"
                       @click="router.push({ name: 'profile', params: { id: 0 }, query: { source_profile_id: String(profile.id) } })"
                     />
                     <v-list-item
@@ -456,7 +471,7 @@ async function handleGlobalPaste(event: ClipboardEvent) {
       </VueDraggable>
       <v-divider />
       <v-card-actions>
-        <v-btn color="primary" :to="{ name: 'profile', params: { id: 0 } }">Add</v-btn>
+        <v-btn color="primary" :to="{ name: 'profile', params: { id: 0 } }" :disabled="!canAddProfiles">Add</v-btn>
       </v-card-actions>
     </v-card>
 
@@ -543,9 +558,8 @@ async function handleGlobalPaste(event: ClipboardEvent) {
         <v-text-field
           v-model="bleNameDraft"
           label="Bluetooth name"
-          minlength="3"
-          maxlength="30"
-          :error-messages="bleNameError ? ['Name must be 3-30 printable ASCII characters'] : []"
+          :maxlength="Constants.MAX_BLE_NAME_LENGTH"
+          :error-messages="bleNameError ? [`Name must be non-empty printable ASCII up to ${Constants.MAX_BLE_NAME_LENGTH} bytes`] : []"
         />
       </v-card-text>
       <v-card-actions>

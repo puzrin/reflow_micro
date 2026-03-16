@@ -9,6 +9,7 @@
 #include "auth_utils.hpp"
 #include "app.hpp"
 #include "api.hpp"
+#include "proto/generated/shared_constants.hpp"
 
 MsgpackRpcDispatcher rpc;
 MsgpackRpcDispatcher auth_rpc;
@@ -167,7 +168,7 @@ public:
 
 
 void ble_init() {
-    const std::string name = bleNameStore.get().substr(0, 29); // Limit name length
+    const std::string name = bleNameStore.get().substr(0, SharedConstants::MAX_BLE_NAME_LENGTH);
     // This name is used in Device Name (0x1800/0x2A00), always created by NimBLE
     // But we still need it in advertisement, to show in device selection dialog
     // BEFORE device been connected.
@@ -298,7 +299,7 @@ auto pair(const std::vector<uint8_t> client_id) -> std::vector<uint8_t> {
 void ble_name_write(const std::string& name) {
     bleNameStore.set(name);
 
-    std::string n = name.substr(0, 29); // Limit name length
+    std::string n = name.substr(0, SharedConstants::MAX_BLE_NAME_LENGTH);
 
     NimBLEDevice::setDeviceName(n);
 

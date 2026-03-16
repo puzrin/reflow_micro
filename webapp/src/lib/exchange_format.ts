@@ -1,5 +1,6 @@
 import { type Profile, type Segment } from '@/proto/generated/types'
 import { SharedConstants as Constants } from '@/lib/shared_constants'
+import { PROFILE_LIMITS } from '@/lib/web_limits'
 
 export type ExchangeMark = 'heating_profile'
 
@@ -69,7 +70,7 @@ function decodePayloadSegments(value: unknown): Segment[] {
 
     return {
       target: parseInteger(segment.target_c, `profile.segments[${index}].target_c`),
-      duration: parseInteger(segment.duration_sec, `profile.segments[${index}].duration_sec`),
+      duration: parseDuration(segment.duration_sec, `profile.segments[${index}].duration_sec`),
     }
   })
 }
@@ -96,6 +97,12 @@ function parseName(value: unknown, path: string): string {
   const normalized = value.trim()
 
   if (!normalized) decodeError(`${path} cannot be empty`)
+  if (normalized.length < PROFILE_LIMITS.nameMinChars) {
+    decodeError(`${path} must be at least ${PROFILE_LIMITS.nameMinChars} characters`)
+  }
+  if (textEncoder.encode(normalized).length > Constants.MAX_PROFILE_NAME_LENGTH) {
+    decodeError(`${path} must be at most ${Constants.MAX_PROFILE_NAME_LENGTH} bytes`)
+  }
 
   return normalized
 }
@@ -104,6 +111,16 @@ function parseInteger(value: unknown, path: string): number {
   if (typeof value !== 'number' || !Number.isFinite(value) || !Number.isInteger(value)) decodeError(`${path} must be an integer`)
 
   return value
+}
+
+function parseDuration(value: unknown, path: string): number {
+  const parsed = parseInteger(value, path)
+
+  if (parsed < PROFILE_LIMITS.durationMin || parsed > PROFILE_LIMITS.durationMax) {
+    decodeError(`${path} must be between ${PROFILE_LIMITS.durationMin} and ${PROFILE_LIMITS.durationMax}`)
+  }
+
+  return parsed
 }
 
 function decodeError(message: string): never {

@@ -5,6 +5,7 @@
 #include "components/profiles_config.hpp"
 #include "heater/heater.hpp"
 #include "rpc.hpp"
+#include "proto/generated/shared_constants.hpp"
 #include "proto/generated/types.pb.h"
 #include "app.hpp"
 
@@ -123,8 +124,8 @@ std::string get_ble_name() {
 }
 
 bool set_ble_name(const std::string name) {
-    if (name.length() < 3) {
-        throw std::runtime_error("BLE name too short (minimum 3 characters)");
+    if (name.empty()) {
+        throw std::runtime_error("BLE name must not be empty");
     }
     ble_name_write(name);
     return true;

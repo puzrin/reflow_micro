@@ -90,6 +90,7 @@ const previewPanels = computed({
     localSettingsStore.profileEditorShowPreview = value.includes('preview')
   },
 })
+const canAddSegments = computed(() => profile.segments.length < Constants.MAX_REFLOW_SEGMENTS)
 
 const nameRules = [
   (value: string) => !!value || 'Name is required',
@@ -109,13 +110,30 @@ const durationRules = [
 
 async function saveForm() {
   const validation = await formRef.value?.validate()
-  if (!validation?.valid) return
+  if (!validation?.valid) return false
+
+  const isNewProfile = !profile.id || !profilesStore.exists(profile.id)
+  if (isNewProfile && profilesStore.items.length >= Constants.MAX_REFLOW_PROFILES) {
+    notify({ message: `Only ${Constants.MAX_REFLOW_PROFILES} profiles are allowed`, color: 'error' })
+    return false
+  }
+
+  if (profile.segments.length === 0) {
+    notify({ message: 'Profile must contain at least one segment', color: 'error' })
+    return false
+  }
+
+  if (profile.segments.length > Constants.MAX_REFLOW_SEGMENTS) {
+    notify({ message: `Profile can contain at most ${Constants.MAX_REFLOW_SEGMENTS} segments`, color: 'error' })
+    return false
+  }
 
   // Save the profile to the store and auto-update the ID to avoid duplicates
   // on the next save.
   profile.id = profilesStore.add(toRaw(profile))
   isProfileEdited.value = false
   notify({ message: 'Profile saved', color: 'success' })
+  return true
 }
 
 onBeforeRouteLeave(async () => {
@@ -133,16 +151,12 @@ onBeforeRouteLeave(async () => {
   if (result === 'stay') return false
   if (result === 'leave') return true
 
-  const validation = await formRef.value?.validate()
-  if (validation?.valid) {
-    await saveForm()
-    return true
-  }
-
-  return false
+  return await saveForm()
 })
 
 function duplicateSegment(segmentIdx: number) {
+  if (!canAddSegments.value) return
+
   const newSegment = structuredClone(toRaw(profile).segments[segmentIdx])
   profile.segments.splice(segmentIdx, 0, newSegment)
 }
@@ -241,6 +255,7 @@ function heatingSpeed(segmentIdx: number) {
                   variant="text"
                   icon="i-material-symbols:add"
                   size="x-small"
+                  :disabled="!canAddSegments"
                   @click="duplicateSegment(index)"
                 />
                 <v-btn

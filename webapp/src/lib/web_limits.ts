@@ -3,7 +3,7 @@ export const PROFILE_LIMITS = {
   targetMax: 300,
   durationMin: 5,
   durationMax: 60 * 60 * 24,
-  nameMinChars: 3,
+  nameMinChars: 1,
 } as const
 
 export const SENSOR_CALIBRATION_LIMITS = {
