@@ -1,6 +1,7 @@
 import type { HeaterControl } from '../heater_control'
 import { HeaterTask } from './heater_task'
-import { DeviceActivityStatus, Constants } from '@/proto/generated/types'
+import { DeviceActivityStatus } from '@/proto/generated/types'
+import { SharedConstants as Constants } from '@/proto/generated/shared_constants'
 
 const LOG_INTERVAL_MS = 500
 const MAX_TRANSPORT_DELAY_MS = 10_000

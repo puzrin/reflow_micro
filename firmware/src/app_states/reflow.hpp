@@ -3,14 +3,15 @@
 #include <etl/vector.h>
 
 #include "app.hpp"
+#include "proto/generated/shared_constants.hpp"
 #include "proto/generated/types.pb.h"
 
 class Timeline {
 private:
     struct TimelinePoint { int32_t time_x1000; int32_t value_x100; };
-    static constexpr size_t MAX_PROFILE_POINTS = Constants::MAX_REFLOW_SEGMENTS + 1;
+    static constexpr size_t MAX_PROFILE_POINTS = SharedConstants::MAX_REFLOW_SEGMENTS + 1;
     etl::vector<TimelinePoint, MAX_PROFILE_POINTS> profilePoints{};
-    etl::vector<float, Constants::MAX_REFLOW_SEGMENTS> segmentRates_c_per_s{};
+    etl::vector<float, SharedConstants::MAX_REFLOW_SEGMENTS> segmentRates_c_per_s{};
 
     // Use integer math for speed
     // Time is in milliseconds, temperature is in 1/100 degrees

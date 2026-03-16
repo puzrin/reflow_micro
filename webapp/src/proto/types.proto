@@ -1,15 +1,21 @@
 syntax = "proto3";
 
-enum Constants {
-  option allow_alias = true;
+import "nanopb.proto";
+import "google/protobuf/descriptor.proto";
+
+extend google.protobuf.FieldOptions {
+  optional string reflow_export_name = 50003;
+}
+
+// Proto-side base constants only.
+// Final shared constants are produced by merging this enum with exported
+// field-limit options below.
+enum ConstantsBase {
+  option (nanopb_enumopt).long_names = false;
 
   CONSTANT_UNSPECIFIED = 0;
   // Initial temperature for all profiles
   START_TEMPERATURE = 30;
-  // Static sizes for repeated/maps
-  MAX_REFLOW_PROFILES = 10;
-  MAX_REFLOW_SEGMENTS = 10;
-  MAX_HISTORY_CHUNK = 100;
   // History IDs for tasks (selected to not conflict with profile IDs)
   HISTORY_ID_SENSOR_BAKE_MODE = 4000;
   HISTORY_ID_ADRC_TEST_MODE = 4001;
@@ -27,14 +33,23 @@ message Profile {
   // Unique profile identifier
   int32 id = 1;
   // Profile name
-  string name = 2;
+  string name = 2 [
+    (nanopb).max_length = 50,
+    (reflow_export_name) = "MAX_PROFILE_NAME_LENGTH"
+  ];
   // Temperature segments sequence
-  repeated Segment segments = 3;
+  repeated Segment segments = 3 [
+    (nanopb).max_count = 10,
+    (reflow_export_name) = "MAX_REFLOW_SEGMENTS"
+  ];
 }
 
 message ProfilesData {
   // Available profiles
-  repeated Profile items = 1;
+  repeated Profile items = 1 [
+    (nanopb).max_count = 10,
+    (reflow_export_name) = "MAX_REFLOW_PROFILES"
+  ];
   // Currently selected profile id
   int32 selected_id = 2;
 }
@@ -47,9 +62,11 @@ message Point {
 message HistoryChunk {
   int32 type = 1;
   int32 version = 2;
-  repeated Point data = 3;
+  repeated Point data = 3 [
+    (nanopb).max_count = 100,
+    (reflow_export_name) = "MAX_HISTORY_CHUNK"
+  ];
 }
-
 
 message HeadParams {
   //

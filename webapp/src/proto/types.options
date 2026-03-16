@@ -1,5 +1,0 @@
-Constants long_names:false
-ProfilesData.items max_count:10
-Profile.segments max_count:10
-Profile.name max_length:50
-HistoryChunk.data max_count:100

@@ -12,10 +12,11 @@
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "format": "prettier --write src/",
-    "gen:proto:ts": "protoc --ts_proto_out=./src/proto/generated --ts_proto_opt=esModuleInterop=true,snakeToCamel=false,outputJsonMethods=false --proto_path=./src/proto types.proto",
-    "gen:proto:cpp": "nanopb_generator --proto-path=./src/proto types.proto --output-dir ../firmware/src/proto/generated",
+    "gen:proto:ts": "node ./src/proto/gen_proto_ts.mjs",
+    "gen:proto:constants": "node ./src/proto/gen_shared_constants.mjs",
+    "gen:proto:cpp": "node ./src/proto/gen_proto_cpp.mjs",
     "gen:proto:data": "tsx ./src/proto/gen_defaults.ts",
-    "gen:proto": "run-s gen:proto:ts gen:proto:cpp gen:proto:data",
+    "gen:proto": "run-s gen:proto:ts gen:proto:cpp gen:proto:constants gen:proto:data",
     "test": "run-p lint type-check && vitest run"
   },
   "dependencies": {

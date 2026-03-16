@@ -1,7 +1,8 @@
 import type { HeaterControl } from '../heater_control'
 import { HeaterTask } from './heater_task'
 import { useProfilesStore } from '@/stores/profiles'
-import { DeviceActivityStatus, Constants, Point, type Profile } from '@/proto/generated/types'
+import { DeviceActivityStatus, Point, type Profile } from '@/proto/generated/types'
+import { SharedConstants as Constants } from '@/proto/generated/shared_constants'
 
 class Timeline {
   profilePoints: Point[] = [{ x: 0, y: 0 }]

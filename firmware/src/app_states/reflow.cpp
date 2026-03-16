@@ -12,7 +12,7 @@ void Timeline::load(const Profile& profile) {
 
     profilePoints.push_back({
         0 * x_axis_multiplier,
-        Constants::START_TEMPERATURE * y_axis_multiplier
+        SharedConstants::START_TEMPERATURE * y_axis_multiplier
     });
 
     for (size_t i = 0; i < profile.segments_count; ++i) {

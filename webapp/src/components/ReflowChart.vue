@@ -2,7 +2,8 @@
 import * as d3 from 'd3'
 import { onMounted, onUnmounted, ref, watch, inject, toRaw } from 'vue';
 import { Device } from '@/device'
-import { Profile, Constants, Point, DeviceActivityStatus } from '@/proto/generated/types'
+import { Profile, Point, DeviceActivityStatus } from '@/proto/generated/types'
+import { SharedConstants as Constants } from '@/proto/generated/shared_constants'
 
 const device: Device = inject('device')!
 

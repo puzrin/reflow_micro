@@ -7,6 +7,7 @@
 #include "components/history.hpp"
 #include "lib/adrc.hpp"
 #include "proto/generated/types.pb.h"
+#include "proto/generated/shared_constants.hpp"
 
 using HeaterTaskIteratorFn = std::function<void(uint32_t)>;
 

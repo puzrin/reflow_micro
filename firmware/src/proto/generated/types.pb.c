@@ -27,6 +27,22 @@ PB_BIND(HeadParams, HeadParams, AUTO)
 PB_BIND(DeviceInfo, DeviceInfo, AUTO)
 
 
+/* Definition for extension field reflow_export_name */
+typedef struct _reflow_export_name_extmsg {
+    pb_callback_t reflow_export_name;
+} reflow_export_name_extmsg;
+#define reflow_export_name_extmsg_FIELDLIST(X, a) \
+X(a, CALLBACK, REQUIRED, STRING,   reflow_export_name, 50003)
+#define reflow_export_name_extmsg_CALLBACK pb_default_field_callback
+#define reflow_export_name_extmsg_DEFAULT NULL
+pb_byte_t reflow_export_name_extmsg_default[] = {0x00};
+PB_BIND(reflow_export_name_extmsg, reflow_export_name_extmsg, 4)
+const pb_extension_type_t reflow_export_name = {
+    NULL,
+    NULL,
+    &reflow_export_name_extmsg_msg
+};
+
 
 
 

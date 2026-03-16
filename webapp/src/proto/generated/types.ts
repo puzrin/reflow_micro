@@ -9,14 +9,15 @@ import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 
 export const protobufPackage = "";
 
-export enum Constants {
+/**
+ * Proto-side base constants only.
+ * Final shared constants are produced by merging this enum with exported
+ * field-limit options below.
+ */
+export enum ConstantsBase {
   CONSTANT_UNSPECIFIED = 0,
   /** START_TEMPERATURE - Initial temperature for all profiles */
   START_TEMPERATURE = 30,
-  /** MAX_REFLOW_PROFILES - Static sizes for repeated/maps */
-  MAX_REFLOW_PROFILES = 10,
-  MAX_REFLOW_SEGMENTS = 10,
-  MAX_HISTORY_CHUNK = 100,
   /** HISTORY_ID_SENSOR_BAKE_MODE - History IDs for tasks (selected to not conflict with profile IDs) */
   HISTORY_ID_SENSOR_BAKE_MODE = 4000,
   HISTORY_ID_ADRC_TEST_MODE = 4001,

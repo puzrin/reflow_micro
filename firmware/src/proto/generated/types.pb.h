@@ -10,19 +10,18 @@
 #endif
 
 /* Enum definitions */
-typedef enum _Constants {
+/* Proto-side base constants only.
+ Final shared constants are produced by merging this enum with exported
+ field-limit options below. */
+typedef enum _ConstantsBase {
     CONSTANT_UNSPECIFIED = 0,
     /* Initial temperature for all profiles */
     START_TEMPERATURE = 30,
-    /* Static sizes for repeated/maps */
-    MAX_REFLOW_PROFILES = 10,
-    MAX_REFLOW_SEGMENTS = 10,
-    MAX_HISTORY_CHUNK = 100,
     /* History IDs for tasks (selected to not conflict with profile IDs) */
     HISTORY_ID_SENSOR_BAKE_MODE = 4000,
     HISTORY_ID_ADRC_TEST_MODE = 4001,
     HISTORY_ID_STEP_RESPONSE = 4002
-} Constants;
+} ConstantsBase;
 
 typedef enum _SensorType {
     SensorType_RTD = 0, /* Standalone PT100 */
@@ -133,22 +132,22 @@ typedef struct _DeviceInfo {
 } DeviceInfo;
 
 
+/* Extensions */
+extern const pb_extension_type_t reflow_export_name; /* field type: pb_callback_t reflow_export_name; */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* Helper constants for enums */
-#define _Constants_MIN CONSTANT_UNSPECIFIED
-#define _Constants_MAX HISTORY_ID_STEP_RESPONSE
-#define _Constants_ARRAYSIZE ((Constants)(HISTORY_ID_STEP_RESPONSE+1))
-#define Constants_CONSTANT_UNSPECIFIED CONSTANT_UNSPECIFIED
-#define Constants_START_TEMPERATURE START_TEMPERATURE
-#define Constants_MAX_REFLOW_PROFILES MAX_REFLOW_PROFILES
-#define Constants_MAX_REFLOW_SEGMENTS MAX_REFLOW_SEGMENTS
-#define Constants_MAX_HISTORY_CHUNK MAX_HISTORY_CHUNK
-#define Constants_HISTORY_ID_SENSOR_BAKE_MODE HISTORY_ID_SENSOR_BAKE_MODE
-#define Constants_HISTORY_ID_ADRC_TEST_MODE HISTORY_ID_ADRC_TEST_MODE
-#define Constants_HISTORY_ID_STEP_RESPONSE HISTORY_ID_STEP_RESPONSE
+#define _ConstantsBase_MIN CONSTANT_UNSPECIFIED
+#define _ConstantsBase_MAX HISTORY_ID_STEP_RESPONSE
+#define _ConstantsBase_ARRAYSIZE ((ConstantsBase)(HISTORY_ID_STEP_RESPONSE+1))
+#define ConstantsBase_CONSTANT_UNSPECIFIED CONSTANT_UNSPECIFIED
+#define ConstantsBase_START_TEMPERATURE START_TEMPERATURE
+#define ConstantsBase_HISTORY_ID_SENSOR_BAKE_MODE HISTORY_ID_SENSOR_BAKE_MODE
+#define ConstantsBase_HISTORY_ID_ADRC_TEST_MODE HISTORY_ID_ADRC_TEST_MODE
+#define ConstantsBase_HISTORY_ID_STEP_RESPONSE HISTORY_ID_STEP_RESPONSE
 
 #define _SensorType_MIN SensorType_RTD
 #define _SensorType_MAX SensorType_TCR
@@ -229,6 +228,7 @@ extern "C" {
 #define DeviceInfo_duty_x1000_tag                8
 #define DeviceInfo_resistance_mohms_tag          9
 #define DeviceInfo_max_mw_tag                    10
+#define reflow_export_name_tag                   50003
 
 /* Struct field encoding specification for nanopb */
 #define Segment_FIELDLIST(X, a) \

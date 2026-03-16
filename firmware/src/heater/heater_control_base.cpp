@@ -17,7 +17,7 @@ void HeaterControlBase::get_history(int32_t client_history_version, float from, 
     if (history_version != client_history_version) {
         // If the client version mismatches, send from the beginning.
         from_idx = 0;
-        chunk_length = std::min(data.size(), static_cast<size_t>(MAX_HISTORY_CHUNK));
+        chunk_length = std::min(data.size(), static_cast<size_t>(SharedConstants::MAX_HISTORY_CHUNK));
     } else {
         if (data.empty() || data.back().x < int_from) {
             // If there is no data, send an empty chunk.
@@ -36,7 +36,7 @@ void HeaterControlBase::get_history(int32_t client_history_version, float from, 
                     }
                 }
             }
-            chunk_length = std::min(data.size() - from_idx, static_cast<size_t>(MAX_HISTORY_CHUNK));
+            chunk_length = std::min(data.size() - from_idx, static_cast<size_t>(SharedConstants::MAX_HISTORY_CHUNK));
         }
     }
 
