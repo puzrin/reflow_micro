@@ -10,6 +10,8 @@ import { notify } from '@/composables/notify'
 import { usePageShell } from '@/composables/appShell'
 import ReflowChart from '@/components/ReflowChart.vue'
 
+const textEncoder = new TextEncoder()
+
 // GUI field limits
 const limits = {
   targetMin: 30,
@@ -17,7 +19,17 @@ const limits = {
   durationMin: 5,
   durationMax: 60*60*24,
   nameMin: 3,
-  nameMax: 30
+  nameMaxBytes: Constants.MAX_PROFILE_NAME_LENGTH,
+}
+
+function trimUtf8ToByteLimit(value: string, maxBytes: number): string {
+  let trimmed = value
+
+  while (trimmed && textEncoder.encode(trimmed).length > maxBytes) {
+    trimmed = trimmed.slice(0, -1)
+  }
+
+  return trimmed
 }
 
 const props = defineProps<{ id: number }>()
@@ -55,9 +67,7 @@ function createInitialProfile(sourceProfile: Profile | null): Profile {
 
   const clonedProfile = structuredClone(sourceProfile)
   clonedProfile.id = 0
-  clonedProfile.name = `${clonedProfile.name.trim()} copy`
-    .slice(0, limits.nameMax)
-    .trim()
+  clonedProfile.name = trimUtf8ToByteLimit(`${clonedProfile.name.trim()} copy`, limits.nameMaxBytes).trim()
   return clonedProfile
 }
 
@@ -74,6 +84,12 @@ usePageShell(() => ({
 }))
 
 watch(profile, () => isProfileEdited.value = true, { deep: true })
+watch(() => profile.name, (value) => {
+  const trimmed = trimUtf8ToByteLimit(value, limits.nameMaxBytes)
+  if (trimmed !== value) {
+    profile.name = trimmed
+  }
+})
 
 const formRef = ref()
 const previewPanels = computed({
@@ -86,7 +102,7 @@ const previewPanels = computed({
 const nameRules = [
   (value: string) => !!value || 'Name is required',
   (value: string) => value.length >= limits.nameMin || `Minimum ${limits.nameMin} characters`,
-  (value: string) => value.length <= limits.nameMax || `Maximum ${limits.nameMax} characters`,
+  (value: string) => textEncoder.encode(value).length <= limits.nameMaxBytes || `Maximum ${limits.nameMaxBytes} bytes`,
 ]
 
 const targetRules = [
