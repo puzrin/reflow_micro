@@ -4,11 +4,11 @@ on:
   push:
     paths:
       - 'firmware/**'
-      - '.github/workflows/firmware-tests.yml'
+      - '.github/workflows/**'
   pull_request:
     paths:
       - 'firmware/**'
-      - '.github/workflows/firmware-tests.yml'
+      - '.github/workflows/**'
 
 jobs:
   test:
