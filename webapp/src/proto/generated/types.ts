@@ -17,6 +17,7 @@ export const protobufPackage = "";
 export enum ConstantsBase {
   CONSTANT_UNSPECIFIED = 0,
   MAX_BLE_NAME_LENGTH = 29,
+  MAX_TOUCH_SAFE_TEMPERATURE = 40,
   /** START_TEMPERATURE - Initial temperature for all profiles */
   START_TEMPERATURE = 30,
   /** HISTORY_ID_SENSOR_BAKE_MODE - History IDs for tasks (selected to not conflict with profile IDs) */

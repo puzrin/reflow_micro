@@ -16,6 +16,7 @@
 typedef enum _ConstantsBase {
     CONSTANT_UNSPECIFIED = 0,
     MAX_BLE_NAME_LENGTH = 29,
+    MAX_TOUCH_SAFE_TEMPERATURE = 40,
     /* Initial temperature for all profiles */
     START_TEMPERATURE = 30,
     /* History IDs for tasks (selected to not conflict with profile IDs) */
@@ -146,6 +147,7 @@ extern "C" {
 #define _ConstantsBase_ARRAYSIZE ((ConstantsBase)(HISTORY_ID_STEP_RESPONSE+1))
 #define ConstantsBase_CONSTANT_UNSPECIFIED CONSTANT_UNSPECIFIED
 #define ConstantsBase_MAX_BLE_NAME_LENGTH MAX_BLE_NAME_LENGTH
+#define ConstantsBase_MAX_TOUCH_SAFE_TEMPERATURE MAX_TOUCH_SAFE_TEMPERATURE
 #define ConstantsBase_START_TEMPERATURE START_TEMPERATURE
 #define ConstantsBase_HISTORY_ID_SENSOR_BAKE_MODE HISTORY_ID_SENSOR_BAKE_MODE
 #define ConstantsBase_HISTORY_ID_ADRC_TEST_MODE HISTORY_ID_ADRC_TEST_MODE

@@ -224,7 +224,7 @@ void HeaterControl::update_fan_speed() {
 }
 
 void HeaterControl::update_temperature_indicator() {
-    constexpr int32_t T_WARM = 40;
+    constexpr int32_t T_WARM = SharedConstants::MAX_TOUCH_SAFE_TEMPERATURE;
     constexpr int32_t T_HOT = 80;
     constexpr int32_t T_VERY_HOT = 150;
 

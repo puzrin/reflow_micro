@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DeviceInfo } from '@/proto/generated/types'
+import { SharedConstants as Constants } from '@/lib/shared_constants'
 
 defineProps<{
   status: DeviceInfo
@@ -8,7 +9,7 @@ defineProps<{
 
 <template>
   <v-chip
-    :color="status.temperature_x10 < 1000 * 10 ? ((status.temperature_x10 / 10) > 50 ? 'error' : 'success') : 'secondary'"
+    :color="status.temperature_x10 < 1000 * 10 ? ((status.temperature_x10 / 10) > Constants.MAX_TOUCH_SAFE_TEMPERATURE ? 'error' : 'success') : 'secondary'"
   >
     <span>
       <template v-if="status.temperature_x10 < 1000 * 10">
