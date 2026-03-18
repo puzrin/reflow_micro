@@ -19,6 +19,6 @@ described in a separate document.
 
 ## Advanced
 
-- [mch_head](./mch_head/) - details on the alternate experimental heater.
+- [mch_head](./mch_head/) - details on the advanced heater, up to 250°C.
 - [modeling](./modeling/) - Python notebooks for simulating the heating process
   in different conditions.

@@ -25,8 +25,8 @@ Key points:
 - Powered from a 100-140 W USB PD charger.
 - Controlled from a web browser (desktop and mobile).
 - 80x70 mm working area.
-- Components cost about \$85 with the simple MCPCB heater, plus about $30 for
-  the MCH heater.
+- Components cost about 85$ with the simple MCPCB heater, 105$ with the MCH
+  heater.
 - Simple heating profile management.
 - Up to 180°C with the simple MCPCB-based head.
 - Up to 250°C with the MCH-based head.

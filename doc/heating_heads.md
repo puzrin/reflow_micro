@@ -41,7 +41,7 @@ Conclusion:
 **Pros:**
 
 - Safe up to 250°C.
-- Suitable for SnPb paste.
+- Suitable for both LTS and SnPb pastes.
 
 **Cons:**
 
@@ -51,9 +51,10 @@ Conclusion:
 
 Conclusion:
 
-- If you need SnPb paste, use it, but do not expect good results with RoHS
+- LTS and SnPb pastes will be ok, but do not expect good results with RoHS
   paste.
 
-We're waiting on PD 3.2 chargers, which should start appearing around 2026.
-Once AVS profiles are common, pushing more power into these heaters
-(and getting better dynamics) will be easier.
+> [!NOTE]
+>
+> With upcoming PD 3.2 chargers (end of 2026) pushing more power into these
+> heaters will be easier.
