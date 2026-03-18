@@ -2,8 +2,8 @@ Device build <!-- omit in toc -->
 ============
 
 - [PCB assembly](#pcb-assembly)
-- [Heater assembly](#heater-assembly)
 - [Firmware upload](#firmware-upload)
+- [Heater assembly](#heater-assembly)
 - [Case](#case)
 
 
@@ -35,6 +35,20 @@ When you're done, install the fan and air duct on the PCB cover with the 10 mm
 screws.
 
 <img src="./images/pcb_cover_bottom.jpg" width="30%"> <img src="./images/pcb_cover_top.jpg" width="30%">
+
+
+## Firmware upload
+
+1. Install [VS Code](https://code.visualstudio.com/).
+2. Clone this repo or download the zip archive and unpack it anywhere.
+3. Open the `firmware/` folder. When VS Code prompts you to install extensions,
+   accept everything so PlatformIO and the dependencies are installed.
+4. Connect a USB cable to the internal debug connector (next to the LED/button).
+5. In VS Code, open the PlatformIO tab (left sidebar), then run
+   `PROJECT TASKS` -> `main` -> `General` -> `Upload`. Wait for the build to
+   finish; it can take a while. The device beeps when the upload completes.
+
+<img src="./images/platformio_fw_upload.png" width="60%" alt="VSCode upload firmware">
 
 
 ## Heater assembly
@@ -106,22 +120,6 @@ Attach the hotplate base.
 <img src="./images/head_assembled.jpg" width="30%">
 
 
-## Firmware upload
-
-1. Install [VS Code](https://code.visualstudio.com/).
-2. Clone this repo or download the zip archive and unpack it anywhere.
-3. Open the `firmware/` folder. When VS Code prompts you to install extensions,
-   accept everything so PlatformIO and the dependencies are installed.
-4. Connect a USB cable to the internal debug connector (next to the LED/button).
-5. In VS Code, open the PlatformIO tab (left sidebar), then run
-   `PROJECT TASKS` -> `main` -> `General` -> `Upload`. Wait for the build to
-   finish; it can take a while. The device beeps when the upload completes.
-
-<img src="./images/platformio_fw_upload.png" width="60%" alt="VSCode upload firmware">
-
-Now assemble everything and move on to calibration.
-
-
 ## Case
 
 ### Tray <!-- omit in toc -->
@@ -144,7 +142,17 @@ Then mount the main board and its cover with the 8 mm screws.
 
 ### Cap <!-- omit in toc -->
 
-TBD
+Install the magnetic screws (black) into the cap and ensure it closes without a
+gap. The easiest way:
+
+- Measure the magnet height above the tray case with calipers.
+- Set the screw-head depth to the same value plus 0.1 mm of clearance.
+- For a nylon case, just screw them in.
+- For an SLA case, stack three layers of electrical tape, cut a 3 mm-wide
+  strip, place it inside the screw hole as a shim, then drive the screw in.
+  You can add a drop of glue afterward, but it is not required.
+
+TBD image
 
 
 ### Final assembly <!-- omit in toc -->

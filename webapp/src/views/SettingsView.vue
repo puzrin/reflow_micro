@@ -522,6 +522,10 @@ async function handleGlobalPaste(event: ClipboardEvent) {
           title="Calibrate temperature controller"
           :to="{ name: 'calibrate_adrc' }"
         />
+        <v-list-item
+          title="Measure resistance"
+          :to="{ name: 'measure_resistance' }"
+        />
         </v-list>
       </v-card>
   </v-container>

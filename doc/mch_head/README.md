@@ -60,9 +60,8 @@ Treat this as a checklist; pick what you are missing from your bench.
 
 &nbsp; | Name | Comment
 -------|------|--------
-1 | [Milliohm meter](https://www.aliexpress.com/item/1005007634863667.html) | For matching the MCH heaters. Search AliExpress for TS457 (cheap, up to 8R).
-2 | [Dental diamond disks](https://www.aliexpress.com/item/4001138228461.html) | For cutting the stainless clamps. Grab a mandrel too.
-3 | Phosphoric Acid | To tin MCH wires if you don't have another active flux. [Dental Etchant Gel](https://www.aliexpress.com/i/1005006254467176.html) works pretty well. Soldering tip cleaner should be okay too, but it is less convenient than gel.
+1 | [Dental diamond disks](https://www.aliexpress.com/item/4001138228461.html) | For cutting the stainless clamps. Grab a mandrel too.
+2 | Phosphoric Acid | To tin MCH wires if you don't have another active flux. [Dental Etchant Gel](https://www.aliexpress.com/i/1005006254467176.html) works pretty well. Soldering tip cleaner should be okay too, but it is less convenient than gel.
 
 
 ## MCH heater resistance matching
@@ -70,15 +69,25 @@ Treat this as a checklist; pick what you are missing from your bench.
 The build uses two MCH heaters, so their resistance needs to match closely for
 balanced heating. Buy a few extras so you can pair them.
 
-- Aim for roughly 2% tolerance.
-- Prefer using a milliohm meter (see the BOM). Connect Kelvin clips directly to
-  the MCH pads for accurate readings.
-- If you don't want to buy a milliohm meter, solder each heater to the head
-  base one by one and check the debug info for resistance.
-  - A charger with PPS 21 V / 5 A is required.
-  - Make sure the wire lengths are similar for all MCHs.
+> [!NOTE]
+>
+> Aim for roughly 2% tolerance.
 
-Buying ten heaters typically yields three or four usable pairs.
+After the main board is assembled and flashed, use a temporary head base board
+with a wire connector:
+
+- Connect the device and open `Measure resistance` in `Settings`.
+- Swap MCH heaters and record the resistance of each one.
+- Sort by resistance and select the best-matched pairs.
+
+> [!TIP]
+>
+> - Make sure the wire lengths are similar for all MCHs when measuring.
+> - Buying ten heaters typically yields 3-4 usable pairs. Five heaters
+>   typically yield 1-2 pairs.
+
+TBD: image
+
 
 ## Cut SS clamps
 
