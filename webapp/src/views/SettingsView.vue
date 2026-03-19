@@ -526,6 +526,10 @@ async function handleGlobalPaste(event: ClipboardEvent) {
           title="Measure resistance"
           :to="{ name: 'measure_resistance' }"
         />
+        <v-list-item
+          title="List PD profiles"
+          :to="{ name: 'pd_profiles' }"
+        />
         </v-list>
       </v-card>
   </v-container>

@@ -148,6 +148,18 @@ export class BleBackend implements IBackend {
     await this.bleRpcClient.invoke('set_cpoint1', temperature)
   }
 
+  async get_pd_profiles(): Promise<number[]> {
+    const raw = await this.bleRpcClient.invoke('get_pd_profiles') as Uint8Array
+    const view = new DataView(raw.buffer, raw.byteOffset, raw.byteLength)
+    const profiles: number[] = []
+
+    for (let offset = 0; offset + 4 <= view.byteLength; offset += 4) {
+      profiles.push(view.getUint32(offset, true))
+    }
+
+    return profiles
+  }
+
   async get_ble_name(): Promise<string> {
     return await this.bleRpcClient.invoke('get_ble_name') as string
   }

@@ -4,6 +4,7 @@ import SettingsView from './views/SettingsView.vue'
 import CalibrateSensorView from './views/CalibrateSensorView.vue'
 import CalibrateAdrcView from './views/CalibrateAdrcView.vue'
 import MeasureResistanceView from './views/MeasureResistanceView.vue'
+import PdProfilesView from './views/PdProfilesView.vue'
 import ProfileView from './views/ProfileView.vue'
 import NotFound from './views/NotFound.vue'
 
@@ -34,6 +35,11 @@ const router = createRouter({
       path: '/measure_resistance',
       name: 'measure_resistance',
       component: MeasureResistanceView
+    },
+    {
+      path: '/pd_profiles',
+      name: 'pd_profiles',
+      component: PdProfilesView
     },
     {
       path: '/profile/:id(0|[1-9]\\d*)',

@@ -23,6 +23,29 @@ import { DEFAULT_PROFILES_DATA_PB } from '@/proto/generated/defaults'
 // The real timer interval can be faster, to increase simulation speed.
 export const TICK_PERIOD_MS = 100
 
+function encodeFixedPdoRaw(mv: number, ma: number): number {
+  const voltage = Math.round(mv / 50) & 0x3ff
+  const current = Math.round(ma / 10) & 0x3ff
+  return ((voltage << 10) | current) >>> 0
+}
+
+function encodePpsApdoRaw(mvMin: number, mvMax: number, ma: number): number {
+  const maxVoltage = Math.round(mvMax / 100) & 0xff
+  const minVoltage = Math.round(mvMin / 100) & 0xff
+  const current = Math.round(ma / 50) & 0x7f
+  return (((0b11 << 30) | (maxVoltage << 17) | (minVoltage << 8) | current) >>> 0)
+}
+
+function encodePowerDataToPdoRaw() {
+  return power_data.map((pdo) => {
+    if (pdo.mv_min === pdo.mv_max) {
+      return encodeFixedPdoRaw(pdo.mv_min, pdo.ma_max)
+    }
+
+    return encodePpsApdoRaw(pdo.mv_min, pdo.mv_max, pdo.ma_max)
+  })
+}
+
 export class VirtualBackend implements IBackend {
   static id: string = 'virtual' as const
 
@@ -219,6 +242,10 @@ export class VirtualBackend implements IBackend {
     params.sensor_p1_at = this.heater_control.get_temperature()
     params.sensor_p1_value = temperature
     await this.set_head_params(params)
+  }
+
+  async get_pd_profiles(): Promise<number[]> {
+    return encodePowerDataToPdoRaw()
   }
 
   async get_ble_name(): Promise<string> {

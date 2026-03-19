@@ -59,6 +59,9 @@ public:
         auto& pwr = get_fsm_context();
         pwr.log_state();
 
+        pwr.source_caps.clear();
+        profile_selector.descriptors.clear();
+        profile_selector.set_pdo_index(0);
         pwr.pwm.enable(false);
         drain_tracker.reset();
         pwr.target_power_mw = 0;
@@ -331,6 +334,9 @@ public:
         auto& pwr = get_fsm_context();
         pwr.log_state();
 
+        pwr.source_caps.clear();
+        profile_selector.descriptors.clear();
+        profile_selector.set_pdo_index(0);
         pwr.pwm.enable(false);
         pwr.set_power_status(PowerStatus::PowerStatus_PWR_FAILURE);
         return No_State_Change;

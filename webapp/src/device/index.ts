@@ -30,6 +30,7 @@ export interface IBackend {
   get_head_params(): Promise<HeadParams>
   set_cpoint0(temperature: number): Promise<void>
   set_cpoint1(temperature: number): Promise<void>
+  get_pd_profiles(): Promise<number[]>
 
   get_ble_name(): Promise<string>
   set_ble_name(name: string): Promise<void>
@@ -102,6 +103,10 @@ export class Device {
   async set_head_params(config: HeadParams) { await this.backend?.set_head_params(config) }
   async set_cpoint0(temperature: number) { await this.backend?.set_cpoint0(temperature) }
   async set_cpoint1(temperature: number) { await this.backend?.set_cpoint1(temperature) }
+  async get_pd_profiles(): Promise<number[]> {
+    if (!this.backend) throw Error('No backend selected')
+    return await this.backend.get_pd_profiles()
+  }
 
   async get_ble_name(): Promise<string> {
     if (!this.backend) throw Error('No backend selected')

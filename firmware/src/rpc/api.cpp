@@ -119,6 +119,20 @@ auto set_cpoint1(float temperature) -> bool {
     return true;
 }
 
+std::vector<uint8_t> get_pd_profiles() {
+    std::vector<uint8_t> raw_pdos;
+    raw_pdos.reserve(power.source_caps.size() * sizeof(uint32_t));
+
+    for (auto pdo : power.source_caps) {
+        raw_pdos.push_back(static_cast<uint8_t>(pdo & 0xFF));
+        raw_pdos.push_back(static_cast<uint8_t>((pdo >> 8) & 0xFF));
+        raw_pdos.push_back(static_cast<uint8_t>((pdo >> 16) & 0xFF));
+        raw_pdos.push_back(static_cast<uint8_t>((pdo >> 24) & 0xFF));
+    }
+
+    return raw_pdos;
+}
+
 std::string get_ble_name() {
     return ble_name_read();
 }
@@ -147,6 +161,7 @@ void api_methods_create() {
     rpc.addMethod("set_head_params", set_head_params);
     rpc.addMethod("set_cpoint0", set_cpoint0);
     rpc.addMethod("set_cpoint1", set_cpoint1);
+    rpc.addMethod("get_pd_profiles", get_pd_profiles);
     rpc.addMethod("get_ble_name", get_ble_name);
     rpc.addMethod("set_ble_name", set_ble_name);
 }
