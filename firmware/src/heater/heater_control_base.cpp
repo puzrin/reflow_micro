@@ -3,6 +3,7 @@
 
 #include "heater_control_base.hpp"
 #include "components/pb2struct.hpp"
+#include "logger.hpp"
 
 void HeaterControlBase::get_history(int32_t client_history_version, float from, etl::ivector<uint8_t>& pb_data) {
     size_t from_idx{0};
@@ -97,7 +98,9 @@ void HeaterControlBase::tick() {
 
         const uint32_t seconds = task_time_ms / 1000;
         if (seconds > history_last_recorded_ts) {
-            history.add(seconds, lround(get_temperature() * history_y_multiplier));
+            if (!history.add(seconds, lround(get_temperature() * history_y_multiplier))) {
+                APP_LOGE("History overflow: max {} points", History::MAX_POINTS);
+            }
             history_last_recorded_ts = seconds;
         }
 

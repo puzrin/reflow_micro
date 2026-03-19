@@ -1,15 +1,17 @@
 #pragma once
 
-#include <vector>
 #include <cmath>
 #include <cstdint>
+#include <etl/vector.h>
 
 // TODO: Consider using M4 Aggregate for packing.
 
 class SparseHistory {
 public:
     struct Point { int32_t x; int32_t y; };
-    std::vector<Point> data{};
+    static constexpr size_t MAX_POINTS = 2000;
+
+    etl::vector<Point, MAX_POINTS> data{};
 
     void set_params(int32_t _x_threshold, int32_t _y_threshold, int32_t _x_scale_after) {
         x_threshold = _x_threshold;
@@ -19,19 +21,28 @@ public:
 
     void reset() { lock(); data.clear(); unlock();}
 
-    void add(int32_t x, int32_t y) {
+    auto add(int32_t x, int32_t y) -> bool {
         lock();
 
         if (!data.empty() && data.back().x == x && data.back().y == y) {
             unlock();
-            return;
+            return true;
         }
 
         const Point point{x, y};
-        if (is_last_point_landed()) { data.push_back(point); }
-        else { data.back() = point; }
+        if (is_last_point_landed()) {
+            if (data.full()) {
+                unlock();
+                return false;
+            }
+
+            data.push_back(point);
+        } else {
+            data.back() = point;
+        }
 
         unlock();
+        return true;
     }
 
     virtual void lock() {}
