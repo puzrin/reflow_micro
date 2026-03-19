@@ -1,17 +1,53 @@
-#include <vector>
 #include <pb_encode.h>
 
+#include <etl/string.h>
+#include <etl/vector.h>
+
 #include "api.hpp"
+#include "app.hpp"
+#include "components/pb2struct.hpp"
 #include "components/profiles_config.hpp"
 #include "heater/heater.hpp"
 #include "rpc.hpp"
 #include "proto/generated/shared_constants.hpp"
 #include "proto/generated/types.pb.h"
-#include "app.hpp"
 
 namespace {
 
-std::vector<uint8_t> get_status() {
+using RpcParams = cbor_rpc_dispatcher::ParamsReader;
+using RpcResponse = RpcDispatcher::Response;
+
+constexpr size_t RPC_ENVELOPE_SLACK = 64;
+static_assert(ProfilesData_size + RPC_ENVELOPE_SLACK <= SharedConstants::MAX_RPC_MESSAGE_SIZE,
+    "ProfilesData RPC response exceeds MAX_RPC_MESSAGE_SIZE");
+static_assert(HistoryChunk_size + RPC_ENVELOPE_SLACK <= SharedConstants::MAX_RPC_MESSAGE_SIZE,
+    "HistoryChunk RPC response exceeds MAX_RPC_MESSAGE_SIZE");
+static_assert(DeviceInfo_size + RPC_ENVELOPE_SLACK <= SharedConstants::MAX_RPC_MESSAGE_SIZE,
+    "DeviceInfo RPC response exceeds MAX_RPC_MESSAGE_SIZE");
+static_assert(HeadParams_size + RPC_ENVELOPE_SLACK <= SharedConstants::MAX_RPC_MESSAGE_SIZE,
+    "HeadParams RPC response exceeds MAX_RPC_MESSAGE_SIZE");
+
+template <typename T, size_t Size>
+auto encode_pb(const T& message, const pb_msgdesc_t* fields, etl::vector<uint8_t, Size>& output, size_t max_size) -> bool {
+    output.clear();
+    output.resize(max_size);
+
+    pb_ostream_t stream = pb_ostream_from_buffer(output.data(), output.size());
+    if (!pb_encode(&stream, fields, &message)) {
+        output.clear();
+        return false;
+    }
+
+    output.resize(stream.bytes_written);
+    return true;
+}
+
+void get_status(const RpcParams& params, RpcResponse& response) {
+    if (!params.has_count(0)) {
+        response.write_error("Invalid params");
+        return;
+    }
+
     DeviceInfo status = {
         .health = heater.get_health_status(),
         .activity = heater.get_activity_status(),
@@ -25,102 +61,195 @@ std::vector<uint8_t> get_status() {
         .max_mw = static_cast<uint32_t>(heater.get_max_power() * 1000)
     };
 
-    std::vector<uint8_t> buffer(DeviceInfo_size);
-    pb_ostream_t stream = pb_ostream_from_buffer(buffer.data(), buffer.size());
+    etl::vector<uint8_t, DeviceInfo_size> buffer{};
+    if (!encode_pb(status, DeviceInfo_fields, buffer, DeviceInfo_size)) {
+        response.write_error("Failed to encode status");
+        return;
+    }
 
-    pb_encode(&stream, DeviceInfo_fields, &status);
-    buffer.resize(stream.bytes_written);
-
-    return buffer;
+    response.write_binary(buffer);
 }
 
-std::vector<uint8_t> get_history_chunk(int32_t client_history_version, float from) {
-    std::vector<uint8_t> pb_data(HistoryChunk_size);
+void get_history_chunk(const RpcParams& params, RpcResponse& response) {
+    int32_t client_history_version = 0;
+    float from = 0;
+    if (!params.has_count(2) ||
+        !params.get_int32(0, client_history_version) ||
+        !params.get_float(1, from))
+    {
+        response.write_error("Invalid params");
+        return;
+    }
 
+    etl::vector<uint8_t, HistoryChunk_size> pb_data{};
     heater.get_history(client_history_version, from, pb_data);
-    return pb_data;
+    response.write_binary(pb_data);
 }
 
-std::vector<uint8_t> get_profiles_data(bool reset) {
-    if (reset) { profiles_config.reset_profiles(); }
+void get_profiles_data(const RpcParams& params, RpcResponse& response) {
+    bool reset = false;
+    if (!params.has_count(1) || !params.get_bool(0, reset)) {
+        response.write_error("Invalid params");
+        return;
+    }
 
-    std::vector<uint8_t> pb_data(ProfilesData_size);
-    profiles_config.get_profiles(pb_data);
-    return pb_data;
+    if (reset) {
+        profiles_config.reset_profiles();
+    }
+
+    etl::vector<uint8_t, ProfilesData_size> pb_data{};
+    if (!profiles_config.get_profiles(pb_data)) {
+        response.write_error("Failed to load profiles");
+        return;
+    }
+
+    response.write_binary(pb_data);
 }
 
-auto save_profiles_data(std::vector<uint8_t> pb_data) -> bool {
-    profiles_config.set_profiles(pb_data);
-    return true;
+void save_profiles_data(const RpcParams& params, RpcResponse& response) {
+    etl::vector<uint8_t, ProfilesData_size> pb_data{};
+    if (!params.has_count(1) || !params.get_binary(0, pb_data)) {
+        response.write_error("Invalid params");
+        return;
+    }
+
+    if (!profiles_config.set_profiles(pb_data)) {
+        response.write_error("Failed to save profiles");
+        return;
+    }
+
+    response.write_bool(true);
 }
 
-auto stop(bool succeeded) -> bool {
+void stop(const RpcParams& params, RpcResponse& response) {
+    bool succeeded = false;
+    if (!params.has_count(1) || !params.get_bool(0, succeeded)) {
+        response.write_error("Invalid params");
+        return;
+    }
+
     application.receive(AppCmd::Stop{succeeded});
-    return application.get_state_id() == DeviceActivityStatus_IDLE;
+    response.write_bool(application.get_state_id() == DeviceActivityStatus_IDLE);
 }
 
-auto run_reflow() -> bool {
+void run_reflow(const RpcParams& params, RpcResponse& response) {
+    if (!params.has_count(0)) {
+        response.write_error("Invalid params");
+        return;
+    }
+
     application.receive(AppCmd::Reflow{});
-    return application.get_state_id() == DeviceActivityStatus_REFLOW;
+    response.write_bool(application.get_state_id() == DeviceActivityStatus_REFLOW);
 }
 
-auto run_sensor_bake(float watts) -> bool {
+void run_sensor_bake(const RpcParams& params, RpcResponse& response) {
+    float watts = 0;
+    if (!params.has_count(1) || !params.get_float(0, watts)) {
+        response.write_error("Invalid params");
+        return;
+    }
+
     application.receive(AppCmd::SensorBake{watts});
-    return application.get_state_id() == DeviceActivityStatus_SENSOR_BAKE;
+    response.write_bool(application.get_state_id() == DeviceActivityStatus_SENSOR_BAKE);
 }
 
-auto run_adrc_test(float temperature) -> bool {
+void run_adrc_test(const RpcParams& params, RpcResponse& response) {
+    float temperature = 0;
+    if (!params.has_count(1) || !params.get_float(0, temperature)) {
+        response.write_error("Invalid params");
+        return;
+    }
+
     application.receive(AppCmd::AdrcTest{temperature});
-    return application.get_state_id() == DeviceActivityStatus_ADRC_TEST;
+    response.write_bool(application.get_state_id() == DeviceActivityStatus_ADRC_TEST);
 }
 
-auto run_step_response(float watts) -> bool {
+void run_step_response(const RpcParams& params, RpcResponse& response) {
+    float watts = 0;
+    if (!params.has_count(1) || !params.get_float(0, watts)) {
+        response.write_error("Invalid params");
+        return;
+    }
+
     application.receive(AppCmd::StepResponse{watts});
-    return application.get_state_id() == DeviceActivityStatus_STEP_RESPONSE;
+    response.write_bool(application.get_state_id() == DeviceActivityStatus_STEP_RESPONSE);
 }
 
-std::vector<uint8_t> get_head_params() {
-    std::vector<uint8_t> pb_data(HeadParams_size);
-    if (heater.get_head_status() != HeadStatus_HEAD_CONNECTED ||
-        !heater.get_head_params_pb(pb_data))
-    {
-        throw std::runtime_error("Hotplate is not connected");
+void get_head_params(const RpcParams& params, RpcResponse& response) {
+    if (!params.has_count(0)) {
+        response.write_error("Invalid params");
+        return;
     }
 
-    return pb_data;
-}
-
-auto set_head_params(std::vector<uint8_t> pb_data) -> bool {
-    if (heater.get_head_status() != HeadStatus_HEAD_CONNECTED ||
-        !heater.set_head_params_pb(pb_data))
-    {
-        throw std::runtime_error("Hotplate is not connected");
+    etl::vector<uint8_t, HeadParams_size> pb_data{};
+    if (heater.get_head_status() != HeadStatus_HEAD_CONNECTED || !heater.get_head_params_pb(pb_data)) {
+        response.write_error("Hotplate is not connected");
+        return;
     }
-    return true;
+
+    response.write_binary(pb_data);
 }
 
-auto set_cpoint0(float temperature) -> bool {
+void set_head_params(const RpcParams& params, RpcResponse& response) {
+    etl::vector<uint8_t, HeadParams_size> pb_data{};
+    if (!params.has_count(1) || !params.get_binary(0, pb_data)) {
+        response.write_error("Invalid params");
+        return;
+    }
+
+    if (heater.get_head_status() != HeadStatus_HEAD_CONNECTED || !heater.set_head_params_pb(pb_data)) {
+        response.write_error("Hotplate is not connected");
+        return;
+    }
+
+    response.write_bool(true);
+}
+
+void set_cpoint0(const RpcParams& params, RpcResponse& response) {
+    float temperature = 0;
+    if (!params.has_count(1) || !params.get_float(0, temperature)) {
+        response.write_error("Invalid params");
+        return;
+    }
+
     if (heater.get_head_status() != HeadStatus_HEAD_CONNECTED) {
-        throw std::runtime_error("Hotplate is not connected");
+        response.write_error("Hotplate is not connected");
+        return;
     }
     if (!heater.set_calibration_point_0(temperature)) {
-        throw std::runtime_error("Failed to set calibration point 0");
+        response.write_error("Failed to set calibration point 0");
+        return;
     }
-    return true;
+
+    response.write_bool(true);
 }
 
-auto set_cpoint1(float temperature) -> bool {
+void set_cpoint1(const RpcParams& params, RpcResponse& response) {
+    float temperature = 0;
+    if (!params.has_count(1) || !params.get_float(0, temperature)) {
+        response.write_error("Invalid params");
+        return;
+    }
+
     if (heater.get_head_status() != HeadStatus_HEAD_CONNECTED) {
-        throw std::runtime_error("Hotplate is not connected");
+        response.write_error("Hotplate is not connected");
+        return;
     }
     if (!heater.set_calibration_point_1(temperature)) {
-        throw std::runtime_error("Failed to set calibration point 1");
+        response.write_error("Failed to set calibration point 1");
+        return;
     }
-    return true;
+
+    response.write_bool(true);
 }
 
-std::vector<uint8_t> get_pd_profiles() {
-    std::vector<uint8_t> raw_pdos;
+void get_pd_profiles(const RpcParams& params, RpcResponse& response) {
+    if (!params.has_count(0)) {
+        response.write_error("Invalid params");
+        return;
+    }
+
+    etl::vector<uint8_t, pd::MaxPdoObjects * sizeof(uint32_t)> raw_pdos{};
     raw_pdos.reserve(power.source_caps.size() * sizeof(uint32_t));
 
     for (auto pdo : power.source_caps) {
@@ -130,38 +259,52 @@ std::vector<uint8_t> get_pd_profiles() {
         raw_pdos.push_back(static_cast<uint8_t>((pdo >> 24) & 0xFF));
     }
 
-    return raw_pdos;
+    response.write_binary(raw_pdos);
 }
 
-std::string get_ble_name() {
-    return ble_name_read();
-}
-
-bool set_ble_name(const std::string name) {
-    if (name.empty()) {
-        throw std::runtime_error("BLE name must not be empty");
+void get_ble_name(const RpcParams& params, RpcResponse& response) {
+    if (!params.has_count(0)) {
+        response.write_error("Invalid params");
+        return;
     }
+
+    auto name = ble_name_read();
+    response.write_string(name.data(), name.size());
+}
+
+void set_ble_name(const RpcParams& params, RpcResponse& response) {
+    BleName name{};
+    if (!params.has_count(1) || !params.get_text(0, name)) {
+        response.write_error("Invalid params");
+        return;
+    }
+
+    if (name.empty()) {
+        response.write_error("BLE name must not be empty");
+        return;
+    }
+
     ble_name_write(name);
-    return true;
+    response.write_bool(true);
 }
 
 } // namespace
 
 void api_methods_create() {
-    rpc.addMethod("get_status", get_status);
-    rpc.addMethod("get_history_chunk", get_history_chunk);
-    rpc.addMethod("get_profiles_data", get_profiles_data);
-    rpc.addMethod("save_profiles_data", save_profiles_data);
-    rpc.addMethod("stop", stop);
-    rpc.addMethod("run_reflow", run_reflow);
-    rpc.addMethod("run_sensor_bake", run_sensor_bake);
-    rpc.addMethod("run_adrc_test", run_adrc_test);
-    rpc.addMethod("run_step_response", run_step_response);
-    rpc.addMethod("get_head_params", get_head_params);
-    rpc.addMethod("set_head_params", set_head_params);
-    rpc.addMethod("set_cpoint0", set_cpoint0);
-    rpc.addMethod("set_cpoint1", set_cpoint1);
-    rpc.addMethod("get_pd_profiles", get_pd_profiles);
-    rpc.addMethod("get_ble_name", get_ble_name);
-    rpc.addMethod("set_ble_name", set_ble_name);
+    rpc.addMethod("get_status", RpcDispatcher::MethodHandler::create<get_status>());
+    rpc.addMethod("get_history_chunk", RpcDispatcher::MethodHandler::create<get_history_chunk>());
+    rpc.addMethod("get_profiles_data", RpcDispatcher::MethodHandler::create<get_profiles_data>());
+    rpc.addMethod("save_profiles_data", RpcDispatcher::MethodHandler::create<save_profiles_data>());
+    rpc.addMethod("stop", RpcDispatcher::MethodHandler::create<stop>());
+    rpc.addMethod("run_reflow", RpcDispatcher::MethodHandler::create<run_reflow>());
+    rpc.addMethod("run_sensor_bake", RpcDispatcher::MethodHandler::create<run_sensor_bake>());
+    rpc.addMethod("run_adrc_test", RpcDispatcher::MethodHandler::create<run_adrc_test>());
+    rpc.addMethod("run_step_response", RpcDispatcher::MethodHandler::create<run_step_response>());
+    rpc.addMethod("get_head_params", RpcDispatcher::MethodHandler::create<get_head_params>());
+    rpc.addMethod("set_head_params", RpcDispatcher::MethodHandler::create<set_head_params>());
+    rpc.addMethod("set_cpoint0", RpcDispatcher::MethodHandler::create<set_cpoint0>());
+    rpc.addMethod("set_cpoint1", RpcDispatcher::MethodHandler::create<set_cpoint1>());
+    rpc.addMethod("get_pd_profiles", RpcDispatcher::MethodHandler::create<get_pd_profiles>());
+    rpc.addMethod("get_ble_name", RpcDispatcher::MethodHandler::create<get_ble_name>());
+    rpc.addMethod("set_ble_name", RpcDispatcher::MethodHandler::create<set_ble_name>());
 }

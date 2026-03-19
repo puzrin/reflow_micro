@@ -53,11 +53,11 @@ void HeaterControl::task_stop() {
     power.minimize_idle_heating(true);
 }
 
-bool HeaterControl::get_head_params_pb(std::vector<uint8_t>& pb_data) {
+bool HeaterControl::get_head_params_pb(etl::ivector<uint8_t>& pb_data) {
     return head.get_head_params_pb(pb_data);
 }
 
-bool HeaterControl::set_head_params_pb(const std::vector<uint8_t>& pb_data) {
+bool HeaterControl::set_head_params_pb(const etl::ivector<uint8_t>& pb_data) {
     if (!head.set_head_params_pb(pb_data)) { return false; }
     // Refetch ADRC params. Useful for calibration experiments.
     load_all_params();

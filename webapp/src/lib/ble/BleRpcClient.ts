@@ -1,7 +1,8 @@
 import { BleClientChunker, isLastChunk, type IO } from './BleClientChunker'
 import { RpcCaller, type RpcArgument, type RpcResult } from './RpcCaller'
 import { AuthStorage } from './AuthStorage'
-import { decode as msgpack_decode } from '@msgpack/msgpack'
+import { decode as cbor_decode } from 'cbor-x'
+import { SharedConstants as Constants } from '@/lib/shared_constants'
 
 interface AuthInfo {
     id: Uint8Array;
@@ -18,8 +19,8 @@ export class BleRpcClient {
     private rpcIO = new BleCharacteristicIO();
     private authIO = new BleCharacteristicIO();
 
-    private rpcCaller = new RpcCaller(new BleClientChunker(this.rpcIO));
-    private authCaller = new RpcCaller(new BleClientChunker(this.authIO));
+    private rpcCaller = new RpcCaller(new BleClientChunker(this.rpcIO), Constants.MAX_RPC_MESSAGE_SIZE);
+    private authCaller = new RpcCaller(new BleClientChunker(this.authIO), Constants.MAX_AUTH_RPC_MESSAGE_SIZE);
 
     private authStorage = new AuthStorage();
 
@@ -168,7 +169,7 @@ export class BleRpcClient {
         try {
             const client_id: Uint8Array = this.authStorage.getClientId();
 
-            let auth_info : AuthInfo = msgpack_decode(await this.authCaller.invoke('auth_info') as Uint8Array) as AuthInfo
+            let auth_info : AuthInfo = cbor_decode(await this.authCaller.invoke('auth_info') as Uint8Array) as AuthInfo
             const device_id = auth_info.id;
             let secret: Uint8Array;
 
@@ -181,7 +182,7 @@ export class BleRpcClient {
                 this.authStorage.setSecret(device_id, new_secret);
                 secret = new_secret;
                 // Re-fetch the new HMAC message value.
-                auth_info = msgpack_decode(await this.authCaller.invoke('auth_info') as Uint8Array) as AuthInfo;
+                auth_info = cbor_decode(await this.authCaller.invoke('auth_info') as Uint8Array) as AuthInfo;
 
                 this.log('Paired!');
             } else {

@@ -1,14 +1,12 @@
 #include <cmath>
 #include <algorithm>
-#include <memory>
 
 #include "heater_control_base.hpp"
 #include "components/pb2struct.hpp"
 
-void HeaterControlBase::get_history(int32_t client_history_version, float from, std::vector<uint8_t>& pb_data) {
+void HeaterControlBase::get_history(int32_t client_history_version, float from, etl::ivector<uint8_t>& pb_data) {
     size_t from_idx{0};
     size_t chunk_length{0};
-    auto history_chunk = std::make_unique<HistoryChunk>();
     auto& data = history.data;
     int32_t int_from = lround(from);
 
@@ -41,18 +39,17 @@ void HeaterControlBase::get_history(int32_t client_history_version, float from, 
     }
 
     // Fill protobuf struct
-    history_chunk->type = history_task_id;
-    history_chunk->version = history_version;
-    history_chunk->data_count = chunk_length;
+    history_chunk.type = history_task_id;
+    history_chunk.version = history_version;
+    history_chunk.data_count = chunk_length;
 
     for (size_t i = 0; i < chunk_length; ++i) {
-        history_chunk->data[i].x = static_cast<float>(data[from_idx + i].x);
-        history_chunk->data[i].y = static_cast<float>(data[from_idx + i].y) * history_y_multiplier_inv;
+        history_chunk.data[i].x = static_cast<float>(data[from_idx + i].x);
+        history_chunk.data[i].y = static_cast<float>(data[from_idx + i].y) * history_y_multiplier_inv;
     }
 
+    struct2pb(history_chunk, pb_data, HistoryChunk_fields, HistoryChunk_size);
     history.unlock();
-
-    struct2pb(*history_chunk, pb_data, HistoryChunk_fields, HistoryChunk_size);
 }
 
 

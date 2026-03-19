@@ -1,9 +1,9 @@
 import { test, expect } from 'vitest';
 import { RpcCaller } from '../../src/lib/ble/RpcCaller';
 import { type BinaryTransport } from '../../src/lib/ble/BleClientChunker';
-import { encode } from '@msgpack/msgpack';
+import { encode } from 'cbor-x';
 
-function json2msgp(str: string): Uint8Array {
+function json2cbor(str: string): Uint8Array {
     return encode(JSON.parse(str));
 }
 
@@ -30,9 +30,9 @@ class MockTransport implements BinaryTransport {
 }
 
 test('RpcCaller should correctly send a request and receive a successful response', async () => {
-    const mockResponse = json2msgp('{ "ok": true, "result": 42 }');
+    const mockResponse = json2cbor('{ "ok": true, "result": 42 }');
     const transport = new MockTransport([mockResponse]);
-    const rpcClient = new RpcCaller(transport);
+    const rpcClient = new RpcCaller(transport, 4096);
 
     const result = await rpcClient.invoke('someMethod', 1, 2, 3);
 
@@ -40,17 +40,17 @@ test('RpcCaller should correctly send a request and receive a successful respons
 });
 
 test('RpcCaller should throw an error when the response contains an error', async () => {
-    const mockResponse = json2msgp('{ "ok": false, "result": "Error message" }');
+    const mockResponse = json2cbor('{ "ok": false, "error": "Error message" }');
     const transport = new MockTransport([mockResponse]);
-    const rpcClient = new RpcCaller(transport);
+    const rpcClient = new RpcCaller(transport, 4096);
 
     await expect(rpcClient.invoke('someMethod', 1, 2, 3)).rejects.toThrow(/RPC Error: Error message/);
 });
 
 test('RpcCaller should correctly handle different argument types', async () => {
-    const mockResponse = json2msgp('{ "ok": true, "result": "success" }');
+    const mockResponse = json2cbor('{ "ok": true, "result": "success" }');
     const transport = new MockTransport([mockResponse]);
-    const rpcClient = new RpcCaller(transport);
+    const rpcClient = new RpcCaller(transport, 4096);
 
     const result = await rpcClient.invoke('anotherMethod', true, 123, 'test');
 
@@ -59,13 +59,13 @@ test('RpcCaller should correctly handle different argument types', async () => {
     // Check the sent data
     const writes = transport.getWrites();
     expect(writes).toHaveLength(1);
-    expect(writes[0]).toEqual(json2msgp('{"method":"anotherMethod","args":[true,123,"test"]}'));
+    expect(writes[0]).toEqual(json2cbor('{"method":"anotherMethod","params":[true,123,"test"]}'));
 });
 
 test('RpcCaller should handle empty argument list', async () => {
-    const mockResponse = json2msgp('{ "ok": true, "result": "empty" }');
+    const mockResponse = json2cbor('{ "ok": true, "result": "empty" }');
     const transport = new MockTransport([mockResponse]);
-    const rpcClient = new RpcCaller(transport);
+    const rpcClient = new RpcCaller(transport, 4096);
 
     const result = await rpcClient.invoke('methodWithoutArgs');
 
@@ -74,13 +74,13 @@ test('RpcCaller should handle empty argument list', async () => {
     // Check the sent data
     const writes = transport.getWrites();
     expect(writes).toHaveLength(1);
-    expect(writes[0]).toEqual(json2msgp('{"method":"methodWithoutArgs","args":[]}'));
+    expect(writes[0]).toEqual(json2cbor('{"method":"methodWithoutArgs","params":[]}'));
 });
 
 test('RpcCaller should handle unicode characters correctly', async () => {
-    const mockResponse = json2msgp('{ "ok": true, "result": "успех" }');
+    const mockResponse = json2cbor('{ "ok": true, "result": "успех" }');
     const transport = new MockTransport([mockResponse]);
-    const rpcClient = new RpcCaller(transport);
+    const rpcClient = new RpcCaller(transport, 4096);
 
     const result = await rpcClient.invoke('unicodeMethod', 'тест');
 
@@ -89,5 +89,5 @@ test('RpcCaller should handle unicode characters correctly', async () => {
     // Check the sent data
     const writes = transport.getWrites();
     expect(writes).toHaveLength(1);
-    expect(writes[0]).toEqual(json2msgp('{"method":"unicodeMethod","args":["тест"]}'));
+    expect(writes[0]).toEqual(json2cbor('{"method":"unicodeMethod","params":["тест"]}'));
 });

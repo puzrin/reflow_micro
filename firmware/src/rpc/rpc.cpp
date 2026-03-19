@@ -1,20 +1,34 @@
 #include <NimBLEDevice.h>
+
+#include <algorithm>
+#include <array>
 #include <map>
 #include <memory>
-#include "logger.hpp"
-#include "rpc.hpp"
-#include "lib/ble_chunker.hpp"
-#include "components/prefs.hpp"
-#include "ble_auth_store.hpp"
-#include "auth_utils.hpp"
-#include "app.hpp"
-#include "api.hpp"
-#include "proto/generated/shared_constants.hpp"
 
-MsgpackRpcDispatcher rpc;
-MsgpackRpcDispatcher auth_rpc;
+#include <cbor.h>
+#include <etl/string.h>
+#include <etl/vector.h>
+
+#include "api.hpp"
+#include "app.hpp"
+#include "auth_utils.hpp"
+#include "ble_auth_store.hpp"
+#include "components/prefs.hpp"
+#include "lib/ble_chunker.hpp"
+#include "logger.hpp"
+#include "proto/generated/shared_constants.hpp"
+#include "rpc.hpp"
+
+RpcDispatcher rpc;
+AuthRpcDispatcher auth_rpc;
 
 namespace {
+
+using AuthBuffer = etl::vector<uint8_t, SharedConstants::MAX_AUTH_RPC_MESSAGE_SIZE>;
+using RpcChunker = BleChunker<SharedConstants::MAX_RPC_MESSAGE_SIZE>;
+using AuthChunker = BleChunker<SharedConstants::MAX_AUTH_RPC_MESSAGE_SIZE>;
+using AuthParams = cbor_rpc_dispatcher::ParamsReader;
+using AuthResponse = AuthRpcDispatcher::Response;
 
 bool pairing_enabled_flag = false;
 
@@ -26,60 +40,53 @@ const char* RPC_CHARACTERISTIC_UUID = "5f524546-4c4f-575f-5250-435f494f5f5f"; //
 const char* AUTH_CHARACTERISTIC_UUID = "5f524546-4c4f-575f-5250-435f41555448"; // _REFLOW_RPC_AUTH
 
 auto bleAuthStore = BleAuthStore<4>(PrefsWriter::getInstance(), AsyncPreferenceKV::getInstance(), PREFS_NAMESPACE);
-auto bleNameStore = AsyncPreference<std::string>(PrefsWriter::getInstance(), AsyncPreferenceKV::getInstance(), PREFS_NAMESPACE, "ble_name", "Reflow Table");
+auto bleNameStore = AsyncPreference<BleName>(PrefsWriter::getInstance(), AsyncPreferenceKV::getInstance(), PREFS_NAMESPACE, "ble_name", BleName{"Reflow Table"});
 
 class Session;
 
 std::map<decltype(ble_gap_conn_desc::conn_handle), std::shared_ptr<Session>> sessions;
 std::shared_ptr<Session> context;
 
-void set_context(std::shared_ptr<Session> ctx) { context = ctx; }
-auto get_context() -> std::shared_ptr<Session> { return context; }
+void set_context(std::shared_ptr<Session> ctx) { context = std::move(ctx); }
+auto get_context() -> const std::shared_ptr<Session>& { return context; }
 
 class Session : public std::enable_shared_from_this<Session> {
 public:
-    Session()
-        : rpcChunker(16*1024 + 500), authChunker(1*1024), authenticated(false)
-    {
-        rpcChunker.onMessage = [this](const std::vector<uint8_t>& message) {
-            /*APP_LOGI("Free memory: {}; Minimum free memory: {}; Max free block: {}",
-                heap_caps_get_free_size(MALLOC_CAP_8BIT),
-                heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT),
-                heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
-
-            APP_LOGI("BLE: Received message of length {}", message.size());*/
-
-            if (authenticated) {
-                std::vector<uint8_t> response;
-                rpc.dispatch(message, response);
-                return response;
-            }
-
-            const auto doc = msgpack_rpc_dispatcher::create_response(false, "Not authenticated");
-            std::vector<uint8_t> error;
-            msgpack_rpc_dispatcher::serialize_to(doc, error);
-            return error;
-        };
-
-        authChunker.onMessage = [this](const std::vector<uint8_t>& message) {
-            set_context(shared_from_this());
-
-            std::vector<uint8_t> response;
-            auth_rpc.dispatch(message, response);
-
-            set_context(nullptr);
-            return response;
-        };
-
+    Session() {
+        rpcChunker.setMessageHandler(RpcChunker::MessageHandler::create<Session, &Session::handleRpcMessage>(*this));
+        authChunker.setMessageHandler(AuthChunker::MessageHandler::create<Session, &Session::handleAuthMessage>(*this));
         // No default value allowed!
         random = create_secret();
     }
+
     ~Session() { APP_LOGI("BLE: Session destroyed"); }
 
-    BleChunker rpcChunker;
-    BleChunker authChunker;
-    bool authenticated;
-    std::array<uint8_t, 32> random;
+    void handleRpcMessage(const RpcChunker::MessageBuffer& message, RpcChunker::MessageBuffer& response) {
+        /*APP_LOGI("Free memory: {}; Minimum free memory: {}; Max free block: {}",
+            heap_caps_get_free_size(MALLOC_CAP_8BIT),
+            heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT),
+            heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
+
+        APP_LOGI("BLE: Received message of length {}", message.size());*/
+        if (authenticated) {
+            rpc.dispatch(message, response);
+            return;
+        }
+
+        cbor_rpc_dispatcher::ResponseWriter<SharedConstants::MAX_RPC_MESSAGE_SIZE> writer(response);
+        writer.write_error("Not authenticated");
+    }
+
+    void handleAuthMessage(const AuthChunker::MessageBuffer& message, AuthChunker::MessageBuffer& response) {
+        set_context(shared_from_this());
+        auth_rpc.dispatch(message, response);
+        set_context(nullptr);
+    }
+
+    RpcChunker rpcChunker;
+    AuthChunker authChunker;
+    bool authenticated{false};
+    std::array<uint8_t, 32> random{};
 };
 
 class RpcCharacteristicCallbacks : public NimBLECharacteristicCallbacks {
@@ -98,7 +105,7 @@ public:
         if (!sessions.count(conn_handle)) { return; }
 
         const auto chunk = sessions[conn_handle]->rpcChunker.getResponseChunk();
-        pCharacteristic->setValue(chunk);
+        pCharacteristic->setValue(chunk.data, chunk.size);
     }
 };
 
@@ -119,7 +126,7 @@ public:
         if (!sessions.count(conn_handle)) { return; }
 
         const auto chunk = sessions[conn_handle]->authChunker.getResponseChunk();
-        pCharacteristic->setValue(chunk);
+        pCharacteristic->setValue(chunk.data, chunk.size);
     }
 };
 
@@ -168,11 +175,12 @@ public:
 
 
 void ble_init() {
-    const std::string name = bleNameStore.get().substr(0, SharedConstants::MAX_BLE_NAME_LENGTH);
+    const auto& name = bleNameStore.get();
+    const std::string nimble_name(name.data(), name.size());
     // This name is used in Device Name (0x1800/0x2A00), always created by NimBLE
     // But we still need it in advertisement, to show in device selection dialog
     // BEFORE device been connected.
-    NimBLEDevice::init(name);
+    NimBLEDevice::init(nimble_name);
     NimBLEDevice::setPower(9); // Set the power level to maximum, 9dbm for esp32-c3
     // By default NimBLE already set MTU tu 255. No need to tune it manually.
     // That's enough for 244 bytes read/write to long characteristics.
@@ -229,86 +237,145 @@ void ble_init() {
     pAdvertising->enableScanResponse(true);
     pAdvertising->setPreferredParams(0x06, 0x06);
     // This name is showed in connection dialog
-    pAdvertising->setName(name);
+    pAdvertising->setName(nimble_name);
     NimBLEDevice::startAdvertising();
 
     APP_LOGI("BLE initialized");
 }
 
-std::vector<uint8_t> auth_info() {
+auto auth_info_data(AuthBuffer& output) -> bool {
     auto session = get_context();
-
     session->random = create_secret(); // renew hmac msg every time!
 
-    JsonDocument doc;
     auto mac = get_own_mac();
-    doc["id"] = MsgPackBinary(mac.data(), mac.size());
-    doc["hmac_msg"] = MsgPackBinary(session->random.data(), session->random.size());
-    doc["pairable"] = is_pairing_enabled();
 
-    size_t size = measureMsgPack(doc);
-    std::vector<uint8_t> output(size);
-    serializeMsgPack(doc, output.data(), size);
-    return output;
+    output.clear();
+    output.resize(output.max_size());
+
+    CborEncoder encoder;
+    CborEncoder map;
+    cbor_encoder_init(&encoder, output.data(), output.size(), 0);
+
+    CborError error = cbor_encoder_create_map(&encoder, &map, 3);
+    if (error == CborNoError) error = cbor_encode_text_stringz(&map, "id");
+    if (error == CborNoError) error = cbor_encode_byte_string(&map, mac.data(), mac.size());
+    if (error == CborNoError) error = cbor_encode_text_stringz(&map, "hmac_msg");
+    if (error == CborNoError) error = cbor_encode_byte_string(&map, session->random.data(), session->random.size());
+    if (error == CborNoError) error = cbor_encode_text_stringz(&map, "pairable");
+    if (error == CborNoError) error = cbor_encode_boolean(&map, is_pairing_enabled());
+    if (error == CborNoError) error = cbor_encoder_close_container_checked(&encoder, &map);
+
+    if (error != CborNoError) {
+        output.clear();
+        return false;
+    }
+
+    output.resize(cbor_encoder_get_buffer_size(&encoder, output.data()));
+    return true;
 }
 
-auto authenticate(const std::vector<uint8_t> client_id,
-                 const std::vector<uint8_t> hmac,
-                 uint64_t timestamp) -> bool {
+void auth_info(const AuthParams& params, AuthResponse& response) {
+    if (!params.has_count(0)) {
+        response.write_error("Invalid params");
+        return;
+    }
+
+    AuthBuffer output{};
+    if (!auth_info_data(output)) {
+        response.write_error("Internal error");
+        return;
+    }
+
+    response.write_binary(output);
+}
+
+void authenticate(const AuthParams& params, AuthResponse& response) {
+    etl::vector<uint8_t, 64> client_id{};
+    etl::vector<uint8_t, 64> hmac{};
+    uint64_t timestamp = 0;
+
+    if (!params.has_count(3) ||
+        !params.get_binary(0, client_id) ||
+        !params.get_binary(1, hmac) ||
+        !params.get_uint64(2, timestamp))
+    {
+        response.write_error("Invalid params");
+        return;
+    }
+
     auto session = get_context();
 
     BleAuthId auth_id;
+    if (client_id.size() != auth_id.size() || hmac.size() != session->random.size()) {
+        response.write_bool(false);
+        return;
+    }
+
     std::copy(client_id.begin(), client_id.end(), auth_id.data());
 
     auto random = session->random;
     session->random = create_secret();
 
-    if (!bleAuthStore.has(auth_id)) { return false; }
+    if (!bleAuthStore.has(auth_id)) {
+        response.write_bool(false);
+        return;
+    }
 
     BleAuthSecret secret;
     bleAuthStore.get_secret(auth_id, secret);
 
     auto hmac_expected = hmac_sha256(random, secret);
     if (!std::equal(hmac.begin(), hmac.end(), hmac_expected.begin(), hmac_expected.end())) {
-        return false;
+        response.write_bool(false);
+        return;
     }
 
     session->authenticated = true;
     bleAuthStore.set_timestamp(auth_id, timestamp);
-    return true;
+    response.write_bool(true);
 }
 
-auto pair(const std::vector<uint8_t> client_id) -> std::vector<uint8_t> {
+void pair(const AuthParams& params, AuthResponse& response) {
+    etl::vector<uint8_t, 64> client_id{};
+    if (!params.has_count(1) || !params.get_binary(0, client_id)) {
+        response.write_error("Invalid params");
+        return;
+    }
+
     if (!is_pairing_enabled()) {
-        return std::vector<uint8_t>{};
+        static constexpr uint8_t empty = 0;
+        response.write_binary(&empty, 0);
+        return;
     }
 
     BleAuthId auth_id;
+    if (client_id.size() != auth_id.size()) {
+        response.write_error("Invalid client id");
+        return;
+    }
+
     std::copy(client_id.begin(), client_id.end(), auth_id.data());
 
     auto secret = create_secret();
     bleAuthStore.create(auth_id, secret);
-
     application.enqueue_message(AppCmd::BondOff{});
-
-    return std::vector<uint8_t>(secret.begin(), secret.end());
+    response.write_binary(secret.data(), secret.size());
 }
 
 } // namespace
 
-void ble_name_write(const std::string& name) {
+void ble_name_write(const BleName& name) {
     bleNameStore.set(name);
 
-    std::string n = name.substr(0, SharedConstants::MAX_BLE_NAME_LENGTH);
-
-    NimBLEDevice::setDeviceName(n);
+    const std::string nimble_name(name.data(), name.size());
+    NimBLEDevice::setDeviceName(nimble_name);
 
     auto adv = NimBLEDevice::getAdvertising();
-    adv->setName(n);
+    adv->setName(nimble_name);
     adv->refreshAdvertisingData();
 }
 
-std::string ble_name_read() {
+BleName ble_name_read() {
     return bleNameStore.get();
 }
 
@@ -316,9 +383,9 @@ void pairing_enable() { pairing_enabled_flag = true; }
 void pairing_disable() { pairing_enabled_flag = false; }
 
 void rpc_start() {
-    auth_rpc.addMethod("auth_info", auth_info);
-    auth_rpc.addMethod("authenticate", authenticate);
-    auth_rpc.addMethod("pair", pair);
+    auth_rpc.addMethod("auth_info", AuthRpcDispatcher::MethodHandler::create<auth_info>());
+    auth_rpc.addMethod("authenticate", AuthRpcDispatcher::MethodHandler::create<authenticate>());
+    auth_rpc.addMethod("pair", AuthRpcDispatcher::MethodHandler::create<pair>());
 
     api_methods_create();
     ble_init();

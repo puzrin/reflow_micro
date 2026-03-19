@@ -90,15 +90,15 @@ auto Reflow_State::on_enter_state() -> etl::fsm_state_id_t {
     APP_LOGI("State => Reflow");
 
     // Pick the active profile and terminate on failure.
-    auto profile = std::make_unique<Profile>();
-    if (!profiles_config.get_selected_profile(*profile)) {
+    Profile profile{};
+    if (!profiles_config.get_selected_profile(profile)) {
         app.beepTaskTerminated();
         return DeviceActivityStatus_IDLE;
     }
 
     // Load the timeline and try to execute the task.
-    timeline.load(*profile);
-    auto status = heater.task_start(profile->id, [this](int32_t time_ms) {
+    timeline.load(profile);
+    auto status = heater.task_start(profile.id, [this](int32_t time_ms) {
         task_iterator(time_ms);
     });
     if (!status) {

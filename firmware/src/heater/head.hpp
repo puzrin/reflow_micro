@@ -4,8 +4,8 @@
 #include <esp_adc/adc_cali.h>
 #include <etl/limits.h>
 #include <etl/atomic.h>
+#include <etl/vector.h>
 #include <pd/utils/afsm.h>
-#include <vector>
 
 #include "components/eeprom_store.hpp"
 #include "components/temperature_processor.hpp"
@@ -43,10 +43,10 @@ public:
     Head();
     void setup();
 
-    bool get_head_params_pb(std::vector<uint8_t>& pb_data);
-    bool set_head_params_pb(const std::vector<uint8_t>& pb_data);
     bool get_head_params_pb(EEBuffer& pb_data);
     bool set_head_params_pb(const EEBuffer& pb_data);
+    bool get_head_params_pb(etl::ivector<uint8_t>& pb_data);
+    bool set_head_params_pb(const etl::ivector<uint8_t>& pb_data);
     bool get_head_params(HeadParams& params, bool skip_status_check = false);
     bool set_head_params(const HeadParams& params);
 

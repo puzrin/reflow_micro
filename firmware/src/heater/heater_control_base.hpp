@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vector>
+#include <etl/vector.h>
 #include <etl/atomic.h>
 #include <functional>
 #include "components/prefs.hpp"
@@ -13,14 +13,14 @@ using HeaterTaskIteratorFn = std::function<void(uint32_t)>;
 
 class HeaterControlBase {
 public:
-    virtual bool get_head_params_pb(std::vector<uint8_t>& pb_data) = 0;
-    virtual bool set_head_params_pb(const std::vector<uint8_t>& pb_data) = 0;
+    virtual bool get_head_params_pb(etl::ivector<uint8_t>& pb_data) = 0;
+    virtual bool set_head_params_pb(const etl::ivector<uint8_t>& pb_data) = 0;
     virtual bool get_head_params(HeadParams& params) = 0;
     virtual bool set_head_params(const HeadParams& params) = 0;
     virtual bool set_calibration_point_0(float temperature) = 0;
     virtual bool set_calibration_point_1(float temperature) = 0;
 
-    void get_history(int32_t client_history_version, float from, std::vector<uint8_t>& pb_data);
+    void get_history(int32_t client_history_version, float from, etl::ivector<uint8_t>& pb_data);
 
     virtual void setup() = 0;
     virtual auto load_all_params() -> bool;
@@ -66,6 +66,7 @@ private:
     HeaterTaskIteratorFn task_iterator{nullptr};
     int32_t task_start_ts{0};
     History history{};
+    HistoryChunk history_chunk{};
     int32_t history_version{0};
     int32_t history_task_id{0};
     int32_t history_last_recorded_ts{0}; // in seconds

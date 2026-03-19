@@ -1,19 +1,20 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
 #include <atomic>
 #include <vector>
-#include <map>
 #include <type_traits>
+
+#include <etl/string_view.h>
+
 #include "data_guard.hpp"
 
 // Interface for key-value storage
 class IAsyncPreferenceKV {
 public:
-    virtual auto write(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) -> bool = 0;
-    virtual auto read(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) -> bool = 0;
-    virtual auto length(const std::string& ns, const std::string& key) -> size_t = 0;
+    virtual auto write(etl::string_view ns, etl::string_view key, uint8_t* buffer, size_t length) -> bool = 0;
+    virtual auto read(etl::string_view ns, etl::string_view key, uint8_t* buffer, size_t length) -> bool = 0;
+    virtual auto length(etl::string_view ns, etl::string_view key) -> size_t = 0;
 };
 
 namespace async_preference_ns {
@@ -21,11 +22,11 @@ namespace async_preference_ns {
 // Serializer for trivially copyable types
 template <typename T>
 struct TrivialSerializer {
-    static auto save(IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, const T& value) -> bool {
+    static auto save(IAsyncPreferenceKV& kv, etl::string_view ns, etl::string_view key, const T& value) -> bool {
         return kv.write(ns, key, reinterpret_cast<uint8_t*>(const_cast<T*>(&value)), sizeof(T));
     }
 
-    static void load(IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, T& value) {
+    static void load(IAsyncPreferenceKV& kv, etl::string_view ns, etl::string_view key, T& value) {
         const size_t size = kv.length(ns, key);
 
         if (size == 0) { return; } // Key not exists => nothing to load
@@ -39,11 +40,11 @@ struct TrivialSerializer {
 // Primary goal is to fit std::string and std::vector
 template <typename T>
 struct BufferSerializer {
-    static auto save(IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, const T& value) -> bool {
+    static auto save(IAsyncPreferenceKV& kv, etl::string_view ns, etl::string_view key, const T& value) -> bool {
         return kv.write(ns, key, reinterpret_cast<uint8_t*>(const_cast<typename T::value_type*>(value.data())), value.size() * sizeof(typename T::value_type));
     }
 
-    static void load(IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, T& value) {
+    static void load(IAsyncPreferenceKV& kv, etl::string_view ns, etl::string_view key, T& value) {
         const size_t size = kv.length(ns, key);
 
         if (size == 0) { return; } // Key not exists => nothing to load
@@ -105,7 +106,7 @@ private:
 template <typename T, typename Serializer = void>
 class AsyncPreference : public AsyncPreferenceTickable {
 public:
-    AsyncPreference(IAsyncPreferenceWriter& writer, IAsyncPreferenceKV& kv, const std::string& ns, const std::string& key, const T& initial = T()) :
+    AsyncPreference(IAsyncPreferenceWriter& writer, IAsyncPreferenceKV& kv, etl::string_view ns, etl::string_view key, const T& initial = T()) :
         databox{initial}, kv{kv}, ns{ns}, key{key}, writer{writer}
     {
         writer.add(this);
@@ -183,8 +184,8 @@ public:
 private:
     DataGuard<T> databox;
     IAsyncPreferenceKV& kv;
-    std::string ns;
-    std::string key;
+    etl::string_view ns;
+    etl::string_view key;
     IAsyncPreferenceWriter& writer;
     bool is_preloaded{false};
     bool has_pending_write{false};
@@ -213,40 +214,4 @@ private:
 
         is_preloaded = true;
     }
-};
-
-template<typename T>
-class AsyncPreferenceMap {
-public:
-    AsyncPreferenceMap(IAsyncPreferenceWriter& writer, IAsyncPreferenceKV& kv,
-                        const std::string& ns, const std::string& key,
-                        const T& default_value = T())
-        : writer{writer}
-        , kv{kv}
-        , ns{ns}
-        , key{key}
-        , default_value{default_value}
-    {}
-
-   AsyncPreference<T>& operator[](size_t idx) {
-       auto it = items.find(idx);
-       if (it == items.end()) {
-           auto pref = new AsyncPreference<T>(
-               writer, kv, ns,
-               key + "_" + std::to_string(idx),
-               default_value
-           );
-           items[idx] = pref;
-           return *pref;
-       }
-       return *(it->second);
-   }
-
-private:
-    std::map<size_t, AsyncPreference<T>*> items{};
-    IAsyncPreferenceWriter& writer;
-    IAsyncPreferenceKV& kv;
-    std::string ns;
-    std::string key;
-    T default_value;
 };

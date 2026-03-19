@@ -9,6 +9,8 @@ namespace SharedConstants {
   inline constexpr int HISTORY_ID_SENSOR_BAKE_MODE = 4000;
   inline constexpr int HISTORY_ID_ADRC_TEST_MODE = 4001;
   inline constexpr int HISTORY_ID_STEP_RESPONSE = 4002;
+  inline constexpr int MAX_RPC_MESSAGE_SIZE = 4096;
+  inline constexpr int MAX_AUTH_RPC_MESSAGE_SIZE = 1024;
   inline constexpr int MAX_PROFILE_NAME_LENGTH = 50;
   inline constexpr int MAX_REFLOW_SEGMENTS = 10;
   inline constexpr int MAX_REFLOW_PROFILES = 10;

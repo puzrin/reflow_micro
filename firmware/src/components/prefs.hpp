@@ -1,15 +1,15 @@
 #pragma once
 
-#include <string>
+#include <etl/string_view.h>
 #include "lib/async_preference.hpp"
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
 class AsyncPreferenceKV : public IAsyncPreferenceKV {
 public:
-    bool write(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) override;
-    bool read(const std::string& ns, const std::string& key, uint8_t* buffer, size_t max_length) override;
-    size_t length(const std::string& ns, const std::string& key) override;
+    bool write(etl::string_view ns, etl::string_view key, uint8_t* buffer, size_t length) override;
+    bool read(etl::string_view ns, etl::string_view key, uint8_t* buffer, size_t max_length) override;
+    size_t length(etl::string_view ns, etl::string_view key) override;
 
     static AsyncPreferenceKV& getInstance() {
         static AsyncPreferenceKV instance;

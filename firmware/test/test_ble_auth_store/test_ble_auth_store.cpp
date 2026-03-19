@@ -8,20 +8,21 @@ public:
     // Simulate actual storage
     std::map<std::string, std::vector<uint8_t>> storage;
 
-    bool write(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) override {
+    bool write(etl::string_view ns, etl::string_view key, uint8_t* buffer, size_t length) override {
         std::vector<uint8_t> data(buffer, buffer + length);
-        storage[ns + key] = data;
+        storage[std::string(ns.data(), ns.size()) + std::string(key.data(), key.size())] = data;
         return true;
     }
 
-    bool read(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) override {
-        const auto& data = storage[ns + key];
+    bool read(etl::string_view ns, etl::string_view key, uint8_t* buffer, size_t length) override {
+        const auto& data = storage[std::string(ns.data(), ns.size()) + std::string(key.data(), key.size())];
         std::memcpy(buffer, data.data(), length);
         return true;
     }
 
-    size_t length(const std::string& ns, const std::string& key) override {
-        return storage.count(ns + key) ? storage[ns + key].size() : 0;
+    size_t length(etl::string_view ns, etl::string_view key) override {
+        const auto storage_key = std::string(ns.data(), ns.size()) + std::string(key.data(), key.size());
+        return storage.count(storage_key) ? storage[storage_key].size() : 0;
     }
 };
 

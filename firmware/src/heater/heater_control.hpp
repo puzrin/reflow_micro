@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vector>
+#include <etl/vector.h>
 
 #include "app.hpp"
 #include "components/time.hpp"
@@ -17,8 +17,8 @@ public:
     auto task_start(int32_t task_id, HeaterTaskIteratorFn task_iterator = nullptr) -> bool;
     void task_stop();
 
-    bool get_head_params_pb(std::vector<uint8_t>& pb_data) override;
-    bool set_head_params_pb(const std::vector<uint8_t>& pb_data) override;
+    bool get_head_params_pb(etl::ivector<uint8_t>& pb_data) override;
+    bool set_head_params_pb(const etl::ivector<uint8_t>& pb_data) override;
     bool get_head_params(HeadParams& params) override;
     bool set_head_params(const HeadParams& params) override;
     bool set_calibration_point_0(float temperature) override;

@@ -8,20 +8,21 @@ public:
     // Simulate actual storage
     std::map<std::string, std::vector<uint8_t>> storage;
 
-    bool write(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) override {
+    bool write(etl::string_view ns, etl::string_view key, uint8_t* buffer, size_t length) override {
         std::vector<uint8_t> data(buffer, buffer + length);
-        storage[ns + key] = data;
+        storage[std::string(ns.data(), ns.size()) + std::string(key.data(), key.size())] = data;
         return true;
     }
 
-    bool read(const std::string& ns, const std::string& key, uint8_t* buffer, size_t length) override {
-        const auto& data = storage[ns + key];
+    bool read(etl::string_view ns, etl::string_view key, uint8_t* buffer, size_t length) override {
+        const auto& data = storage[std::string(ns.data(), ns.size()) + std::string(key.data(), key.size())];
         std::memcpy(buffer, data.data(), length);
         return true;
     }
 
-    size_t length(const std::string& ns, const std::string& key) override {
-        return storage.count(ns + key) ? storage[ns + key].size() : 0;
+    size_t length(etl::string_view ns, etl::string_view key) override {
+        const auto storage_key = std::string(ns.data(), ns.size()) + std::string(key.data(), key.size());
+        return storage.count(storage_key) ? storage[storage_key].size() : 0;
     }
 };
 
@@ -146,63 +147,6 @@ TEST(AsyncPreferenceTest, BufferLikeCopyable_Vector) {
 
     AsyncPreference<std::vector<uint32_t>> pref3(writer, kv, "ns", "key");
     EXPECT_EQ(pref3.get(), data);
-}
-
-// Map of trivially copyable values
-TEST(AsyncPreferenceTest, Map_TriviallyCopyableValues) {
-    MockAsyncPreferenceKV kv;
-    AsyncPreferenceWriter writer;
-
-    AsyncPreferenceMap<int32_t> map(writer, kv, "ns", "key", -1);
-
-    // Should use default when item not exists
-    EXPECT_EQ(map[5].get(), -1);
-
-    // Should store value
-    map[5].set(123);
-    writer.tick();
-    EXPECT_EQ(kv.length("ns", "key_5"), sizeof(int32_t));
-
-    // Should load from store
-    AsyncPreferenceMap<int32_t> map2(writer, kv, "ns", "key", -1);
-    EXPECT_EQ(map2[5].get(), 123);
-    EXPECT_EQ(map2[6].get(), -1);  // Other indices still return default
-}
-
-// Map of string values
-TEST(AsyncPreferenceTest, Map_StringValues) {
-    MockAsyncPreferenceKV kv;
-    AsyncPreferenceWriter writer;
-
-    AsyncPreferenceMap<std::string> map(writer, kv, "ns", "key", "default");
-    map[1].set("hello");
-    map[42].set("world");
-    writer.tick();
-
-    AsyncPreferenceMap<std::string> map2(writer, kv, "ns", "key", "default");
-    EXPECT_EQ(map2[1].get(), "hello");
-    EXPECT_EQ(map2[42].get(), "world");
-    EXPECT_EQ(map2[2].get(), "default");
-}
-
-// Map of vector values
-TEST(AsyncPreferenceTest, Map_VectorValues) {
-    MockAsyncPreferenceKV kv;
-    AsyncPreferenceWriter writer;
-
-    std::vector<int32_t> v1 = {1000, 1001, 10002};
-    std::vector<int32_t> v2 = {2010, 2011};
-    std::vector<int32_t> v_default = {-1, -2};
-
-    AsyncPreferenceMap<std::vector<int32_t>> map(writer, kv, "ns", "key", v_default);
-    map[1].set(v1);
-    map[42].set(v2);
-    writer.tick();
-
-    AsyncPreferenceMap<std::vector<int32_t>> map2(writer, kv, "ns", "key", v_default);
-    EXPECT_EQ(map2[1].get(), v1);
-    EXPECT_EQ(map2[42].get(), v2);
-    EXPECT_EQ(map2[2].get(), v_default);
 }
 
 
