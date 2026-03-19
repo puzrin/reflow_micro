@@ -17,10 +17,8 @@ export class BleRpcClient {
     private gattServer: BluetoothRemoteGATTServer | null = null;
 
     private rpcIO = new BleCharacteristicIO();
-    private authIO = new BleCharacteristicIO();
 
     private rpcCaller = new RpcCaller(new BleClientChunker(this.rpcIO), Constants.MAX_RPC_MESSAGE_SIZE);
-    private authCaller = new RpcCaller(new BleClientChunker(this.authIO), Constants.MAX_AUTH_RPC_MESSAGE_SIZE);
 
     private authStorage = new AuthStorage();
 
@@ -34,7 +32,6 @@ export class BleRpcClient {
     // UUIDs
     private static readonly SERVICE_UUID = '5f524546-4c4f-575f-5250-435f5356435f'; // _REFLOW_RPC_SVC_
     private static readonly RPC_CHARACTERISTIC_UUID = '5f524546-4c4f-575f-5250-435f494f5f5f'; // _REFLOW_RPC_IO__
-    private static readonly AUTH_CHARACTERISTIC_UUID = '5f524546-4c4f-575f-5250-435f41555448'; // _REFLOW_RPC_AUTH
 
     log: (...data: unknown[]) => void = () => {};
     log_error: (...data: unknown[]) => void = () => {};
@@ -90,11 +87,10 @@ export class BleRpcClient {
                 try {
                     this.lastConnectedTime = Date.now();
 
-                    const [rpcChar, authChar] = await this.connect();
+                    const rpcChar = await this.connect();
 
                     if (this.device?.gatt?.connected) {
                         this.rpcIO.setCharacteristic(rpcChar);
-                        this.authIO.setCharacteristic(authChar);
 
                         // Initialize flags for the "just connected" state.
                         this.isConnectedFlag = true;
@@ -138,7 +134,7 @@ export class BleRpcClient {
         }
     }
 
-    private async connect(): Promise<Array<BluetoothRemoteGATTCharacteristic>> {
+    private async connect(): Promise<BluetoothRemoteGATTCharacteristic> {
 
         this.log(`Connecting to GATT Server on ${this.device?.name}...`);
 
@@ -156,20 +152,19 @@ export class BleRpcClient {
 
         // Get characteristics
         const rpcCharacteristic = await service.getCharacteristic(BleRpcClient.RPC_CHARACTERISTIC_UUID)
-        const authCharacteristic = await service.getCharacteristic(BleRpcClient.AUTH_CHARACTERISTIC_UUID)
-        if (!rpcCharacteristic || !authCharacteristic) {
+        if (!rpcCharacteristic) {
             throw new Error('Failed to get characteristics.');
         }
 
         this.log('BLE connected (but needs authentication to become ready)');
-        return [rpcCharacteristic, authCharacteristic];
+        return rpcCharacteristic;
     }
 
     private async authenticate(): Promise<boolean> {
         try {
             const client_id: Uint8Array = this.authStorage.getClientId();
 
-            let auth_info : AuthInfo = cbor_decode(await this.authCaller.invoke('auth_info') as Uint8Array) as AuthInfo
+            let auth_info : AuthInfo = cbor_decode(await this.rpcCaller.invoke('auth_info') as Uint8Array) as AuthInfo
             const device_id = auth_info.id;
             let secret: Uint8Array;
 
@@ -178,11 +173,11 @@ export class BleRpcClient {
 
                 this.log('Trying to pair...');
 
-                const new_secret  = await this.authCaller.invoke('pair', client_id) as Uint8Array;
+                const new_secret  = await this.rpcCaller.invoke('pair', client_id) as Uint8Array;
                 this.authStorage.setSecret(device_id, new_secret);
                 secret = new_secret;
                 // Re-fetch the new HMAC message value.
-                auth_info = cbor_decode(await this.authCaller.invoke('auth_info') as Uint8Array) as AuthInfo;
+                auth_info = cbor_decode(await this.rpcCaller.invoke('auth_info') as Uint8Array) as AuthInfo;
 
                 this.log('Paired!');
             } else {
@@ -192,7 +187,7 @@ export class BleRpcClient {
             this.log('Authenticating...');
 
             const signature = await this.authStorage.calculateHMAC(auth_info.hmac_msg, secret);
-            const authenticated = await this.authCaller.invoke('authenticate', client_id, signature, Date.now()) as boolean;
+            const authenticated = await this.rpcCaller.invoke('authenticate', client_id, signature, Date.now()) as boolean;
 
             if (!authenticated) {
                 // Wrong key. Clear it.
@@ -217,7 +212,6 @@ export class BleRpcClient {
 
         // Clear characteristics in IO objects
         this.rpcIO.setCharacteristic(null);
-        this.authIO.setCharacteristic(null);
     }
 
     private async handleDisconnection(): Promise<void> {

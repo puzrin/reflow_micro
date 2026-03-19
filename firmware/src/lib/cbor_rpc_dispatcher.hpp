@@ -386,27 +386,57 @@ public:
     using Response = ResponseWriter<MaxResponseSize>;
     using MethodHandler = etl::delegate<void(const ParamsReader&, Response&)>;
 
-    auto addMethod(const char* name, const MethodHandler& handler) -> void {
-        methods.push_back({name, handler});
+    auto addMethod(const char* name, const MethodHandler& handler, bool allow_unauthenticated = false) -> void {
+        methods.push_back({name, handler, allow_unauthenticated});
+    }
+
+    auto get_method_name(const etl::ivector<uint8_t>& input, etl::string<MaxMethodNameLength>& method) const -> bool {
+        CborParser parser;
+        CborValue root;
+        CborError error = cbor_parser_init(input.data(), input.size(), 0, &parser, &root);
+        if (error != CborNoError || !cbor_value_is_map(&root)) {
+            return false;
+        }
+
+        CborValue method_value;
+        error = cbor_value_map_find_value(&root, "method", &method_value);
+        if (error != CborNoError) {
+            return false;
+        }
+
+        return copy_method_name(method_value, method);
+    }
+
+    auto needs_authentication(const etl::ivector<uint8_t>& input) const -> bool {
+        etl::string<MaxMethodNameLength> method;
+        if (!get_method_name(input, method)) {
+            return false;
+        }
+
+        for (const auto& entry : methods) {
+            if (method == entry.name) {
+                return !entry.allow_unauthenticated;
+            }
+        }
+
+        return false;
     }
 
     auto dispatch(const etl::ivector<uint8_t>& input, etl::vector<uint8_t, MaxResponseSize>& output) -> void {
         Response response(output);
 
         try {
+            etl::string<MaxMethodNameLength> method;
+            if (!get_method_name(input, method)) {
+                response.write_error("Invalid request");
+                return;
+            }
+
             CborParser parser;
             CborValue root;
             CborError error = cbor_parser_init(input.data(), input.size(), 0, &parser, &root);
             if (error != CborNoError || !cbor_value_is_map(&root)) {
                 response.write_error("Invalid request");
-                return;
-            }
-
-            etl::string<MaxMethodNameLength> method;
-            CborValue method_value;
-            error = cbor_value_map_find_value(&root, "method", &method_value);
-            if (error != CborNoError || !copy_method_name(method_value, method)) {
-                response.write_error("Invalid method");
                 return;
             }
 
@@ -437,6 +467,7 @@ private:
     struct MethodEntry {
         const char* name;
         MethodHandler handler;
+        bool allow_unauthenticated;
     };
 
     etl::vector<MethodEntry, MaxMethods> methods{};

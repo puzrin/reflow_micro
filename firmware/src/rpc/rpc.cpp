@@ -20,15 +20,13 @@
 #include "rpc.hpp"
 
 RpcDispatcher rpc;
-AuthRpcDispatcher auth_rpc;
 
 namespace {
 
-using AuthBuffer = etl::vector<uint8_t, SharedConstants::MAX_AUTH_RPC_MESSAGE_SIZE>;
+using AuthBuffer = etl::vector<uint8_t, SharedConstants::MAX_RPC_MESSAGE_SIZE>;
 using RpcChunker = BleChunker<SharedConstants::MAX_RPC_MESSAGE_SIZE>;
-using AuthChunker = BleChunker<SharedConstants::MAX_AUTH_RPC_MESSAGE_SIZE>;
 using AuthParams = cbor_rpc_dispatcher::ParamsReader;
-using AuthResponse = AuthRpcDispatcher::Response;
+using AuthResponse = RpcDispatcher::Response;
 
 bool pairing_enabled_flag = false;
 
@@ -37,7 +35,6 @@ auto is_pairing_enabled() -> bool { return pairing_enabled_flag; }
 // UUIDs for the BLE service and characteristic
 const char* SERVICE_UUID = "5f524546-4c4f-575f-5250-435f5356435f"; // _REFLOW_RPC_SVC_
 const char* RPC_CHARACTERISTIC_UUID = "5f524546-4c4f-575f-5250-435f494f5f5f"; // _REFLOW_RPC_IO__
-const char* AUTH_CHARACTERISTIC_UUID = "5f524546-4c4f-575f-5250-435f41555448"; // _REFLOW_RPC_AUTH
 
 auto bleAuthStore = BleAuthStore<4>(PrefsWriter::getInstance(), AsyncPreferenceKV::getInstance(), PREFS_NAMESPACE);
 auto bleNameStore = AsyncPreference<BleName>(PrefsWriter::getInstance(), AsyncPreferenceKV::getInstance(), PREFS_NAMESPACE, "ble_name", BleName{"Reflow Table"});
@@ -54,7 +51,6 @@ class Session : public std::enable_shared_from_this<Session> {
 public:
     Session() {
         rpcChunker.setMessageHandler(RpcChunker::MessageHandler::create<Session, &Session::handleRpcMessage>(*this));
-        authChunker.setMessageHandler(AuthChunker::MessageHandler::create<Session, &Session::handleAuthMessage>(*this));
         // No default value allowed!
         random = create_secret();
     }
@@ -68,23 +64,20 @@ public:
             heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
 
         APP_LOGI("BLE: Received message of length {}", message.size());*/
-        if (authenticated) {
-            rpc.dispatch(message, response);
+        set_context(shared_from_this());
+
+        if (!authenticated && rpc.needs_authentication(message)) {
+            RpcDispatcher::Response writer(response);
+            writer.write_error("Not authenticated");
+            set_context(nullptr);
             return;
         }
 
-        cbor_rpc_dispatcher::ResponseWriter<SharedConstants::MAX_RPC_MESSAGE_SIZE> writer(response);
-        writer.write_error("Not authenticated");
-    }
-
-    void handleAuthMessage(const AuthChunker::MessageBuffer& message, AuthChunker::MessageBuffer& response) {
-        set_context(shared_from_this());
-        auth_rpc.dispatch(message, response);
+        rpc.dispatch(message, response);
         set_context(nullptr);
     }
 
     RpcChunker rpcChunker;
-    AuthChunker authChunker;
     bool authenticated{false};
     std::array<uint8_t, 32> random{};
 };
@@ -105,27 +98,6 @@ public:
         if (!sessions.count(conn_handle)) { return; }
 
         const auto chunk = sessions[conn_handle]->rpcChunker.getResponseChunk();
-        pCharacteristic->setValue(chunk.data, chunk.size);
-    }
-};
-
-class AuthCharacteristicCallbacks : public NimBLECharacteristicCallbacks {
-public:
-    void onWrite(NimBLECharacteristic* pCharacteristic, NimBLEConnInfo& connInfo) override {
-        uint16_t conn_handle = connInfo.getConnHandle();
-        if (!sessions.count(conn_handle)) { return; }
-
-        auto session = sessions[conn_handle];
-        const std::vector<uint8_t> chunk = pCharacteristic->getValue();
-        APP_LOGI("BLE AUTH: Received chunk of length {}", pCharacteristic->getLength());
-        session->authChunker.consumeChunk(chunk.data(), chunk.size());
-    }
-
-    void onRead(NimBLECharacteristic* pCharacteristic, NimBLEConnInfo& connInfo) override {
-        auto conn_handle = connInfo.getConnHandle();
-        if (!sessions.count(conn_handle)) { return; }
-
-        const auto chunk = sessions[conn_handle]->authChunker.getResponseChunk();
         pCharacteristic->setValue(chunk.data, chunk.size);
     }
 };
@@ -217,14 +189,6 @@ void ble_init() {
         NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE
     );
     rpc_characteristic->setCallbacks(new RpcCharacteristicCallbacks());
-
-    NimBLECharacteristic* auth_characteristic = service->createCharacteristic(
-        AUTH_CHARACTERISTIC_UUID,
-        // This hangs comm if enabled. Seems Web BT not supports encryption
-        //NIMBLE_PROPERTY::READ_ENC | NIMBLE_PROPERTY::WRITE_ENC |
-        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE
-    );
-    auth_characteristic->setCallbacks(new AuthCharacteristicCallbacks());
 
     service->start();
 
@@ -383,9 +347,9 @@ void pairing_enable() { pairing_enabled_flag = true; }
 void pairing_disable() { pairing_enabled_flag = false; }
 
 void rpc_start() {
-    auth_rpc.addMethod("auth_info", AuthRpcDispatcher::MethodHandler::create<auth_info>());
-    auth_rpc.addMethod("authenticate", AuthRpcDispatcher::MethodHandler::create<authenticate>());
-    auth_rpc.addMethod("pair", AuthRpcDispatcher::MethodHandler::create<pair>());
+    rpc.addMethod("auth_info", RpcDispatcher::MethodHandler::create<auth_info>(), true);
+    rpc.addMethod("authenticate", RpcDispatcher::MethodHandler::create<authenticate>(), true);
+    rpc.addMethod("pair", RpcDispatcher::MethodHandler::create<pair>(), true);
 
     api_methods_create();
     ble_init();
