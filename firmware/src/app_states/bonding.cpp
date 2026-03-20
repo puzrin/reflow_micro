@@ -1,6 +1,6 @@
 #include "bonding.hpp"
 #include "logger.hpp"
-#include "rpc/rpc.hpp"
+#include "rpc/api.hpp"
 
 auto Bonding_State::on_enter_state() -> etl::fsm_state_id_t {
     APP_LOGI("State => Bonding");

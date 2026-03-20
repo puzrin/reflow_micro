@@ -380,11 +380,11 @@ private:
     }
 };
 
-template <size_t MaxMethods, size_t MaxResponseSize, size_t MaxMethodNameLength = 48>
+template <size_t MaxMethods, size_t MaxResponseSize, size_t MaxMethodNameLength, typename TSession>
 class Dispatcher {
 public:
     using Response = ResponseWriter<MaxResponseSize>;
-    using MethodHandler = etl::delegate<void(const ParamsReader&, Response&)>;
+    using MethodHandler = etl::delegate<void(const ParamsReader&, Response&, TSession&)>;
 
     auto addMethod(const char* name, const MethodHandler& handler, bool allow_unauthenticated = false) -> void {
         methods.push_back({name, handler, allow_unauthenticated});
@@ -422,7 +422,7 @@ public:
         return false;
     }
 
-    auto dispatch(const etl::ivector<uint8_t>& input, etl::vector<uint8_t, MaxResponseSize>& output) -> void {
+    auto dispatch(const etl::ivector<uint8_t>& input, etl::vector<uint8_t, MaxResponseSize>& output, TSession& session) -> void {
         Response response(output);
 
         try {
@@ -449,7 +449,7 @@ public:
 
             for (const auto& entry : methods) {
                 if (method == entry.name) {
-                    entry.handler(ParamsReader(params_value), response);
+                    entry.handler(ParamsReader(params_value), response, session);
                     if (!response.did_respond()) {
                         response.write_error("Internal error");
                     }

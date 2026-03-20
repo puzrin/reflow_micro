@@ -9,8 +9,10 @@
 
 namespace {
 
+struct TestSession {};
+
 using TestBuffer = etl::vector<uint8_t, 256>;
-using TestDispatcher = cbor_rpc_dispatcher::Dispatcher<8, 256>;
+using TestDispatcher = cbor_rpc_dispatcher::Dispatcher<8, 256, 48, TestSession>;
 using TestParams = cbor_rpc_dispatcher::ParamsReader;
 using TestResponse = cbor_rpc_dispatcher::ResponseWriter<256>;
 
@@ -141,7 +143,7 @@ private:
     }
 };
 
-void handle_mix_ints(const TestParams& params, TestResponse& response) {
+void handle_mix_ints(const TestParams& params, TestResponse& response, TestSession&) {
     uint8_t a = 0;
     int16_t b = 0;
     uint32_t c = 0;
@@ -153,7 +155,7 @@ void handle_mix_ints(const TestParams& params, TestResponse& response) {
     response.write_int32(static_cast<int32_t>(a) + b + static_cast<int32_t>(c));
 }
 
-void handle_need_uint8(const TestParams& params, TestResponse& response) {
+void handle_need_uint8(const TestParams& params, TestResponse& response, TestSession&) {
     uint8_t value = 0;
     if (!params.get_uint8(0, value)) {
         response.write_error("Bad uint8");
@@ -163,16 +165,17 @@ void handle_need_uint8(const TestParams& params, TestResponse& response) {
     response.write_uint8(value);
 }
 
-void handle_get_binary(const TestParams&, TestResponse& response) {
+void handle_get_binary(const TestParams&, TestResponse& response, TestSession&) {
     const uint8_t payload[] = {0x01, 0x02, 0x03, 0x04};
     response.write_binary(payload, sizeof(payload));
 }
 
-void handle_silent(const TestParams&, TestResponse&) {}
+void handle_silent(const TestParams&, TestResponse&, TestSession&) {}
 
 TEST(CborRpcDispatcherTest, DispatchesIntegerParamsAndResponses) {
     TestDispatcher dispatcher;
     dispatcher.addMethod("mix_ints", TestDispatcher::MethodHandler::create<handle_mix_ints>());
+    TestSession session{};
 
     const auto request = make_request("mix_ints", 3, [](CborEncoder& params) {
         CborError error = cbor_encode_uint(&params, 7);
@@ -182,7 +185,7 @@ TEST(CborRpcDispatcherTest, DispatchesIntegerParamsAndResponses) {
     });
 
     TestBuffer response;
-    dispatcher.dispatch(request, response);
+    dispatcher.dispatch(request, response, session);
 
     const ResponseView view(response);
     ASSERT_TRUE(view.is_valid());
@@ -193,13 +196,14 @@ TEST(CborRpcDispatcherTest, DispatchesIntegerParamsAndResponses) {
 TEST(CborRpcDispatcherTest, RejectsOutOfRangeIntegerParams) {
     TestDispatcher dispatcher;
     dispatcher.addMethod("need_uint8", TestDispatcher::MethodHandler::create<handle_need_uint8>());
+    TestSession session{};
 
     const auto request = make_request("need_uint8", 1, [](CborEncoder& params) {
         return cbor_encode_uint(&params, 300);
     });
 
     TestBuffer response;
-    dispatcher.dispatch(request, response);
+    dispatcher.dispatch(request, response, session);
 
     const ResponseView view(response);
     ASSERT_TRUE(view.is_valid());
@@ -210,13 +214,14 @@ TEST(CborRpcDispatcherTest, RejectsOutOfRangeIntegerParams) {
 TEST(CborRpcDispatcherTest, AcceptsTaggedBinaryAndIntegralDoubleParams) {
     TestDispatcher dispatcher;
     dispatcher.addMethod("web_compat", TestDispatcher::MethodHandler::create<handle_need_uint8>());
+    TestSession session{};
 
     const auto request = make_request("web_compat", 1, [](CborEncoder& params) {
         return cbor_encode_double(&params, 7.0);
     });
 
     TestBuffer response;
-    dispatcher.dispatch(request, response);
+    dispatcher.dispatch(request, response, session);
 
     const ResponseView view(response);
     ASSERT_TRUE(view.is_valid());
@@ -224,7 +229,7 @@ TEST(CborRpcDispatcherTest, AcceptsTaggedBinaryAndIntegralDoubleParams) {
     EXPECT_EQ(7u, view.uint_field("result"));
 }
 
-void handle_auth_like(const TestParams& params, TestResponse& response) {
+void handle_auth_like(const TestParams& params, TestResponse& response, TestSession&) {
     etl::vector<uint8_t, 16> client_id{};
     etl::vector<uint8_t, 32> hmac{};
     uint64_t timestamp = 0;
@@ -239,6 +244,7 @@ void handle_auth_like(const TestParams& params, TestResponse& response) {
 TEST(CborRpcDispatcherTest, AcceptsCborXStyleAuthenticateParams) {
     TestDispatcher dispatcher;
     dispatcher.addMethod("auth_like", TestDispatcher::MethodHandler::create<handle_auth_like>());
+    TestSession session{};
 
     const auto request = make_request("auth_like", 3, [](CborEncoder& params) {
         CborError error = cbor_encode_tag(&params, 64);
@@ -260,7 +266,7 @@ TEST(CborRpcDispatcherTest, AcceptsCborXStyleAuthenticateParams) {
     });
 
     TestBuffer response;
-    dispatcher.dispatch(request, response);
+    dispatcher.dispatch(request, response, session);
 
     const ResponseView view(response);
     ASSERT_TRUE(view.is_valid());
@@ -270,11 +276,12 @@ TEST(CborRpcDispatcherTest, AcceptsCborXStyleAuthenticateParams) {
 TEST(CborRpcDispatcherTest, ReturnsBinaryPayload) {
     TestDispatcher dispatcher;
     dispatcher.addMethod("get_binary", TestDispatcher::MethodHandler::create<handle_get_binary>());
+    TestSession session{};
 
     const auto request = make_request("get_binary");
 
     TestBuffer response;
-    dispatcher.dispatch(request, response);
+    dispatcher.dispatch(request, response, session);
 
     const ResponseView view(response);
     ASSERT_TRUE(view.is_valid());
@@ -284,11 +291,12 @@ TEST(CborRpcDispatcherTest, ReturnsBinaryPayload) {
 
 TEST(CborRpcDispatcherTest, ReturnsMethodNotFoundForUnknownMethod) {
     TestDispatcher dispatcher;
+    TestSession session{};
 
     const auto request = make_request("missing");
 
     TestBuffer response;
-    dispatcher.dispatch(request, response);
+    dispatcher.dispatch(request, response, session);
 
     const ResponseView view(response);
     ASSERT_TRUE(view.is_valid());
@@ -313,8 +321,9 @@ TEST(CborRpcDispatcherTest, ReturnsInvalidParamsForWrongRequestShape) {
     request.resize(cbor_encoder_get_buffer_size(&encoder, request.data()));
 
     TestDispatcher dispatcher;
+    TestSession session{};
     TestBuffer response;
-    dispatcher.dispatch(request, response);
+    dispatcher.dispatch(request, response, session);
 
     const ResponseView view(response);
     ASSERT_TRUE(view.is_valid());
@@ -325,11 +334,12 @@ TEST(CborRpcDispatcherTest, ReturnsInvalidParamsForWrongRequestShape) {
 TEST(CborRpcDispatcherTest, ReturnsInternalErrorWhenHandlerDoesNotRespond) {
     TestDispatcher dispatcher;
     dispatcher.addMethod("silent", TestDispatcher::MethodHandler::create<handle_silent>());
+    TestSession session{};
 
     const auto request = make_request("silent");
 
     TestBuffer response;
-    dispatcher.dispatch(request, response);
+    dispatcher.dispatch(request, response, session);
 
     const ResponseView view(response);
     ASSERT_TRUE(view.is_valid());

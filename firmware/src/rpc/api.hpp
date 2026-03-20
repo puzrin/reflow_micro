@@ -1,3 +1,7 @@
 #pragma once
 
-void api_methods_create();
+#include "rpc.hpp"
+
+void api_methods_create(RpcDispatcher& rpc);
+void pairing_enable();
+void pairing_disable();
