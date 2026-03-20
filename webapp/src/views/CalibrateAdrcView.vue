@@ -156,7 +156,7 @@ async function stopTask(force: boolean = false) {
             inset
             :min="ADRC_LIMITS.tauMin"
             :max="ADRC_LIMITS.tauMax"
-            :precision="3"
+            :precision="0"
             :error-messages="adrc_error_tau ? ['Required'] : []"
             @update:model-value="adrc_error_tau = false"
           />

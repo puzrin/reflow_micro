@@ -278,25 +278,10 @@ void Head::update_sensor_uv() {
     last_sensor_value_uv.store(uV);
 }
 
-bool Head::get_head_params_pb(EEBuffer& pb_data) {
-    if (!is_attached()) { return false; }
-
-    pb_data.assign(head_params.value.begin(), head_params.value.end());
-    return true;
-}
-
 bool Head::get_head_params_pb(etl::ivector<uint8_t>& pb_data) {
     if (!is_attached()) { return false; }
 
     pb_data.assign(head_params.value.begin(), head_params.value.end());
-    return true;
-}
-
-bool Head::set_head_params_pb(const EEBuffer& pb_data) {
-    if (!is_attached()) { return false; }
-
-    head_params.writeData(pb_data);
-    configure_temperature_processor();
     return true;
 }
 
@@ -317,9 +302,10 @@ bool Head::get_head_params(HeadParams& params, bool skip_status_check) {
 
 bool Head::set_head_params(const HeadParams& params) {
     EEBuffer pb_data{};
-    if (!struct2pb(params, pb_data, HeadParams_fields, HeadParams_size)) { return false; }
+    if (!struct2pb(params, pb_data, HeadParams_fields)) { return false; }
 
-    set_head_params_pb(pb_data);
+    head_params.writeData(pb_data);
+    configure_temperature_processor();
     return true;
 }
 

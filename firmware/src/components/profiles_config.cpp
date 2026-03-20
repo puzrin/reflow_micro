@@ -12,7 +12,7 @@ auto ProfilesConfig::default_profiles_pb() -> etl::vector<uint8_t, ProfilesData_
 auto ProfilesConfig::get_profiles(etl::ivector<uint8_t>& pb_data) -> bool {
     lock();
     const bool status = get_profiles_unlocked(_scratch_profiles) &&
-        struct2pb(_scratch_profiles, pb_data, ProfilesData_fields, ProfilesData_size);
+        struct2pb(_scratch_profiles, pb_data, ProfilesData_fields);
     unlock();
     return status;
 }
@@ -52,7 +52,7 @@ auto ProfilesConfig::set_profiles_unlocked(const ProfilesData& profiles_config) 
     auto selection = profiles_config.selected_id;
     _scratch_profiles.selected_id = -1;
 
-    if (!struct2pb(_scratch_profiles, _scratch_pb, ProfilesData_fields, ProfilesData_size)) { return false; }
+    if (!struct2pb(_scratch_profiles, _scratch_pb, ProfilesData_fields)) { return false; }
 
     unselected_profiles_store.set(_scratch_pb);
     selection_store.set(selection);

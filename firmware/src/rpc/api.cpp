@@ -1,5 +1,3 @@
-#include <pb_encode.h>
-
 #include <algorithm>
 #include <array>
 
@@ -41,21 +39,6 @@ bool pairing_enabled_flag = false;
 auto is_pairing_enabled() -> bool { return pairing_enabled_flag; }
 
 auto bleAuthStore = BleAuthStore<4>(PrefsWriter::getInstance(), AsyncPreferenceKV::getInstance(), PREFS_NAMESPACE);
-
-template <typename T, size_t Size>
-auto encode_pb(const T& message, const pb_msgdesc_t* fields, etl::vector<uint8_t, Size>& output, size_t max_size) -> bool {
-    output.clear();
-    output.resize(max_size);
-
-    pb_ostream_t stream = pb_ostream_from_buffer(output.data(), output.size());
-    if (!pb_encode(&stream, fields, &message)) {
-        output.clear();
-        return false;
-    }
-
-    output.resize(stream.bytes_written);
-    return true;
-}
 
 auto auth_info_data(AuthBuffer& output, Session& session) -> bool {
     session.random = create_secret(); // renew hmac msg every time!
@@ -193,7 +176,7 @@ void get_status(const RpcParams& params, RpcResponse& response, Session&) {
     };
 
     etl::vector<uint8_t, DeviceInfo_size> buffer{};
-    if (!encode_pb(status, DeviceInfo_fields, buffer, DeviceInfo_size)) {
+    if (!struct2pb(status, buffer, DeviceInfo_fields)) {
         response.write_error("Failed to encode status");
         return;
     }
@@ -399,7 +382,7 @@ void get_ble_name(const RpcParams& params, RpcResponse& response, Session&) {
         return;
     }
 
-    auto name = ble_name_read();
+    const auto& name = ble_name_read();
     response.write_string(name.data(), name.size());
 }
 

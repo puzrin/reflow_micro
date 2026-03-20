@@ -1,4 +1,8 @@
 #include "step_response.hpp"
+#include <etl/format_spec.h>
+#include <etl/string.h>
+#include <etl/to_string.h>
+
 #include "heater/heater.hpp"
 #include "logger.hpp"
 
@@ -119,8 +123,13 @@ void StepResponse_State::task_iterator(int32_t time_ms) {
     float τ = 1.502069f * (t_63 - t_28);
     float L = 1.493523f * t_28 - 0.493523f * t_63;
 
-    const std::string τ_str = std::to_string(τ);
-    const std::string L_str = std::to_string(L);
+    etl::format_spec decimal_format;
+    decimal_format.precision(6);
+
+    etl::string<16> τ_str;
+    etl::string<16> L_str;
+    etl::to_string(τ, τ_str, decimal_format);
+    etl::to_string(L, L_str, decimal_format);
 
     float t_max = log[find_t_idx_of(1.0f)].temperature_x10 * 0.1f;
 
@@ -138,7 +147,8 @@ void StepResponse_State::task_iterator(int32_t time_ms) {
     // Linear fit over edge points gives twice lower value
     // float b0 = (c_63 - c_28) / ((t_63 - t_28) * du);
 
-    const std::string b0_str = std::to_string(b0);
+    etl::string<16> b0_str;
+    etl::to_string(b0, b0_str, decimal_format);
     APP_LOGI("  b0 = {}", b0_str.c_str());
 
     HeadParams p;

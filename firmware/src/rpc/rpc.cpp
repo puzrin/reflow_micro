@@ -33,7 +33,7 @@ public:
         auto it = sessions.find(conn_handle);
         if (it == sessions.end()) { return; }
 
-        const std::vector<uint8_t> chunk = pCharacteristic->getValue();
+        const auto& chunk = pCharacteristic->getValue();
         it->second->consumeChunk(chunk.data(), chunk.size());
     }
 
@@ -205,7 +205,7 @@ void ble_name_write(const BleName& name) {
     adv->refreshAdvertisingData();
 }
 
-BleName ble_name_read() {
+const BleName& ble_name_read() {
     return bleNameStore.get();
 }
 

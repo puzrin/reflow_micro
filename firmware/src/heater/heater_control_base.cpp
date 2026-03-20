@@ -49,7 +49,7 @@ void HeaterControlBase::get_history(int32_t client_history_version, float from, 
         history_chunk.data[i].y = static_cast<float>(data[from_idx + i].y) * history_y_multiplier_inv;
     }
 
-    struct2pb(history_chunk, pb_data, HistoryChunk_fields, HistoryChunk_size);
+    struct2pb(history_chunk, pb_data, HistoryChunk_fields);
     history.unlock();
 }
 

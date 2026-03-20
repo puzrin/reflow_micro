@@ -43,8 +43,6 @@ public:
     Head();
     void setup();
 
-    bool get_head_params_pb(EEBuffer& pb_data);
-    bool set_head_params_pb(const EEBuffer& pb_data);
     bool get_head_params_pb(etl::ivector<uint8_t>& pb_data);
     bool set_head_params_pb(const etl::ivector<uint8_t>& pb_data);
     bool get_head_params(HeadParams& params, bool skip_status_check = false);
