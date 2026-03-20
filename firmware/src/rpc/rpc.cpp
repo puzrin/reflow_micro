@@ -18,8 +18,8 @@ const char* SERVICE_UUID = "5f524546-4c4f-575f-5250-435f5356435f"; // _REFLOW_RP
 const char* RPC_CHARACTERISTIC_UUID = "5f524546-4c4f-575f-5250-435f494f5f5f"; // _REFLOW_RPC_IO__
 
 using ConnHandle = decltype(ble_gap_conn_desc::conn_handle);
-using SessionPool = etl::pool<Session, NIMBLE_MAX_CONNECTIONS>;
-using SessionMap = etl::map<ConnHandle, Session*, NIMBLE_MAX_CONNECTIONS>;
+using SessionPool = etl::pool<Session, MYNEWT_VAL(BLE_MAX_CONNECTIONS)>;
+using SessionMap = etl::map<ConnHandle, Session*, MYNEWT_VAL(BLE_MAX_CONNECTIONS)>;
 
 auto bleNameStore = AsyncPreference<BleName>(PrefsWriter::getInstance(), AsyncPreferenceKV::getInstance(), PREFS_NAMESPACE, "ble_name", BleName{"Reflow Table"});
 
@@ -98,10 +98,10 @@ public:
         pServer->updateConnParams(conn_handle, 0x06, 0x06, 0, 200);
 
         // Keep advertising active until we reach the connection limit.
-        if (pServer->getConnectedCount() < NIMBLE_MAX_CONNECTIONS) {
+        if (pServer->getConnectedCount() < MYNEWT_VAL(BLE_MAX_CONNECTIONS)) {
             NimBLEDevice::startAdvertising();
             APP_LOGI("BLE: Advertising restarted, connected {}/{}",
-                pServer->getConnectedCount(), NIMBLE_MAX_CONNECTIONS);
+                pServer->getConnectedCount(), MYNEWT_VAL(BLE_MAX_CONNECTIONS));
         }
     }
 
