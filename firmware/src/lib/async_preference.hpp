@@ -106,7 +106,18 @@ private:
 template <typename T, typename Serializer = void>
 class AsyncPreference : public AsyncPreferenceTickable {
 public:
-    AsyncPreference(IAsyncPreferenceWriter& writer, IAsyncPreferenceKV& kv, etl::string_view ns, etl::string_view key, const T& initial = T()) :
+    AsyncPreference(IAsyncPreferenceWriter& writer, IAsyncPreferenceKV& kv, etl::string_view ns, etl::string_view key) :
+        databox{}, kv{kv}, ns{ns}, key{key}, writer{writer}
+    {
+        writer.add(this);
+
+        // Force immediate preload on create.
+        // This will protect from collisions with writer, because such instances
+        // are created on program init, before writer starts.
+        preload();
+    }
+
+    AsyncPreference(IAsyncPreferenceWriter& writer, IAsyncPreferenceKV& kv, etl::string_view ns, etl::string_view key, const T& initial) :
         databox{initial}, kv{kv}, ns{ns}, key{key}, writer{writer}
     {
         writer.add(this);
