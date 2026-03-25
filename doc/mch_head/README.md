@@ -24,7 +24,7 @@ This BOM extends the default one; be sure to order it as well.
 
 - File `hotplate_80x70x2.8.step`
   - Material: Aluminum 6061.
-  - Surface Finish: "Anodizing" (Natural color, glossy).
+  - Surface Finish: "Anodizing" (Natural color, matte).
   - Comment: "Face mill both top and bottom flat surfaces. No raw stock surface acceptable."
 
 **MCH mounting (JLC3DP)**

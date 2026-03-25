@@ -49,14 +49,14 @@ difference() {
     dupe_x()
     translate([-plate_x/2 + 9, -20/2, e])
     mirror_x() mirror_z() ra_cube([30, 20, plate_z+1], r=5, center=false);
-    
+
 };
 
 // guides
 dupe_xy() {
     translate([stencil_x/2 + margin, stencil_y/2 - 6, -e])
-    ra_cube([guide_sze, guide_sze, guide_sze], r=0.3, center=false);
+    ra_cube([guide_sze, guide_sze, guide_sze+0.5], r=0.6, rtop=0.9, center=false);
 
     translate([stencil_x/2 - 6, stencil_y/2 + margin, -e])
-    ra_cube([guide_sze, guide_sze, guide_sze], r=0.3, center=false);
+    ra_cube([guide_sze, guide_sze, guide_sze+0.5], r=0.6, rtop=0.9, center=false);
 }
