@@ -64,10 +64,7 @@ https://oshwlab.com/puzrin/reflow-table-pd
      - Add this comment: "**Make marked blocks of holes (near top corners) on the stencil
        too. See doc layer for details.**". Otherwise, the positional holes might be missed.
 2. `cap`: 1.6 mm, white.
-3. `head_base_2R` / `head_base_7R`: 1.2 mm, white.
-   - Use either for the MCPCB heater. For the MCH-based heater, choose the
-     version that matches the MCH resistance. The difference is in the MCH
-     connection: series or parallel.
+3. `head_base_2R`: 1.2 mm, white.
 4. `head_reflector`: 1.6 mm, white.
 5. `mcpcb_heater`: aluminum, 1.6 mm, 1 oz.
    - Simple and cheap, but only up to 180°C.

@@ -17,8 +17,17 @@ This BOM extends the default one; be sure to order it as well.
 -------|------|--------
 1 | Hotplate and clamps | See details below.
 2 | M1.6 countersunk SS screws 8 mm (×6) | [EDLW-S1-M1.6-L8](https://jlcmc.com/product/s/E02/EDLW/gb-t-819-phillips-countersunk-head-screw?k=EDLW-S1-M1.6-L8&productModelNumber=EDLW-S1-M1.6-L8). MCH mount.
-3 | [MCH 70*14 2R / 7R (×2)](https://www.aliexpress.com/item/32966428374.html) | Two heaters are required; buy 5-10 so you can match their resistance. Note: the 10R variant is actually 7R, but that's not guaranteed. Also select the proper base-board variant for the MCH resistance. 7R is recommended for better heating performance.
-4 | [Thermally conductive paste](https://www.aliexpress.com/item/1005009116482403.html) | Note, paste should be durable at 250°C. Pastes from 3d printer hotends are good candidates.
+3 | [MCH 70*14 2R (×2)](https://www.aliexpress.com/item/32966428374.html) | Two heaters are required; buy 5-10 so you can match their resistance.
+4 | [Thermally conductive paste](https://www.aliexpress.com/item/1005009116482403.html) | [Alternate](https://www.aliexpress.com/item/1005011659620916.html) (more expensive, but up to 350°C).
+
+> [!NOTE]
+>
+> Thermal paste should be durable at 250°C (leaded profile rises to 230°C).
+> Pastes from 3D printer hotends are good candidates. Look for "Creality Thermal
+> Grease" (250°C) and "Creality High-Temperature Thermal Grease" (350°C) first.
+> Avoid computer pastes; their max temperature is not guaranteed even if
+> declared.
+
 
 **Hotplate (JLCCNC)**:
 
