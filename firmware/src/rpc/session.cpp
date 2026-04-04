@@ -1,16 +1,12 @@
 #include "session.hpp"
 
 #include "auth_utils.hpp"
-#include "logger.hpp"
 #include "rpc.hpp"
 
-Session::Session() {
+Session::Session(ConnHandle conn_handle)
+    : conn_handle(conn_handle) {
     setMessageHandler(Base::MessageHandler::create<Session, &Session::handleRpcMessage>(*this));
     random = create_secret();
-}
-
-Session::~Session() {
-    APP_LOGI("BLE: Session destroyed");
 }
 
 void Session::handleRpcMessage(const MessageBuffer& message, MessageBuffer& response) {

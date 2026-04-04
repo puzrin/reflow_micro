@@ -1,6 +1,5 @@
 #include <NimBLEDevice.h>
 
-#include <etl/map.h>
 #include <etl/pool.h>
 
 #include "api.hpp"
@@ -17,32 +16,78 @@ namespace {
 const char* SERVICE_UUID = "5f524546-4c4f-575f-5250-435f5356435f"; // _REFLOW_RPC_SVC_
 const char* RPC_CHARACTERISTIC_UUID = "5f524546-4c4f-575f-5250-435f494f5f5f"; // _REFLOW_RPC_IO__
 
-using ConnHandle = decltype(ble_gap_conn_desc::conn_handle);
+using ConnHandle = Session::ConnHandle;
 using SessionPool = etl::pool<Session, MYNEWT_VAL(BLE_MAX_CONNECTIONS)>;
-using SessionMap = etl::map<ConnHandle, Session*, MYNEWT_VAL(BLE_MAX_CONNECTIONS)>;
 
 auto bleNameStore = AsyncPreference<BleName>(PrefsWriter::getInstance(), AsyncPreferenceKV::getInstance(), PREFS_NAMESPACE, "ble_name", BleName{"Reflow Table"});
 
 SessionPool session_pool;
-SessionMap sessions;
+
+auto find_session(ConnHandle conn_handle) -> Session* {
+    for (auto it = session_pool.begin(); it != session_pool.end(); ++it) {
+        Session& session = it.get<Session>();
+        if (session.conn_handle == conn_handle) { return &session; }
+    }
+
+    return nullptr;
+}
+
+void remove_session(ConnHandle conn_handle) {
+    Session* session = find_session(conn_handle);
+    if (session == nullptr) { return; }
+    session_pool.destroy(session);
+}
+
+void clear_stale_sessions(NimBLEServer& server) {
+    for (auto it = session_pool.begin(); it != session_pool.end();) {
+        Session& session = it.get<Session>();
+        if (server.getPeerInfoByHandle(session.conn_handle).getConnHandle() == session.conn_handle) {
+            ++it;
+        } else {
+            APP_LOGI("BLE: stale session found, removing, conn_handle {}", session.conn_handle);
+            auto stale = it++;
+            session_pool.destroy(&stale.get<Session>());
+        }
+    }
+}
+
+auto ensure_session(ConnHandle conn_handle) -> Session* {
+    if (Session* session = find_session(conn_handle)) {
+        return session;
+    }
+
+    Session* session = session_pool.create(conn_handle);
+    if (session == nullptr) {
+        APP_LOGE("BLE: session create failed, allocation failed, conn_handle {}", conn_handle);
+        return nullptr;
+    }
+
+    return session;
+}
 
 class RpcCharacteristicCallbacks : public NimBLECharacteristicCallbacks {
 public:
     void onWrite(NimBLECharacteristic* pCharacteristic, NimBLEConnInfo& connInfo) override {
         ConnHandle conn_handle = connInfo.getConnHandle();
-        auto it = sessions.find(conn_handle);
-        if (it == sessions.end()) { return; }
+        Session* session = find_session(conn_handle);
+        if (session == nullptr) {
+            APP_LOGE("BLE: missing session on write, conn_handle {}", conn_handle);
+            return;
+        }
 
         const auto& chunk = pCharacteristic->getValue();
-        it->second->consumeChunk(chunk.data(), chunk.size());
+        session->consumeChunk(chunk.data(), chunk.size());
     }
 
     void onRead(NimBLECharacteristic* pCharacteristic, NimBLEConnInfo& connInfo) override {
         ConnHandle conn_handle = connInfo.getConnHandle();
-        auto it = sessions.find(conn_handle);
-        if (it == sessions.end()) { return; }
+        Session* session = find_session(conn_handle);
+        if (session == nullptr) {
+            APP_LOGE("BLE: missing session on read, conn_handle {}", conn_handle);
+            return;
+        }
 
-        const auto chunk = it->second->getResponseChunk();
+        const auto chunk = session->getResponseChunk();
         pCharacteristic->setValue(chunk.data, chunk.size);
     }
 };
@@ -51,41 +96,18 @@ class ServerCallbacks : public NimBLEServerCallbacks {
 public:
     void onConnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo) override {
         auto conn_handle = connInfo.getConnHandle();
+        clear_stale_sessions(*pServer);
 
-        if (sessions.find(conn_handle) != sessions.end()) {
-            APP_LOGE("BLE: duplicate conn_handle {} on connect, disconnecting", conn_handle);
+        // Always restart advertising to allow multiple clients
+        NimBLEDevice::startAdvertising();
+
+        APP_LOGI("BLE: Device connected, conn_handle {} (total {} of {})",
+            conn_handle, pServer->getConnectedCount(), MYNEWT_VAL(BLE_MAX_CONNECTIONS));
+
+        if (ensure_session(conn_handle) == nullptr) {
             pServer->disconnect(conn_handle);
             return;
         }
-
-        if (session_pool.full()) {
-            APP_LOGE("BLE: session pool full, disconnecting conn_handle {}", conn_handle);
-            pServer->disconnect(conn_handle);
-            return;
-        }
-
-        if (sessions.full()) {
-            APP_LOGE("BLE: session map full, disconnecting conn_handle {}", conn_handle);
-            pServer->disconnect(conn_handle);
-            return;
-        }
-
-        Session* session = session_pool.create();
-        if (session == nullptr) {
-            APP_LOGE("BLE: failed to allocate session, disconnecting conn_handle {}", conn_handle);
-            pServer->disconnect(conn_handle);
-            return;
-        }
-
-        const auto inserted = sessions.insert(SessionMap::value_type(conn_handle, session));
-        if (!inserted.second) {
-            APP_LOGE("BLE: failed to store session for conn_handle {}, disconnecting", conn_handle);
-            session_pool.destroy(session);
-            pServer->disconnect(conn_handle);
-            return;
-        }
-
-        APP_LOGI("BLE: Device connected, conn_handle {}", conn_handle);
 
         // For BLE 5 clients with DLE extension support - set data packet size to max.
         // This boosts transfer speed to ~ 45 Kb/sec for big transfers.
@@ -96,27 +118,13 @@ public:
         // Smaller intervals help with BLE 4 clients without DLE, but makes no sense
         // for BLE 5 clients with DLE.
         pServer->updateConnParams(conn_handle, 0x06, 0x06, 0, 200);
-
-        // Keep advertising active until we reach the connection limit.
-        if (pServer->getConnectedCount() < MYNEWT_VAL(BLE_MAX_CONNECTIONS)) {
-            NimBLEDevice::startAdvertising();
-            APP_LOGI("BLE: Advertising restarted, connected {}/{}",
-                pServer->getConnectedCount(), MYNEWT_VAL(BLE_MAX_CONNECTIONS));
-        }
     }
 
     void onDisconnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo, int reason) override {
         auto conn_handle = connInfo.getConnHandle();
-        APP_LOGI("BLE: Device disconnected, conn_handle {}", conn_handle);
-        auto it = sessions.find(conn_handle);
-        if (it == sessions.end()) {
-            APP_LOGE("BLE: missing session for conn_handle {} on disconnect", conn_handle);
-            return;
-        }
-
-        Session* session = it->second;
-        sessions.erase(it);
-        session_pool.destroy(session);
+        remove_session(conn_handle);
+        APP_LOGI("BLE: Device disconnected, conn_handle {}, reason {} (total {} of {})",
+            conn_handle, reason, pServer->getConnectedCount(), MYNEWT_VAL(BLE_MAX_CONNECTIONS));
     }
 
     void onMTUChange(uint16_t mtu, NimBLEConnInfo& connInfo) override {
