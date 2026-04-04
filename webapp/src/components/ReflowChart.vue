@@ -178,7 +178,8 @@ onUnmounted(() => {
   .pchart-probe-line {
     fill: none;
     stroke: rgb(var(--v-theme-error));
-    stroke-width: 2px;
+    filter: drop-shadow(0 0 4px rgb(var(--v-theme-error)));
+    stroke-width: 4px;
     stroke-linejoin: round;
     stroke-linecap: round;
   }
