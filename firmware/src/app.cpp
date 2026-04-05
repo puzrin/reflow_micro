@@ -60,9 +60,8 @@ void App::setup() {
 
     showIdleBackground();
 
-    // Temporary
-    showLedTest();
-    beepTaskSucceeded();
+    showStartup();
+    beepStartup();
 }
 
 void App::showIdleBackground() {
@@ -90,7 +89,7 @@ void App::showReflowStart() {
     blinker.once({{LCD_OFF, 200}, {LCD_WARM_COLOR, 300}, {LCD_OFF, 200}});
 }
 
-void App::showLedTest() {
+void App::showStartup() {
     blinker.once({
         {LCD_OK_COLOR, 150},
         {LCD_WARM_COLOR, 150},
@@ -117,6 +116,10 @@ void App::beepTaskSucceeded() {
 
 void App::beepTaskTerminated() {
     buzzer.play(":d=32,o=6,b=200:g,f#,f,e,d#,8d"_rtttl2tones);
+}
+
+void App::beepStartup() {
+    buzzer.play(":d=32,o=5,b=300:c6,c7"_rtttl2tones);
 }
 
 void App::message_consumer_loop() {

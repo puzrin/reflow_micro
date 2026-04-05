@@ -86,13 +86,14 @@ public:
     void showLongPressProgress();
     void showBondingLoop();
     void showReflowStart();
-    void showLedTest();
+    void showStartup();
     void showOff();
 
     void beepButtonPress();
     void beepTaskStarted();
     void beepTaskSucceeded();
     void beepTaskTerminated();
+    void beepStartup();
 
 private:
     SemaphoreHandle_t message_lock{xSemaphoreCreateMutex()};
