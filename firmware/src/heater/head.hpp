@@ -62,6 +62,7 @@ public:
     DataGuard<EEBuffer> head_params{};
     TemperatureProcessor temperature_processor_rtd{};
     TemperatureProcessor temperature_processor_tcr{};
+    uint8_t probe_fail_count{0};
 
 private:
     void task_loop();

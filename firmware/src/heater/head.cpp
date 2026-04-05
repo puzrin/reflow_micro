@@ -15,6 +15,7 @@
 Head head;
 
 static constexpr uint32_t TASK_TICK_MS = 200;
+static constexpr uint8_t DETACH_PROBE_FAIL_THRESHOLD = 3;
 
 using afsm::state_id_t;
 
@@ -84,15 +85,27 @@ public:
         APP_LOGI("Head: Attached");
 
         head.head_status.store(HeadStatus_HEAD_CONNECTED);
+        head.probe_fail_count = 0;
         return No_State_Change;
     }
 
     static auto on_run_state(Head& head) -> state_id_t {
-        if (!head.eeprom_store.probe()) {
-            return HeadState::Detached;
+        if (head.eeprom_store.probe()) {
+            head.probe_fail_count = 0;
+            return No_State_Change;
         }
 
-        return No_State_Change;
+        if (head.probe_fail_count < DETACH_PROBE_FAIL_THRESHOLD) {
+            ++head.probe_fail_count;
+        }
+
+        APP_LOGI("Head: EEPROM probe failed, attempts={}", head.probe_fail_count);
+
+        if (head.probe_fail_count < DETACH_PROBE_FAIL_THRESHOLD) {
+            return No_State_Change;
+        }
+
+        return HeadState::Detached;
     }
 
     static void on_exit_state(Head&) {}
