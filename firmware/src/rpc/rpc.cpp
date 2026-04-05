@@ -188,8 +188,6 @@ void ble_init() {
     );
     rpc_characteristic->setCallbacks(new RpcCharacteristicCallbacks());
 
-    service->start();
-
     // Configure advertising. Since we should support legacy (v4) clients,
     // we have only "normal" advertising + scan response (31 + 32 bytes),
     // to place data records.
