@@ -147,8 +147,12 @@ void ble_init() {
     // But we still need it in advertisement, to show in device selection dialog
     // BEFORE device been connected.
     NimBLEDevice::init(nimble_name);
-    NimBLEDevice::setPower(9); // Set the power level to maximum, 9dbm for esp32-c3
-    // By default NimBLE already set MTU tu 255. No need to tune it manually.
+
+    // Above 3db consupmption increeases significantly
+    NimBLEDevice::setPower(3);
+    APP_LOGI("BLE Power is {}", NimBLEDevice::getPower());
+
+    // By default NimBLE already set MTU to 255. No need to tune it manually.
     // That's enough for 244 bytes read/write to long characteristics.
     // 244 bytes "chunk" - optimal to fit into 1 DLE data packet (251 bytes max).
     // This minimizes overheads and maximizes speed. Alternate value is 495 bytes,
