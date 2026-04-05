@@ -41,7 +41,7 @@ Use cases:
 
 > [!NOTE]
 >
-> This project is not unique on the market, but its feature balance is tuned
-> for enjoyable hobby use and learning. The goal is to be practical and to show
-> that building modern electronics at home is entirely doable, even for
-> beginners.
+> This project was built to set a higher standard in this class. It also shows
+> beginners that the technologies behind modern electronics are accessible
+> today. Even at home, it is now possible to build complex devices that match
+> factory-made products, and in some cases go beyond them.
