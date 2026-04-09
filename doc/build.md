@@ -9,17 +9,16 @@ Device build <!-- omit in toc -->
 
 ## PCB assembly
 
-Pin the SMT stencil and PCB to a silicone pad with a loop of 22 AWG wire. Any
-soft surface works (beer cork pads are great too).
+Use 1 mm locating pins to position the SMT stencil on the PCB. Spread the
+solder paste. Apply enough paste to sweep it through the stencil in a single
+pass with a plastic card.
 
-Spread solder paste. Load enough paste so you can sweep it through the stencil
-in a single pass with a plastic card. Multiple passes tend to overload the
-openings and can short nearby pins.
+<img src="./images/pcb_with_stencil.jpg" width="30%"> <img src="./images/pcb_with_paste.jpg" width="30%">
 
 Place the SMD parts and solder everything with a hot-air gun. Inspect the board
 and fix any issues with a soldering iron and flux. If you're going to wash the
-PCB in an ultrasonic bath, leave the buzzer off until after cleaning so it
-stays safe.
+PCB in an ultrasonic bath, leave the buzzer off until after cleaning to keep it
+safe.
 
 Then solder the heating head connectors to the top side of the PCB. Also solder
 the USB connector shell tabs.
@@ -40,9 +39,9 @@ screws.
 ## Firmware upload
 
 1. Install [VS Code](https://code.visualstudio.com/).
-2. Clone this repo or download the zip archive and unpack it anywhere.
+2. Clone this repo or download the ZIP archive and unpack it anywhere.
 3. Open the `firmware/` folder. When VS Code prompts you to install extensions,
-   accept everything so PlatformIO and the dependencies are installed.
+   accept the prompts so PlatformIO and its dependencies are installed.
 4. Connect a USB cable to the internal debug connector (next to the LED/button).
 5. In VS Code, open the PlatformIO tab (left sidebar), then run
    `PROJECT TASKS` -> `main` -> `General` -> `Upload`. Wait for the build to
@@ -84,9 +83,9 @@ countersink.
 Then install the rest of the hotplate components.
 
 - Use 217°C RoHS paste for this step.
-- Use AWG 26 (0.4 mm diameter) copper wire for the power lines. A small cross-section is
-  required to keep heat transfer low.
-- Tin the wire first, then solder it to the hotplate.
+- Use AWG 26 (0.4 mm diameter) copper wire for the power lines. The small
+  cross-section helps keep heat transfer low.
+- If wire is not tinned - tin it first, then solder to the hotplate.
 - Use a large iron tip at 350°C to provide enough heat.
 - Clean the flux with IPA.
 - Install the corner screws with spring washers.
@@ -128,7 +127,7 @@ Install the silicone feet on the bottom of the case.
 
 <img src="./images/case_tray_pads.jpg" width="30%">
 
-Connect the main PCB and the cover with screws.
+Attach the main PCB to the cover PCB with a screw.
 
 TBD image.
 
@@ -136,16 +135,16 @@ Place the button, nuts, and magnets into the tray.
 
 TBD image.
 
-Then mount the main board and its cover with the 8 mm screws.
+Then mount the main board and its cover in the tray with the 10 mm screws.
 
 <img src="./images/table_base.jpg" width="30%">
 
 ### Cap <!-- omit in toc -->
 
-Install the magnetic screws (black) into the cap and ensure it closes without a
-gap. The easiest way:
+Install the magnetic screws (black) in the cap and ensure it closes without a
+gap. The easiest way is:
 
-- Measure the magnet height above the tray case with calipers.
+- Measure the magnet height above the tray with calipers.
 - Set the screw-head depth to the same value plus 0.1 mm of clearance.
 - For a nylon case, just screw them in.
 - For an SLA case, stack three layers of electrical tape, cut a 3 mm-wide

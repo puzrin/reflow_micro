@@ -89,6 +89,8 @@ with a wire connector:
 - Swap MCH heaters and record the resistance of each one.
 - Sort by resistance and select the best-matched pairs.
 
+<img src="./images/mch_meter.jpg" width="30%">
+
 > [!TIP]
 >
 > - Make sure the wire lengths are similar for all MCHs when measuring.
@@ -158,4 +160,4 @@ Install the foil and frame on the hotplate.
 Assemble and mount the base board the same way as described in the
 [main build guide](../build.md).
 
-<img src="./images/head_bottom.jpg" width="30%">
+<img src="./images/head_bottom.jpg" width="30%"> <img src="./images/table_opened_mch.jpg" width="30%">
