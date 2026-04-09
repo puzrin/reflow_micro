@@ -10,6 +10,8 @@ Reflow Micro Table
   Schematic & PCB. Order almost everything in a couple of clicks.
 - [Hackaday.io](https://hackaday.io/project/204503-reflow-micro-table) page.
 
+<a href="https://youtu.be/T4WtuRg7m8I"><img src="./doc/images/video_cover.jpg" width="60%"></a>
+
 <img src="./doc/images/table_opened.jpg" width="20%"> <img src="./doc/images/table_closed.jpg" width="20%"> <img src="./doc/images/table_base.jpg" width="20%"><br />
 <img src="./doc/images/pcb_main_bottom.jpg" width="20%"> <img src="./doc/mch_head/images/head_bottom.jpg" width="20%"> <img src="./doc/mch_head/images/head_hotplate_mch_bottom.jpg" width="20%">
 
