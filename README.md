@@ -12,9 +12,6 @@ Reflow Micro Table
 
 <a href="https://youtu.be/T4WtuRg7m8I?t=55"><img src="./doc/images/video_cover.jpg" width="60%"></a>
 
-<img src="./doc/images/table_opened_working.jpg" width="20%"> <img src="./doc/images/table_closed.jpg" width="20%"> <img src="./doc/images/table_base.jpg" width="20%"><br />
-<img src="./doc/images/pcb_main_bottom.jpg" width="20%"> <img src="./doc/mch_head/images/head_bottom.jpg" width="20%"> <img src="./doc/mch_head/images/head_hotplate_mch_bottom.jpg" width="20%">
-
 
 ## Description
 
@@ -40,6 +37,9 @@ Use cases:
 - Pre-heating (130-150°C) for hot air work.
 - Reflow soldering with Sn63Pb37 (183°C) paste using the MCH-based head.
 - Other tinkering, like drying parts or baking paint.
+
+<img src="./doc/images/table_opened_working.jpg" width="20%"> <img src="./doc/images/table_closed.jpg" width="20%"> <img src="./doc/images/table_base.jpg" width="20%"><br />
+<img src="./doc/images/pcb_main_bottom.jpg" width="20%"> <img src="./doc/mch_head/images/head_bottom.jpg" width="20%"> <img src="./doc/mch_head/images/head_hotplate_mch_bottom.jpg" width="20%">
 
 > [!NOTE]
 >
