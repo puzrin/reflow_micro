@@ -19,7 +19,7 @@ cap_screw_head_h = 1.7 // screw head height
 // PCB mount holes
 pcb_mount_x_offset = 3.0;
 pcb_mount_y_offset = 25;
-pcb_mount_zw = 3.0;
+pcb_mount_zw = 4.0;
 
 // !!! Measure magnets height before case order.
 // Magnets from Aliexpress can be smaller than declared size
