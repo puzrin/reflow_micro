@@ -26,6 +26,8 @@ const builds = {
   tray: ['case.scad', '-D DRAW_TRAY=1'],
   tray_debug: ['case.scad', '-D DRAW_TRAY=1 -D make_debug_hole=1'],
   cap_sla: ['case.scad', '-D DRAW_CAP=1'],
+  //cap_sla_31: ['case.scad', '-D DRAW_CAP=1 -D cap_screw_hole_d=3.1'],
+  //cap_sla_32: ['case.scad', '-D DRAW_CAP=1 -D cap_screw_hole_d=3.2'],
   cap_mjf_pa12: ['case.scad', '-D DRAW_CAP=1 -D cap_screw_hole_d=2.6'],
   button: ['case.scad', '-D DRAW_BTN=1'],
   air_duct_pi5_top: ['air_duct_pi5.scad', '-D draw_top=1'],
