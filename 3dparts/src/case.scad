@@ -66,7 +66,8 @@ cap_stiffener_w = 4.4;
 // Set btn height to make hole h = 3mm. For easy cleanup with drill bit.
 btn_h = 3.3; // 3.5mm - 2*margin
 btn_w = 9.8;
-btn_margin = 0.1;
+btn_margin_h = 0.15;
+btn_margin_w = 0.2;
 btn_marks = 1; // to visually distinguish sizes
 btn_protrusion = 1.5;
 
@@ -75,11 +76,6 @@ btn_pusher_base_w = 1.5;
 btn_pusher_pcb_depth = 6;
 
 led_h = 0.85; // 0.5...0.6 for different models
-
-module case_left(ofs = 0) { tr_x(ofs - case_wx/2) children(); }
-module case_right(ofs = 0) { tr_x(ofs + case_wx/2) children(); }
-module case_front(ofs = 0) { tr_y(ofs - case_wy/2) children(); }
-module case_back(ofs = 0) { tr_y(ofs + case_wy/2) children(); }
 
 // esp32 - 3.2mm, USB - 3.26mm
 assert(tray_inner_h > 3.5, "Not enough room for PCB components");
@@ -267,28 +263,28 @@ module _tray_base() {
         usb_hole();
 
         // Button hole
-        case_front(wall_side+pcb_support_w+e) tr_z(tray_h/2)
+        btn_hole_w = btn_w + 2*btn_margin_w;
+        btn_hole_h = btn_h + 2*btn_margin_h;
+        btn_hole_wall = wall_side + pcb_support_w;
+        tr_y(-case_wy/2 + wall_side+pcb_support_w + e)
+        tr_z(tray_h/2)
         rotate_x(90)
-        ra_cube(
-            [btn_w + 2*btn_margin, btn_h + 2*btn_margin, wall_side+pcb_support_w+2*e],
-            r=btn_h/2+btn_margin, fn=$ra_fn
-        );
+        union () {
+            // Straight hole
+            ra_cube([btn_hole_w, btn_hole_h, btn_hole_wall+2*e],
+                r=btn_hole_h/2, fn=$ra_fn);
+            // Entry cone for easier button insert
+            hull () {
+                entry_h = btn_hole_h + 0.7*2;
+                entry_w = btn_hole_w + 0.7*2;
+                ra_cube([entry_w, entry_h, 0.02], r=entry_h/2, fn=$ra_fn);
+                ra_cube([btn_hole_w, btn_hole_h, btn_hole_wall - 1],
+                    r=btn_hole_h/2, fn=$ra_fn);
+            }
+        };
 
         // Bottom heels
         dupe_xy() tr_xy(case_wx/2 - 7.5, case_wy/2 - 7.5) tr_z(-e) cylinder(h=0.6, d=6.2);
-
-        // Extra space for fan mounting
-        /*for (i = fan_mount_coords) {
-            tr_xy(5, -15)
-            translate(i)
-            tr_z(wall_hor+e) mirror_z() {
-                cylinder(h=0.5, d=4.5);
-                //cylinder(h=1.1, d=4.5);
-            }
-        }*/
-
-        // Partially remove stiffeners for the Pi 5 fan connector
-        //tr_xy(-pcb_wx/2 + 68.5, -pcb_wy/2 + 21) tr_z(wall_hor) cylinder(h=3, r=7);
     }
 }
 
@@ -311,17 +307,6 @@ module tray() {
             tr_x(btn_pusher_w/2 + 0.25)
             tr_y(-pcb_wy/2 + btn_pusher_pcb_depth + 1)
             mirror_y() cube([2, 4, 1.7]);
-
-            // Stiffeners
-            /*mirror_x() tr_x(9) stiffener_x(pcb_wx/2 - 9, false);
-            dupe_y() tr_y(20) stiffener_x(pcb_wx);
-
-            tr_x(-9) stiffener_y(pcb_wy);
-            tr_x(-27) stiffener_y(pcb_wy);
-            dupe_y() {
-                tr_xy(9, 20) stiffener_y(pcb_wy/2-20, false);
-                tr_xy(27, 20) stiffener_y(pcb_wy/2-20, false);
-            }*/
         }
 
         magnet_supports_remove();
@@ -379,15 +364,6 @@ module cap() {
                 tr_z(-gap)
                     ra_cube([pcb_wx, pcb_wy, e], pcb_r, 0, 0, fn=$ra_fn);
             }
-            /*tr_z(cap_h+e)
-            mirror_z()
-            linear_extrude(gap, scale=[pcb_wx/(pcb_wx + gap*2), 1])
-            square([pcb_wx + gap*2, pcb_wy-2*(magnet_d/2+pcb_support_w)], center=true);
-
-            tr_z(cap_h+e)
-            mirror_z()
-            linear_extrude(gap, scale=[1, pcb_wy/(pcb_wy + gap*2)])
-            square([pcb_wx-2*(magnet_d/2+pcb_support_w), pcb_wy + gap*2], center=true);*/
 
             tr_z(-e)
             rotate_z(90)
