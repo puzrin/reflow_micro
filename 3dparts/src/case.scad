@@ -7,7 +7,7 @@ $ra_fn = $preview ? 3 : 16;
 
 make_debug_hole = 0;
 
-cap_screw_hole_d = 3.3;
+cap_screw_hole_d = 3.2;
 cap_screw_hole_selftap = 2.6;
 
 cap_screw_axis_offset = 3.15;

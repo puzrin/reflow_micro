@@ -145,11 +145,11 @@ Install the magnetic screws (black) in the cap and ensure it closes without a
 gap. The easiest way is:
 
 - Measure the magnet height above the tray with calipers.
-- Set the screw-head depth to the same value plus 0.1 mm of clearance.
+- Set the screw-head depth to the same value plus 0.1 mm of clearance (~ 2.4 mm).
 - For a nylon case, just screw them in.
-- For an SLA case, stack three layers of electrical tape, cut a 3 mm-wide
+- For an SLA case, stack two layers of electrical tape, cut a 5 mm-wide
   strip, place it inside the screw hole as a shim, then drive the screw in.
-  You can add a drop of glue afterward, but it is not required.
+  You can add a drop of glue afterward, but it is not mandatory.
 
 TBD image
 
