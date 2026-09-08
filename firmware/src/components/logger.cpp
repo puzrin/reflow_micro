@@ -2,16 +2,13 @@
 #include <freertos/task.h>
 #include "rom/ets_sys.h"
 #include "logger.hpp"
+#include "time.hpp"
 #include "hal/usb_serial_jtag_ll.h"
 
 static jetlog::RingBuffer<10000> ringBuffer;
 
-Logger logger(ringBuffer);
+LogWriter logger(ringBuffer, Time::now);
 LogReader logReader(ringBuffer);
-
-auto Logger::getTime() -> uint32_t {
-    return Time::now();
-}
 
 void LogReader::writeLogHeader(etl::istring& output, uint32_t timestamp, const etl::string_view& tag, uint8_t level) {
     // Add log level

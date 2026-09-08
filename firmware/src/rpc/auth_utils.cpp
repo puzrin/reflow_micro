@@ -1,29 +1,31 @@
 #include <string>
 #include <array>
-#include <mbedtls/md.h>
+#include <psa/crypto.h>
 #include "esp_random.h"
 #include "esp_mac.h"
 
 auto hmac_sha256(const std::array<uint8_t, 32>& message, const std::array<uint8_t, 32>& key) -> std::array<uint8_t, 32> {
     std::array<uint8_t, 32> output = {0};
 
-    mbedtls_md_context_t ctx;
-    const mbedtls_md_info_t *info;
+    constexpr auto algorithm = PSA_ALG_HMAC(PSA_ALG_SHA_256);
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_HMAC);
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_SIGN_MESSAGE);
+    psa_set_key_algorithm(&attributes, algorithm);
 
-    mbedtls_md_init(&ctx);
-    info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
-    mbedtls_md_setup(&ctx, info, 1);
+    mbedtls_svc_key_id_t key_id{};
+    auto status = psa_import_key(&attributes, key.data(), key.size(), &key_id);
+    psa_reset_key_attributes(&attributes);
+    if (status != PSA_SUCCESS) { return output; }
 
-    if (mbedtls_md_get_size(info) != output.size()) {
-        mbedtls_md_free(&ctx);
-        return output;
+    size_t output_length = 0;
+    status = psa_mac_compute(key_id, algorithm, message.data(), message.size(),
+                             output.data(), output.size(), &output_length);
+    auto destroy_status = psa_destroy_key(key_id);
+
+    if (status != PSA_SUCCESS || destroy_status != PSA_SUCCESS || output_length != output.size()) {
+        output.fill(0);
     }
-
-    mbedtls_md_hmac_starts(&ctx, key.data(), key.size());
-    mbedtls_md_hmac_update(&ctx, message.data(), message.size());
-    mbedtls_md_hmac_finish(&ctx, output.data());
-
-    mbedtls_md_free(&ctx);
     return output;
 }
 

@@ -128,8 +128,8 @@ void StepResponse_State::task_iterator(int32_t time_ms) {
 
     etl::string<16> τ_str;
     etl::string<16> L_str;
-    etl::to_string(τ, τ_str, decimal_format);
-    etl::to_string(L, L_str, decimal_format);
+    etl::to_string(static_cast<double>(τ), τ_str, decimal_format);
+    etl::to_string(static_cast<double>(L), L_str, decimal_format);
 
     float t_max = log[find_t_idx_of(1.0f)].temperature_x10 * 0.1f;
 
@@ -148,7 +148,7 @@ void StepResponse_State::task_iterator(int32_t time_ms) {
     // float b0 = (c_63 - c_28) / ((t_63 - t_28) * du);
 
     etl::string<16> b0_str;
-    etl::to_string(b0, b0_str, decimal_format);
+    etl::to_string(static_cast<double>(b0), b0_str, decimal_format);
     APP_LOGI("  b0 = {}", b0_str.c_str());
 
     HeadParams p;

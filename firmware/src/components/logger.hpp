@@ -1,13 +1,8 @@
 #pragma once
 
 #include <jetlog/jetlog.hpp>
-#include "time.hpp"
 
-class Logger : public jetlog::Writer<> {
-public:
-    Logger(jetlog::IRingBuffer& buf) : jetlog::Writer<>(buf) {}
-    auto getTime() -> uint32_t override;
-};
+using LogWriter = jetlog::Writer<>;
 
 class LogReader : public jetlog::Reader<> {
 public:
@@ -15,7 +10,7 @@ public:
     void writeLogHeader(etl::istring& output, uint32_t timestamp, const etl::string_view& tag, uint8_t level) override;
 };
 
-extern Logger logger;
+extern LogWriter logger;
 void logger_start();
 
 #define APP_LOGE(...) logger.push("app", jetlog::level::error, __VA_ARGS__)

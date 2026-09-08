@@ -8,6 +8,7 @@
 // PWM2+PWM3 / T2: Buzzer
 //
 
+#include "driver/gpio.h"
 #include "driver/ledc.h"
 
 class Fan {

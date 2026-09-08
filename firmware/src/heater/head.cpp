@@ -188,7 +188,6 @@ void Head::adc_init() {
     dig_cfg.adc_pattern = adc_pattern;
     dig_cfg.sample_freq_hz = adc_sample_freq_hz;
     dig_cfg.conv_mode = ADC_CONV_SINGLE_UNIT_1;
-    dig_cfg.format = ADC_DIGI_OUTPUT_FORMAT_TYPE2;
     ESP_ERROR_CHECK(adc_continuous_config(adc_handle, &dig_cfg));
 
     // Setup calibration

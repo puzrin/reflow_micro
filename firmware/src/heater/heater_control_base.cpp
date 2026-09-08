@@ -1,4 +1,4 @@
-#include <cmath>
+#include <math.h>
 #include <algorithm>
 
 #include "heater_control_base.hpp"
