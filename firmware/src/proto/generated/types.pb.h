@@ -25,11 +25,6 @@ typedef enum _ConstantsBase {
     HISTORY_ID_STEP_RESPONSE = 4002
 } ConstantsBase;
 
-typedef enum _SensorType {
-    SensorType_RTD = 0, /* Standalone PT100 */
-    SensorType_TCR = 1 /* Indirect measurement via heater's TCR (copper: 0.39%/°C, tungsten: 0.45%/°C) */
-} SensorType;
-
 typedef enum _HeadStatus {
     HeadStatus_HEAD_DISCONNECTED = 0,
     HeadStatus_HEAD_INITIALIZING = 1,
@@ -152,10 +147,6 @@ extern "C" {
 #define ConstantsBase_HISTORY_ID_SENSOR_BAKE_MODE HISTORY_ID_SENSOR_BAKE_MODE
 #define ConstantsBase_HISTORY_ID_ADRC_TEST_MODE HISTORY_ID_ADRC_TEST_MODE
 #define ConstantsBase_HISTORY_ID_STEP_RESPONSE HISTORY_ID_STEP_RESPONSE
-
-#define _SensorType_MIN SensorType_RTD
-#define _SensorType_MAX SensorType_TCR
-#define _SensorType_ARRAYSIZE ((SensorType)(SensorType_TCR+1))
 
 #define _HeadStatus_MIN HeadStatus_HEAD_DISCONNECTED
 #define _HeadStatus_MAX HeadStatus_HEAD_ERROR

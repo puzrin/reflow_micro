@@ -60,8 +60,7 @@ Start by positioning the head connector accurately.
 
 <img src="./images/head_base_connector1.jpg" width="30%"> <img src="./images/head_base_connector2.jpg" width="30%">
 
-Remove the head base, populate the remaining components, and solder them. Short
-the RTD pins to enable the TCR-based temperature sensor.
+Remove the head base, populate the remaining components, and solder them.
 
 <img src="./images/head_base_bottom.jpg" width="30%">
 

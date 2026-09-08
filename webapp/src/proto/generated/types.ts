@@ -27,14 +27,6 @@ export enum ConstantsBase {
   UNRECOGNIZED = -1,
 }
 
-export enum SensorType {
-  /** RTD - Standalone PT100 */
-  RTD = 0,
-  /** TCR - Indirect measurement via heater's TCR (copper: 0.39%/°C, tungsten: 0.45%/°C) */
-  TCR = 1,
-  UNRECOGNIZED = -1,
-}
-
 export enum HeadStatus {
   HEAD_DISCONNECTED = 0,
   HEAD_INITIALIZING = 1,

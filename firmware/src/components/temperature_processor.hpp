@@ -2,11 +2,12 @@
 
 #include <stdint.h>
 
-#include "proto/generated/types.pb.h"
 #include "lib/pt100.hpp"
 
 class TemperatureProcessor {
 public:
+    enum SensorType { RTD, TCR };
+
     // Defaults to use when lack of calibration points data
     static constexpr uint32_t TCR_R_DEFAULT = 3000; // in mohms
     static constexpr int32_t TCR_T_REF_DEFAULT_X10 = 25 * 10; // in Celsius * 10
@@ -26,13 +27,13 @@ public:
         rebuild();
     }
 
-    int32_t get_temperature_x10(uint32_t sensor_value) {
-        if (sensor_type == SensorType_RTD) { return get_rtd_temperature_x10(sensor_value); }
+    int32_t get_temperature_x10(uint32_t sensor_value) const {
+        if (sensor_type == RTD) { return get_rtd_temperature_x10(sensor_value); }
         else { return get_tcr_temperature_x10(sensor_value); }
     }
 
 private:
-    SensorType sensor_type{SensorType_RTD};
+    SensorType sensor_type{TCR};
     // Calibration points
     float p0_at{0.0f};
     float p0_value{0.0f};
@@ -157,7 +158,7 @@ private:
     }
 
     void rebuild() {
-        if (sensor_type == SensorType_RTD) { prepare_rtd_coeffs(); }
+        if (sensor_type == RTD) { prepare_rtd_coeffs(); }
         else { prepare_tcr_coeffs(); }
     }
 };

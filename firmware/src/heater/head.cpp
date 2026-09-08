@@ -1,6 +1,3 @@
-#include <esp_check.h>
-#include <esp_adc/adc_cali_scheme.h>
-#include <soc/soc_caps.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
@@ -8,7 +5,6 @@
 #include "components/pb2struct.hpp"
 #include "head.hpp"
 #include "logger.hpp"
-#include "lib/pt100.hpp"
 #include "power.hpp"
 #include "proto/generated/defaults.hpp"
 
@@ -70,7 +66,7 @@ public:
             );
         }
 
-        // Configure temperature processors with calibration
+        // Configure temperature processor with calibration
         head.configure_temperature_processor();
 
         return HeadState::Attached;
@@ -118,14 +114,12 @@ using HEAD_STATES = afsm::state_pack<
 >;
 
 Head::Head() {
-    // Don't start the FSM here, because it requires ADC and I2C setup.
+    // Don't start the FSM here, because it requires I2C setup.
     set_states<HEAD_STATES>(afsm::Uninitialized);
 }
 
 void Head::setup() {
     i2c_init();
-    // Configure ADC on IO4 (ADC1_CH4)
-    adc_init();
     // Now we can start the FSM.
     change_state(HeadState::Detached);
 
@@ -147,147 +141,8 @@ void Head::task_loop() {
         }
     }
 
-    update_sensor_uv();
-
     // Run state machine
     run();
-}
-
-void Head::adc_init() {
-    // Calculate derived parameters
-    constexpr uint32_t adc_sample_freq_hz = TEMPERATURE_SAMPLE_FREQ_HZ * ADC_OVERSAMPLING_COUNT;
-    constexpr uint32_t conv_frame_size = ADC_OVERSAMPLING_COUNT * SOC_ADC_DIGI_RESULT_BYTES;
-    constexpr uint32_t dma_buffer_size = conv_frame_size * 2;
-
-    // Compile-time checks for hardware limits
-    static_assert(adc_sample_freq_hz <= SOC_ADC_SAMPLE_FREQ_THRES_HIGH,
-                  "ADC sample frequency exceeds hardware limit");
-    static_assert(adc_sample_freq_hz >= SOC_ADC_SAMPLE_FREQ_THRES_LOW,
-                  "ADC sample frequency below hardware limit");
-    static_assert(conv_frame_size % SOC_ADC_DIGI_RESULT_BYTES == 0,
-                  "Frame size must be multiple of SOC_ADC_DIGI_RESULT_BYTES");
-    static_assert(ADC_OVERSAMPLING_COUNT >= 10,
-                  "Too few samples for meaningful averaging");
-
-    // Create ADC handle
-    adc_continuous_handle_cfg_t adc_config{};
-    adc_config.max_store_buf_size = dma_buffer_size;
-    adc_config.conv_frame_size = conv_frame_size;
-    adc_config.flags.flush_pool = 0;
-    ESP_ERROR_CHECK(adc_continuous_new_handle(&adc_config, &adc_handle));
-
-    // Configure ADC
-    adc_digi_pattern_config_t adc_pattern[1]{};
-    adc_pattern[0].atten = ADC_ATTEN_DB_0;
-    adc_pattern[0].channel = ADC_CHANNEL_4;
-    adc_pattern[0].unit = ADC_UNIT_1;
-    adc_pattern[0].bit_width = ADC_BITWIDTH_12;
-
-    adc_continuous_config_t dig_cfg{};
-    dig_cfg.pattern_num = 1;
-    dig_cfg.adc_pattern = adc_pattern;
-    dig_cfg.sample_freq_hz = adc_sample_freq_hz;
-    dig_cfg.conv_mode = ADC_CONV_SINGLE_UNIT_1;
-    ESP_ERROR_CHECK(adc_continuous_config(adc_handle, &dig_cfg));
-
-    // Setup calibration
-    adc_cali_curve_fitting_config_t cf{};
-    cf.unit_id = ADC_UNIT_1;
-    cf.chan = ADC_CHANNEL_4;
-    cf.atten = ADC_ATTEN_DB_0;
-    cf.bitwidth = ADC_BITWIDTH_12;
-    ESP_ERROR_CHECK(adc_cali_create_scheme_curve_fitting(&cf, &adc_cali_handle));
-
-    // Build ADC calibration lookup table with sub-mV interpolation
-    build_adc_lut();
-
-    // Register callback
-    adc_continuous_evt_cbs_t cbs{};
-    cbs.on_conv_done = adc_conv_done_callback;
-    cbs.on_pool_ovf = nullptr;
-    ESP_ERROR_CHECK(adc_continuous_register_event_callbacks(adc_handle, &cbs, this));
-
-    // Start continuous conversion
-    ESP_ERROR_CHECK(adc_continuous_start(adc_handle));
-}
-
-void Head::build_adc_lut() {
-    int prev_mV = 0;
-    adc_cali_raw_to_voltage(adc_cali_handle, 0, &prev_mV);
-
-    uint32_t last_transition_idx = 0;
-    size_t grid_point = 0;
-
-    for (uint32_t raw = 1; raw <= 4095; raw++) {
-        int mV = 0;
-        adc_cali_raw_to_voltage(adc_cali_handle, raw, &mV);
-
-        if (mV != prev_mV) {
-            last_transition_idx = raw;
-            prev_mV = mV;
-        }
-
-        uint32_t next_grid_idx = (grid_point * 4095) / (ADC_INTERPOLATOR_LUT_SIZE_MAX - 1);
-
-        if (raw >= next_grid_idx && grid_point < ADC_INTERPOLATOR_LUT_SIZE_MAX) {
-            adc_interpolator.points.push_back({
-                .raw = static_cast<uint16_t>(last_transition_idx),
-                .mV = static_cast<uint16_t>(prev_mV)
-            });
-            grid_point++;
-        }
-    }
-}
-
-bool IRAM_ATTR Head::adc_conv_done_callback(adc_continuous_handle_t handle,
-                                           const adc_continuous_evt_data_t *edata,
-                                           void *user_data) {
-    Head* self = static_cast<Head*>(user_data);
-
-    uint32_t sum = 0;
-    uint32_t count = 0;
-
-    // Average all samples in this frame
-    for (uint32_t i = 0; i < edata->size; i += SOC_ADC_DIGI_RESULT_BYTES) {
-        adc_digi_output_data_t *p = (adc_digi_output_data_t*)&edata->conv_frame_buffer[i];
-
-        if (p->type2.channel == ADC_CHANNEL_4) {
-            sum += p->type2.data;
-            count++;
-        }
-    }
-
-    if (count > 0) {
-        // Store avg_x100 to preserve fractional precision
-        uint32_t avg_x100 = (sum * 100) / count;
-
-        self->temp_ring_buffer[self->ring_buffer_idx] = avg_x100;
-        self->ring_buffer_idx = (self->ring_buffer_idx + 1) % TEMPERATURE_RING_BUFFER_SIZE;
-        auto prev_count = self->ring_buffer_count.load();
-        if (prev_count < TEMPERATURE_RING_BUFFER_SIZE) {
-            self->ring_buffer_count.store(static_cast<uint8_t>(prev_count + 1));
-        }
-    }
-
-    return false; // Don't yield from ISR
-}
-
-void Head::update_sensor_uv() {
-    uint32_t valid_count = ring_buffer_count.load();
-    if (valid_count == 0) {
-        return;
-    }
-
-    // Sum all avg_x100 values from ring buffer
-    uint32_t total_sum = 0;
-    for (uint32_t i = 0; i < valid_count; i++) {
-        total_sum += temp_ring_buffer[i];
-    }
-
-    // Convert to microvolts using interpolator (scale = valid_count * 100)
-    uint32_t uV = adc_interpolator.to_uv(total_sum, valid_count * 100);
-
-    last_sensor_value_uv.store(uV);
 }
 
 bool Head::get_head_params_pb(etl::ivector<uint8_t>& pb_data) {
@@ -321,42 +176,22 @@ bool Head::set_head_params(const HeadParams& params) {
     return true;
 }
 
-bool Head::is_tcr_sensor() const {
-    // New boards have no RTD support at all.
-    return true;
-    //return last_sensor_value_uv.load() <= SENSOR_SHORTED_LEVEL_MV * 1000;
-}
-
 int32_t Head::get_temperature_x10() {
     // Safety check, should never happen due to state machine
     if (!is_attached()) { return UNKNOWN_TEMPERATURE_X10; }
-
-    if (!is_tcr_sensor()) {
-        auto uV = last_sensor_value_uv.load();
-        return temperature_processor_rtd.get_temperature_x10(uV);
-    }
 
     auto mohms = power.get_load_mohm();
     if (mohms == Power::UNKNOWN_RESISTANCE) {
         return UNKNOWN_TEMPERATURE_X10;
     }
-    return temperature_processor_tcr.get_temperature_x10(mohms);
+    return temperature_processor.get_temperature_x10(mohms);
 }
 
 void Head::configure_temperature_processor() {
-    temperature_processor_rtd.set_sensor_type(SensorType_RTD);
-    temperature_processor_tcr.set_sensor_type(SensorType_TCR);
-
     // Load calibration data
     HeadParams params = HeadParams_init_zero;
     if (get_head_params(params, true)) {
-        temperature_processor_rtd.set_cal_points(
-            params.sensor_p0_at,
-            params.sensor_p0_value,
-            params.sensor_p1_at,
-            params.sensor_p1_value
-        );
-        temperature_processor_tcr.set_cal_points(
+        temperature_processor.set_cal_points(
             params.sensor_p0_at,
             params.sensor_p0_value,
             params.sensor_p1_at,
