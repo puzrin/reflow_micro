@@ -41,7 +41,7 @@ function formatPdo(value: number): string {
 
 type DecodedPdo = {
   state: 'placeholder' | 'unknown' | 'fixed' | 'pps' | 'spr_avs' | 'epr_avs'
-  typeLabel: '' | 'FIXED' | 'PPS' | 'APDO_SPR_AVS' | 'APDO_EPR_AVS'
+  typeLabel: '' | 'FIXED' | 'PPS' | 'SPR AVS' | 'EPR AVS'
   mvMin: number
   mvMax: number
   ma: number
@@ -75,14 +75,14 @@ function decodePdo(value: number): DecodedPdo {
       const ma20v = ((value >>> 10) & 0x3ff) * 10
       const mvMax = ma20v > 0 ? 20000 : 15000
       const ma = ma20v > 0 ? ma20v : ma15v
-      return { state: 'spr_avs', typeLabel: 'APDO_SPR_AVS', mvMin: 9000, mvMax, ma, pdp: 0 }
+      return { state: 'spr_avs', typeLabel: 'SPR AVS', mvMin: 9000, mvMax, ma, pdp: 0 }
     }
 
     if (apdoSubtype === 1) {
       const pdp = (value & 0xff)
       const mvMin = ((value >>> 8) & 0xff) * 100
       const mvMax = ((value >>> 17) & 0x1ff) * 100
-      return { state: 'epr_avs', typeLabel: 'APDO_EPR_AVS', mvMin, mvMax, ma: 0, pdp }
+      return { state: 'epr_avs', typeLabel: 'EPR AVS', mvMin, mvMax, ma: 0, pdp }
     }
   }
 
