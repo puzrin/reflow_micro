@@ -4,7 +4,8 @@
 
 class AppDPM : public pd::DPM {
 public:
-    AppDPM(pd::Port& port, class Power& power) : pd::DPM(port), power(power) {}
+    AppDPM(pd::Port& port, pd::IDriver& driver, class Power& power)
+        : pd::DPM(port, driver), power(power) {}
     void setup() override;
     void clear_trigger_to(uint32_t pos, uint32_t mv);
 
