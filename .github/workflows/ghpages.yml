@@ -34,12 +34,7 @@ jobs:
             gh api -X DELETE "/repos/${GITHUB_REPOSITORY}/deployments/${id}" || true
           done
 
-  # Single deploy job since we're just deploying
-  deploy:
-    needs: delete
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -48,7 +43,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
       - name: Set up Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '24'
           #cache: 'npm'
@@ -57,12 +52,20 @@ jobs:
       - name: Build
         run: npm run build
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           # Upload dist repository
           path: './webapp/dist'
+
+  deploy:
+    needs: [build, delete]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
